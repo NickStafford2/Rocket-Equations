@@ -2,6 +2,8 @@
 Doing some math and some code for calculating Lunar payloads for the HLS Starship
 
 $\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
+$\large\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
+$\huge\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
 
 where
 - $\Delta v$ is the total velocity change required for a burn,
