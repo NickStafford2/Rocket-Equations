@@ -12,9 +12,9 @@ export const EARTH_MOON_DISTANCE = 384_400_000.0
 export const MOON_ORBIT_PERIOD = 27.321661 * 24 * 3600
 export const MOON_ANGULAR_SPEED = (2 * Math.PI) / MOON_ORBIT_PERIOD
 
-export const DEFAULT_ALTITUDE = 300_000.0
+export const DEFAULT_ALTITUDE = 0.0
 export const DEFAULT_SPEED = 10_900.0
-export const DEFAULT_ANGLE_DEG = 25.0
+export const DEFAULT_ANGLE_DEG = 32.0
 export const DEFAULT_DT = 20.0
 
 export type BodyState = {

@@ -9,7 +9,7 @@ export function stepSimulation(
 ): SimulationState {
   if (state.hit) return state
 
-  const next = {
+  const next: SimulationState = {
     t: state.t,
     rocket: {
       position: state.rocket.position.clone(),
@@ -17,7 +17,7 @@ export function stepSimulation(
       acceleration: state.rocket.acceleration.clone(),
     },
     hit: state.hit,
-  } satisfies SimulationState
+  }
 
   const moonPos = moonPositionMeters(next.t)
   next.rocket.acceleration = gravitationalAccelerationMeters(
