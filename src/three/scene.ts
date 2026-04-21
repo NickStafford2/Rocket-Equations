@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js'
 import { createSceneObjects } from './objects'
+import { createReferenceSkybox } from './skybox'
 
 export type ThreeSceneBundle = {
   scene: THREE.Scene
@@ -49,7 +50,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const objects = createSceneObjects(scene)
   objects.system.rotation.x = THREE.MathUtils.degToRad(60)
   objects.system.rotation.z = THREE.MathUtils.degToRad(-12)
-  scene.add(createStarfield())
+  scene.add(createReferenceSkybox())
 
   const controls = new ArcballControls(camera, renderer.domElement, scene)
   const controlsWithTarget = controls as ArcballControls & { target: THREE.Vector3 }
@@ -95,43 +96,4 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     objects,
     dispose,
   }
-}
-
-function createStarfield(): THREE.Points {
-  const starCount = 3500
-  const positions = new Float32Array(starCount * 3)
-  const colors = new Float32Array(starCount * 3)
-  const color = new THREE.Color()
-
-  for (let i = 0; i < starCount; i += 1) {
-    const radius = THREE.MathUtils.randFloat(520, 1900)
-    const theta = THREE.MathUtils.randFloat(0, Math.PI * 2)
-    const phi = Math.acos(THREE.MathUtils.randFloatSpread(2))
-    const sinPhi = Math.sin(phi)
-    const index = i * 3
-
-    positions[index] = radius * sinPhi * Math.cos(theta)
-    positions[index + 1] = radius * Math.cos(phi)
-    positions[index + 2] = radius * sinPhi * Math.sin(theta)
-
-    color.setHSL(THREE.MathUtils.randFloat(0.52, 0.62), 0.55, THREE.MathUtils.randFloat(0.72, 0.92))
-    colors[index] = color.r
-    colors[index + 1] = color.g
-    colors[index + 2] = color.b
-  }
-
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-
-  const material = new THREE.PointsMaterial({
-    size: 2.6,
-    sizeAttenuation: true,
-    transparent: true,
-    opacity: 0.9,
-    vertexColors: true,
-    depthWrite: false,
-  })
-
-  return new THREE.Points(geometry, material)
 }
