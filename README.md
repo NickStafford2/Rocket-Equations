@@ -32,69 +32,146 @@ $$
 
 That means the starting mass is proportional to the final mass.
 
----
+In this moon example, that idea will be used in a very simple way:
+- the more mass you want to land on the moon, the more starting mass you need at departure
+- for a fixed mission profile, those two masses scale in proportion
 
-## 2. Problem Setup:
+## 2. Variables for the two moon missions
 
 Consider two Earth-to-moon missions.
 
-- $M_{0,1}$ is the starting mass before the Earth-to-moon burn
-- $M_{0,2}$ is the starting mass before the Earth-to-moon burn
+For mission 1:
+- $m_{\text{start},1}$ is the total mass before the start of the trip from Earth toward the moon
+- $m_{\text{moon},1}$ is the total mass that lands on the moon
+
+For mission 2:
+- $m_{\text{start},2}$ is the total mass before the start of the trip from Earth toward the moon
+- $m_{\text{moon},2}$ is the total mass that lands on the moon
+
 
 Now break each moon-landed mass into parts:
 
 $$
-L_1 = P_1 + R_1 + S_1
+m_{\text{moon},1}
+=
+m_{\text{payload,moon},1}
++
+m_{\text{return,wet},1}
++
+m_{\text{landing},1}
 $$
 
 $$
-L_2 = P_2 + R_2 + S_2
+m_{\text{moon},2}
+=
+m_{\text{payload,moon},2}
++
+m_{\text{return,wet},2}
++
+m_{\text{landing},2}
 $$
 
 where:
-- $L_1, L_2$ are the total mass landed on the moon
-- $P_1, P_2$ are the useful payloads left on the moon
-- $R_1, R_2$ are the return rockets carried to the moon, including their fuel
-- $S_1, S_2$ are the other moon-landing hardware masses, such as structure, tanks, engines, and landing legs
+- $m_{\text{payload,moon},1}$ and $m_{\text{payload,moon},2}$ are the useful payloads left on the moon
+- $m_{\text{return,wet},1}$ and $m_{\text{return,wet},2}$ are the wet masses of the return vehicles carried to the moon
+- $m_{\text{landing},1}$ and $m_{\text{landing},2}$ are the other moon-landing hardware masses, such as structure, tanks, engines, and landing legs
 
-So $L_1$ and $L_2$ are not just useful equipment. They include:
+Here, “wet mass” means the mass of the return vehicle including its propellant.
+
+So the total mass landed on the moon is not just useful equipment. It includes:
 - useful payload left on the moon
-- the return system
-- other hardware needed to land on the moon
+- the return vehicle that was carried there
+- the rest of the hardware needed to land on the moon safely
 
 ---
 
-## 3. The return rockets
+## 3. The return vehicles
 
-Now define the return systems more carefully.
+Now define the return vehicles more carefully.
 
-$$
-R_1 = F_1 + E_1
-$$
+For mission 1:
 
 $$
-R_2 = F_2 + E_2
+m_{\text{return,wet},1}
+=
+m_{\text{propellant,return},1}
++
+m_{\text{return,dry},1}
+$$
+
+For mission 2:
+
+$$
+m_{\text{return,wet},2}
+=
+m_{\text{propellant,return},2}
++
+m_{\text{return,dry},2}
 $$
 
 where:
-- $F_1, F_2$ are the fuel masses needed for the return trip
-- $E_1, E_2$ are the dry masses of the return vehicles after that fuel is spent
+- $m_{\text{propellant,return},1}$ and $m_{\text{propellant,return},2}$ are the return propellant masses
+- $m_{\text{return,dry},1}$ and $m_{\text{return,dry},2}$ are the dry masses of the return vehicles after that propellant is spent
 
 Now break the dry return vehicles apart:
 
 $$
-E_1 = P_3 + S_{E,1}
+m_{\text{return,dry},1}
+=
+m_{\text{payload,return},1}
++
+m_{\text{return,structure},1}
 $$
 
 $$
-E_2 = P_4 + S_{E,2}
+m_{\text{return,dry},2}
+=
+m_{\text{payload,return},2}
++
+m_{\text{return,structure},2}
 $$
 
 where:
-- $P_3, P_4$ are the useful payloads returned to Earth
-- $S_{E,1}, S_{E,2}$ are the non-payload parts needed for safe Earth return
+- $m_{\text{payload,return},1}$ and $m_{\text{payload,return},2}$ are the useful payloads returned to Earth
+- $m_{\text{return,structure},1}$ and $m_{\text{return,structure},2}$ are the non-payload parts required for safe return to Earth
 
-So the return payload is nested inside the return vehicle, and the return vehicle is nested inside the moon-landed mass.
+So the structure is nested like this:
+
+$$
+m_{\text{moon}}
+=
+m_{\text{payload,moon}}
++
+m_{\text{return,wet}}
++
+m_{\text{landing}}
+$$
+
+and
+
+$$
+m_{\text{return,wet}}
+=
+m_{\text{propellant,return}}
++
+m_{\text{return,dry}}
+$$
+
+and
+
+$$
+m_{\text{return,dry}}
+=
+m_{\text{payload,return}}
++
+m_{\text{return,structure}}
+$$
+
+This makes the physical story clear:
+- some mass is left on the moon as useful payload
+- some mass is the return vehicle that must first be carried to the moon
+- inside that return vehicle, some mass is return propellant
+- and inside the dry return vehicle, some mass is useful payload returned to Earth
 
 ---
 
