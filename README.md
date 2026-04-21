@@ -52,13 +52,8 @@ For mission 2:
 Now break each moon-landed mass into parts:
 
 $$
-m_{\text{moon},1}
-=
-m_{\text{payload,moon},1}
-+
-m_{\text{return,wet},1}
-+
-m_{\text{landing},1}
+m_{\text{moon},1} =
+m_{\text{payload,moon},1} + m_{\text{return,wet},1} m_{\text{landing},1}
 $$
 
 $$
