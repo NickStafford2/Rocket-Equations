@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { EARTH_MOON_DISTANCE, R_EARTH, R_MOON } from '../physics/bodies'
+import earthTextureUrl from '../assets/textures/8k_earth.jpg'
+import moonTextureUrl from '../assets/textures/mercury.jpg'
 
 export const DISTANCE_SCALE = 1 / 2_000_000
 const _SCALE = 1
@@ -7,9 +9,11 @@ const _SCALE = 1
 export const EARTH_DRAW_RADIUS = R_EARTH * DISTANCE_SCALE * _SCALE
 export const MOON_DRAW_RADIUS = R_MOON * DISTANCE_SCALE * _SCALE
 export const ROCKET_DRAW_RADIUS = R_EARTH * DISTANCE_SCALE * _SCALE / 100
+const EARTH_AXIAL_TILT_DEG = 23.5
 
 export type SceneObjects = {
   system: THREE.Group
+  earthGroup: THREE.Group
   earth: THREE.Mesh
   earthAtmosphere: THREE.Mesh
   moon: THREE.Mesh
@@ -25,17 +29,28 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const system = new THREE.Group()
   scene.add(system)
 
+  const loader = new THREE.TextureLoader()
+  const earthTexture = loader.load(earthTextureUrl)
+  earthTexture.colorSpace = THREE.SRGBColorSpace
+
+  const moonTexture = loader.load(moonTextureUrl)
+  moonTexture.colorSpace = THREE.SRGBColorSpace
+
+  const earthGroup = new THREE.Group()
+  system.add(earthGroup)
+
   const earth = new THREE.Mesh(
     new THREE.SphereGeometry(EARTH_DRAW_RADIUS, 64, 64),
     new THREE.MeshStandardMaterial({
-      color: 0x2f7cff,
-      roughness: 0.92,
+      map: earthTexture,
+      color: 0xffffff,
+      roughness: 0.94,
       metalness: 0.02,
       emissive: 0x061c42,
-      emissiveIntensity: 0.55,
+      emissiveIntensity: 0.22,
     }),
   )
-  system.add(earth)
+  earthGroup.add(earth)
 
   const earthAtmosphere = new THREE.Mesh(
     new THREE.SphereGeometry(EARTH_DRAW_RADIUS * 1.08, 64, 64),
@@ -47,16 +62,25 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       blending: THREE.AdditiveBlending,
     }),
   )
-  system.add(earthAtmosphere)
+  earthGroup.add(earthAtmosphere)
+
+  const earthAxis = new THREE.Vector3(
+    0,
+    Math.cos(THREE.MathUtils.degToRad(EARTH_AXIAL_TILT_DEG)),
+    Math.sin(THREE.MathUtils.degToRad(EARTH_AXIAL_TILT_DEG)),
+  ).normalize()
+  earthGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), earthAxis)
+  earth.rotation.y = Math.PI * 1.15
 
   const moon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_DRAW_RADIUS, 48, 48),
     new THREE.MeshStandardMaterial({
-      color: 0xd5d4d0,
+      map: moonTexture,
+      color: 0xf1efea,
       roughness: 0.98,
       metalness: 0.01,
-      emissive: 0x191919,
-      emissiveIntensity: 0.15,
+      emissive: 0x121212,
+      emissiveIntensity: 0.06,
     }),
   )
   system.add(moon)
@@ -187,6 +211,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
 
   return {
     system,
+    earthGroup,
     earth,
     earthAtmosphere,
     moon,
