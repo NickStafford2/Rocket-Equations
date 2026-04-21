@@ -1,36 +1,41 @@
 # Rocket-Equations
 Doing some math and some code for calculating Lunar payloads for the HLS Starship
+## 1. The rocket equation
 
-$\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
-$\large\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
-$\huge\Delta v = v_e \ln\!\left(\frac{m_0}{m_f}\right)$
+The basic rocket equation is:
 
-where
-- $\Delta v$ is the total velocity change required for a burn,
-- $v_e$ is the effective exhaust velocity of the engine,
-[
-m_0
-]
+$$
+\Delta v = v_e \ln!\left(\frac{m_0}{m_f}\right)
+$$
 
-is the mass before the burn, and
+where:
 
-[
-m_f
-]
+* $\Delta v$ is the required change in velocity for the burn
+* $v_e$ is the effective exhaust velocity
+* $m_0$ is the mass before the burn
+* $m_f$ is the mass after the burn
 
-is the mass after the burn.
+If the engine and mission are fixed, this can be rewritten as:
 
-If the mission requirement and engine are fixed, then this can be rearranged as
+$$
+m_0 = m_f e^{\Delta v / v_e}
+$$
 
-[
-m_0 = m_f , e^{\Delta v / v_e}
-]
+where:
 
-where the exponential factor
+* $e^{\Delta v / v_e}$ is a constant for that mission and engine combination
 
-[
-e^{\Delta v / v_e}
-]
+This is the main mathematical idea.
+
+For a fixed mission and a fixed engine,
+
+$$
+m_0 \propto m_f
+$$
+
+# fix after this. 
+
+That means the starting mass is proportional to the final mass.
 
 is just a constant for that mission and engine.
 
