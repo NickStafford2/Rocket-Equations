@@ -94,7 +94,7 @@ export default function App() {
     if (!mount) return
 
     const bundle = createThreeScene(mount)
-    const { scene, camera, renderer, controls, objects } = bundle
+    const { camera, controls, objects, render, resize } = bundle
 
     function syncScene() {
       const simState = simulation.getState()
@@ -154,7 +154,7 @@ export default function App() {
       if (!mountRef.current) return
       camera.aspect = mountRef.current.clientWidth / Math.max(mountRef.current.clientHeight, 1)
       camera.updateProjectionMatrix()
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight)
+      resize(mountRef.current.clientWidth, mountRef.current.clientHeight)
     }
 
     window.addEventListener('resize', onResize)
@@ -166,7 +166,7 @@ export default function App() {
 
       syncScene()
       controls.update()
-      renderer.render(scene, camera)
+      render()
       animationRef.current = requestAnimationFrame(frame)
     }
 

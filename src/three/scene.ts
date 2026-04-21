@@ -1,5 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { createSceneObjects } from "./objects";
 import { createReferenceSkybox } from "./skybox";
 import { createReferenceSun } from "./sun";
@@ -10,6 +14,8 @@ export type ThreeSceneBundle = {
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
   objects: ReturnType<typeof createSceneObjects>;
+  render: () => void;
+  resize: (width: number, height: number) => void;
   dispose: () => void;
 };
 
@@ -38,6 +44,18 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
   container.appendChild(renderer.domElement);
+
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  composer.addPass(
+    new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      1.6,
+      0.55,
+      0.72,
+    ),
+  );
+  composer.addPass(new OutputPass());
 
   const hemisphereLight = new THREE.HemisphereLight(0xa9d4ff, 0x05070d, 0.75);
   scene.add(hemisphereLight);
@@ -69,6 +87,15 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   controls.target.set(56, 0, 0);
   controls.update();
 
+  function resize(width: number, height: number) {
+    renderer.setSize(width, height);
+    composer.setSize(width, height);
+  }
+
+  function render() {
+    composer.render();
+  }
+
   function dispose() {
     controls.dispose();
     scene.traverse((object: THREE.Object3D) => {
@@ -95,6 +122,8 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     renderer,
     controls,
     objects,
+    render,
+    resize,
     dispose,
   };
 }
