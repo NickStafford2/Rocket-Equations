@@ -52,24 +52,17 @@ For mission 2:
 Now break each moon-landed mass into parts:
 
 $$
-m_{\text{moon},1} =
-m_{\text{payload,moon},1} + m_{\text{return,wet},1} m_{\text{landing},1}
+m_{\text{moon},1} = m_{\text{payload,moon},1} + m_{\text{return,wet},1} m_{\text{landing},1}
 $$
 
 $$
-m_{\text{moon},2}
-=
-m_{\text{payload,moon},2}
-+
-m_{\text{return,wet},2}
-+
-m_{\text{landing},2}
+m_{\text{moon},2} = m_{\text{payload,moon},2} + m_{\text{return,wet},2} m_{\text{landing},2}
 $$
 
 where:
-- $m_{\text{payload,moon},1}$ and $m_{\text{payload,moon},2}$ are the useful payloads left on the moon
-- $m_{\text{return,wet},1}$ and $m_{\text{return,wet},2}$ are the wet masses of the return vehicles carried to the moon
-- $m_{\text{landing},1}$ and $m_{\text{landing},2}$ are the other moon-landing hardware masses, such as structure, tanks, engines, and landing legs
+- $m_{\text{payload,moon}}$ is the useful payloads left on the moon
+- $m_{\text{return,wet}}$ is the wet masses of the return vehicle carried to the moon
+- $m_{\text{landing}}$ is the other moon-landing hardware masses, such as structure, tanks, engines, and landing legs
 
 Here, “wet mass” means the mass of the return vehicle including its propellant.
 
@@ -87,79 +80,48 @@ Now define the return vehicles more carefully.
 For mission 1:
 
 $$
-m_{\text{return,wet},1}
-=
-m_{\text{propellant,return},1}
-+
-m_{\text{return,dry},1}
+m_{\text{return,wet},1} = m_{\text{propellant,return},1} + m_{\text{return,dry},1}
 $$
 
 For mission 2:
 
 $$
-m_{\text{return,wet},2}
-=
-m_{\text{propellant,return},2}
-+
-m_{\text{return,dry},2}
+m_{\text{return,wet},2} = m_{\text{propellant,return},2} + m_{\text{return,dry},2}
 $$
 
 where:
-- $m_{\text{propellant,return},1}$ and $m_{\text{propellant,return},2}$ are the return propellant masses
-- $m_{\text{return,dry},1}$ and $m_{\text{return,dry},2}$ are the dry masses of the return vehicles after that propellant is spent
+- $m_{\text{propellant,return}}$ is the return propellant masses
+- $m_{\text{return,dry}}$ is the dry masses of the return vehicles after that propellant is spent
 
 Now break the dry return vehicles apart:
 
 $$
-m_{\text{return,dry},1}
-=
-m_{\text{payload,return},1}
-+
-m_{\text{return,structure},1}
+m_{\text{return,dry},1} = m_{\text{payload,return},1} + m_{\text{return,structure},1}
 $$
 
 $$
-m_{\text{return,dry},2}
-=
-m_{\text{payload,return},2}
-+
-m_{\text{return,structure},2}
+m_{\text{return,dry},2} = m_{\text{payload,return},2} + m_{\text{return,structure},2}
 $$
 
 where:
-- $m_{\text{payload,return},1}$ and $m_{\text{payload,return},2}$ are the useful payloads returned to Earth
-- $m_{\text{return,structure},1}$ and $m_{\text{return,structure},2}$ are the non-payload parts required for safe return to Earth
+- $m_{\text{payload,return}}$ is the useful payloads returned to Earth.
+- $m_{\text{return,structure}}$ is the non-payload parts required for safe return to Earth.
 
 So the structure is nested like this:
 
 $$
-m_{\text{moon}}
-=
-m_{\text{payload,moon}}
-+
-m_{\text{return,wet}}
-+
-m_{\text{landing}}
+m_{\text{moon}} = m_{\text{payload,moon}} + m_{\text{return,wet}} m_{\text{landing}}
 $$
 
 and
 
 $$
-m_{\text{return,wet}}
-=
-m_{\text{propellant,return}}
-+
-m_{\text{return,dry}}
-$$
+m_{\text{return,wet}} = m_{\text{propellant,return}} + m_{\text{return,dry}} $$
 
 and
 
 $$
-m_{\text{return,dry}}
-=
-m_{\text{payload,return}}
-+
-m_{\text{return,structure}}
+m_{\text{return,dry}} = m_{\text{payload,return}} + m_{\text{return,structure}}
 $$
 
 This makes the physical story clear:
