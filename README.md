@@ -36,15 +36,10 @@ That means the starting mass is proportional to the final mass.
 
 ## 2. Problem Setup:
 
-Consider two Earth-to-moon missions, mission 1 and mission 2.
+Consider two Earth-to-moon missions.
 
-For mission 1:
 - $M_{0,1}$ is the starting mass before the Earth-to-moon burn
-- $L_1$ is the total mass landed on the moon
-
-For mission 2:
 - $M_{0,2}$ is the starting mass before the Earth-to-moon burn
-- $L_2$ is the total mass landed on the moon
 
 Now break each moon-landed mass into parts:
 
@@ -57,6 +52,7 @@ L_2 = P_2 + R_2 + S_2
 $$
 
 where:
+- $L_1, L_2$ are the total mass landed on the moon
 - $P_1, P_2$ are the useful payloads left on the moon
 - $R_1, R_2$ are the return rockets carried to the moon, including their fuel
 - $S_1, S_2$ are the other moon-landing hardware masses, such as structure, tanks, engines, and landing legs
