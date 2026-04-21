@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createSceneObjects } from "./objects";
 import { createReferenceSkybox } from "./skybox";
+import { createReferenceSun } from "./sun";
 
 export type ThreeSceneBundle = {
   scene: THREE.Scene;
@@ -44,18 +45,15 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const ambientLight = new THREE.AmbientLight(0x8db7ff, 0.35);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xfff0d6, 1.85);
-  directionalLight.position.set(180, 90, 110);
-  scene.add(directionalLight);
-
-  const rimLight = new THREE.DirectionalLight(0x4bb8ff, 0.9);
-  rimLight.position.set(-120, -20, -160);
-  scene.add(rimLight);
-
   const objects = createSceneObjects(scene);
   objects.system.add(createOrbitalGrid());
   objects.system.add(createAxisHelper());
   scene.add(createReferenceSkybox());
+
+  const sunBundle = createReferenceSun();
+  scene.add(sunBundle.sun);
+  scene.add(sunBundle.sunLight);
+  scene.add(sunBundle.fillLight);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
