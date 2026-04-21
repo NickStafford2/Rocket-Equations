@@ -319,7 +319,7 @@ export default function App() {
                 <span className="rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-cyan-100">
                   Scene View
                 </span>
-                <span>Arcball view with inclined orbital plane</span>
+                <span>Orbit view with Y-up orbital plane</span>
               </div>
               <div className="flex flex-wrap gap-2 text-[0.68rem]">
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
@@ -329,7 +329,7 @@ export default function App() {
                   Wheel to zoom
                 </span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  Double-click to focus
+                  Right-drag to pan
                 </span>
               </div>
             </div>

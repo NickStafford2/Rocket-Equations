@@ -153,8 +153,8 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       opacity: 0.9,
     }),
   )
-  launchRing.position.set(0, EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 0.4, 0)
-  launchRing.rotation.x = Math.PI / 2
+  launchRing.position.set(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 0.4, 0, 0)
+  launchRing.rotation.y = Math.PI / 2
   system.add(launchRing)
 
   const moonOrbitPoints: THREE.Vector3[] = []
@@ -163,8 +163,8 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     moonOrbitPoints.push(
       new THREE.Vector3(
         EARTH_MOON_DISTANCE * Math.cos(theta) * DISTANCE_SCALE,
-        EARTH_MOON_DISTANCE * Math.sin(theta) * DISTANCE_SCALE,
         0,
+        EARTH_MOON_DISTANCE * Math.sin(theta) * DISTANCE_SCALE,
       ),
     )
   }

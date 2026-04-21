@@ -35,8 +35,8 @@ export function moonPositionMeters(t: number): THREE.Vector3 {
   const theta = MOON_ANGULAR_SPEED * t
   return new THREE.Vector3(
     EARTH_MOON_DISTANCE * Math.cos(theta),
-    EARTH_MOON_DISTANCE * Math.sin(theta),
     0,
+    EARTH_MOON_DISTANCE * Math.sin(theta),
   )
 }
 
@@ -45,10 +45,10 @@ export function makeInitialRocketState(
   angleDeg: number,
   altitude: number = DEFAULT_ALTITUDE,
 ): BodyState {
-  const position = new THREE.Vector3(0, R_EARTH + altitude, 0)
+  const position = new THREE.Vector3(R_EARTH + altitude, 0, 0)
 
   const radialHat = position.clone().normalize()
-  const tangentHat = new THREE.Vector3(-radialHat.y, radialHat.x, 0).normalize()
+  const tangentHat = new THREE.Vector3(0, 0, 1)
 
   const angleRad = THREE.MathUtils.degToRad(angleDeg)
   const direction = tangentHat
