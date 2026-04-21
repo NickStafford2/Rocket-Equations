@@ -76,12 +76,16 @@ So the total mass landed on the moon is not just useful equipment. It includes:
 ## 3. The return vehicles
 
 
-For mission 1: $m_{\text{return,wet},1} = m_{\text{propellant,return},1} + m_{\text{return,dry},1}$
+$$
+m_{\text{return,wet},1} = m_{\text{return,propellant},1} + m_{\text{return,dry},1}
+$$
 
-For mission 2: $m_{\text{return,wet},2} = m_{\text{propellant,return},2} + m_{\text{return,dry},2}$
+$$
+m_{\text{return,wet},2} = m_{\text{return,propellant},2} + m_{\text{return,dry},2}
+$$
 
 where:
-- $m_{\text{propellant,return}}$ is the return propellant masses
+- $m_{\text{return,propellant}}$ is the return propellant masses
 - $m_{\text{return,dry}}$ is the dry masses of the return vehicles after that propellant is spent
 
 Now break the dry return vehicles apart:
