@@ -9,6 +9,7 @@ export const MOON_DRAW_RADIUS = R_MOON * DISTANCE_SCALE * _SCALE
 export const ROCKET_DRAW_RADIUS = R_EARTH * DISTANCE_SCALE * _SCALE / 100
 
 export type SceneObjects = {
+  system: THREE.Group
   earth: THREE.Mesh
   earthAtmosphere: THREE.Mesh
   moon: THREE.Mesh
@@ -21,6 +22,9 @@ export type SceneObjects = {
 }
 
 export function createSceneObjects(scene: THREE.Scene): SceneObjects {
+  const system = new THREE.Group()
+  scene.add(system)
+
   const earth = new THREE.Mesh(
     new THREE.SphereGeometry(EARTH_DRAW_RADIUS, 64, 64),
     new THREE.MeshStandardMaterial({
@@ -31,7 +35,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       emissiveIntensity: 0.55,
     }),
   )
-  scene.add(earth)
+  system.add(earth)
 
   const earthAtmosphere = new THREE.Mesh(
     new THREE.SphereGeometry(EARTH_DRAW_RADIUS * 1.08, 64, 64),
@@ -43,7 +47,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       blending: THREE.AdditiveBlending,
     }),
   )
-  scene.add(earthAtmosphere)
+  system.add(earthAtmosphere)
 
   const moon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_DRAW_RADIUS, 48, 48),
@@ -55,7 +59,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       emissiveIntensity: 0.15,
     }),
   )
-  scene.add(moon)
+  system.add(moon)
 
   const rocket = new THREE.Group()
   const rocketMaterial = new THREE.MeshStandardMaterial({
@@ -115,7 +119,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     rocket.add(fin)
   }
 
-  scene.add(rocket)
+  system.add(rocket)
 
   const launchRing = new THREE.Mesh(
     new THREE.TorusGeometry(ROCKET_DRAW_RADIUS * 3.4, ROCKET_DRAW_RADIUS * 0.16, 12, 42),
@@ -127,7 +131,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   )
   launchRing.position.set(0, EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 0.4, 0)
   launchRing.rotation.x = Math.PI / 2
-  scene.add(launchRing)
+  system.add(launchRing)
 
   const moonOrbitPoints: THREE.Vector3[] = []
   for (let i = 0; i <= 512; i += 1) {
@@ -149,7 +153,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       opacity: 0.7,
     }),
   )
-  scene.add(moonOrbit)
+  system.add(moonOrbit)
 
   const trailLine = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints([]),
@@ -159,7 +163,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       opacity: 0.95,
     }),
   )
-  scene.add(trailLine)
+  system.add(trailLine)
 
   const velocityArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
@@ -169,7 +173,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     4,
     2,
   )
-  scene.add(velocityArrow)
+  system.add(velocityArrow)
 
   const accelerationArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
@@ -179,9 +183,10 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     4,
     2,
   )
-  scene.add(accelerationArrow)
+  system.add(accelerationArrow)
 
   return {
+    system,
     earth,
     earthAtmosphere,
     moon,

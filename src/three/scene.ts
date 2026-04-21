@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js'
 import { createSceneObjects } from './objects'
 
 export type ThreeSceneBundle = {
   scene: THREE.Scene
   camera: THREE.PerspectiveCamera
   renderer: THREE.WebGLRenderer
-  controls: OrbitControls
+  controls: ArcballControls
   objects: ReturnType<typeof createSceneObjects>
   dispose: () => void
 }
@@ -22,7 +22,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     0.1,
     10000,
   )
-  camera.position.set(-42, 56, 122)
+  camera.position.set(-92, 112, 228)
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(window.devicePixelRatio)
@@ -31,14 +31,6 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.15
   container.appendChild(renderer.domElement)
-
-  const controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.dampingFactor = 0.05
-  controls.minDistance = 8
-  controls.maxDistance = 1200
-  controls.target.set(0, 0, 0)
-  controls.update()
 
   const hemisphereLight = new THREE.HemisphereLight(0xa9d4ff, 0x05070d, 0.75)
   scene.add(hemisphereLight)
@@ -55,7 +47,25 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   scene.add(rimLight)
 
   const objects = createSceneObjects(scene)
+  objects.system.rotation.x = THREE.MathUtils.degToRad(60)
+  objects.system.rotation.z = THREE.MathUtils.degToRad(-12)
   scene.add(createStarfield())
+
+  const controls = new ArcballControls(camera, renderer.domElement, scene)
+  const controlsWithTarget = controls as ArcballControls & { target: THREE.Vector3 }
+  controls.minDistance = 12
+  controls.maxDistance = 1400
+  controls.rotateSpeed = 1.1
+  controls.scaleFactor = 1.15
+  controls.cursorZoom = true
+  controls.enableGrid = false
+  controls.enableAnimations = true
+  controls.dampingFactor = 18
+  controls.focusAnimationTime = 0.4
+  controlsWithTarget.target.set(56, 0, 0)
+  controls.setGizmosVisible(false)
+  controls.update()
+  controls.saveState()
 
   function dispose() {
     controls.dispose()
