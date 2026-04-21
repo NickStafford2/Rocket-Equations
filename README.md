@@ -23,7 +23,6 @@ $$
 where:
 - $e^{\Delta v / v_e}$ is a constant for that mission and engine combination
 
-This is the main mathematical idea.
 
 For a fixed mission and a fixed engine,
 
@@ -35,7 +34,7 @@ That means the starting mass is proportional to the final mass.
 
 ---
 
-## 2. A clear version of the setup
+## 2. Problem Setup:
 
 Consider two Earth-to-moon missions, mission 1 and mission 2.
 
