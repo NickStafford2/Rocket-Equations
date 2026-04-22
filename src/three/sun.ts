@@ -12,8 +12,8 @@ export const SUN_DRAW_RADIUS = 42;
 
 export type ReferenceSunBundle = {
   sun: THREE.Mesh;
-  sunLight: THREE.PointLight;
-  fillLight: THREE.PointLight;
+  sunLight: THREE.DirectionalLight;
+  fillLight: THREE.DirectionalLight;
 };
 
 export function createReferenceSun(): ReferenceSunBundle {
@@ -35,21 +35,13 @@ export function createReferenceSun(): ReferenceSunBundle {
   sun.userData.focusRadius = SUN_DRAW_RADIUS;
   sun.position.copy(SUN_POSITION);
 
-  const sunLight = new THREE.PointLight(
-    new THREE.Color(1.0, 1.0, 1.0),
-    10.0,
-    0,
-    0.5,
-  );
+  const sunLight = new THREE.DirectionalLight(0xffffff, 4.8);
   sunLight.position.copy(SUN_POSITION);
+  sunLight.target.position.set(0, 0, 0);
 
-  const fillLight = new THREE.PointLight(
-    new THREE.Color(0.2, 0.4, 1.0),
-    2.0,
-    420,
-    1,
-  );
+  const fillLight = new THREE.DirectionalLight(0x6ba9ff, 0.65);
   fillLight.position.set(260, 140, -220);
+  fillLight.target.position.set(0, 0, 0);
 
   const lensflare = new Lensflare();
   const textureFlare0 = textureLoader.load(lensflare0Url);

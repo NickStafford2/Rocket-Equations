@@ -17,9 +17,6 @@ import type { ThreeSceneBundle } from "./three/scene";
 import { metersToScene } from "./three/objects";
 import { Controls } from "./ui/controls";
 
-const EARTH_SPIN_SPEED = 0.6;
-const MOON_SPIN_SPEED = 1.2;
-
 function formatDistance(meters: number): string {
   const clamped = Math.max(meters, 0);
 
@@ -140,7 +137,7 @@ export default function App() {
       bundle;
     bundleRef.current = bundle;
 
-    function syncScene(deltaSeconds: number) {
+    function syncScene() {
       const simState = simulation.getState();
       const telemetryNow = simulation.getTelemetry();
       const launchFrame = getLaunchFrame(0, launchAzimuthRef.current);
@@ -192,9 +189,6 @@ export default function App() {
         Math.max(4, aimArrowLength * 0.22),
         Math.max(2, aimArrowLength * 0.11),
       );
-      objects.earth.rotation.y += EARTH_SPIN_SPEED * deltaSeconds;
-      objects.moon.rotation.y += MOON_SPIN_SPEED * deltaSeconds;
-
       objects.trailLine.visible = showTrail;
       const trailPoints = simulation.getTrail().map((p) => metersToScene(p));
       objects.trailLine.geometry.dispose();
@@ -316,15 +310,13 @@ export default function App() {
 
     window.addEventListener("resize", onResize);
     renderer.domElement.addEventListener("dblclick", onDoubleClick);
-    const clock = new THREE.Clock();
 
     function frame() {
       if (runningRef.current) {
         simulation.tick();
       }
 
-      const deltaSeconds = clock.getDelta();
-      syncScene(deltaSeconds);
+      syncScene();
       if (focusTransitionRef.current) {
         camera.position.lerp(focusTransitionRef.current.position, 0.12);
         controls.target.lerp(focusTransitionRef.current.target, 0.12);
