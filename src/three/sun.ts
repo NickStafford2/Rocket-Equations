@@ -8,6 +8,7 @@ import lensflare0Url from "../assets/textures/lensflare0.png";
 import lensflare2Url from "../assets/textures/lensflare2.png";
 
 export const SUN_POSITION = new THREE.Vector3(-980, 320, -540);
+export const SUN_DRAW_RADIUS = 42;
 
 export type ReferenceSunBundle = {
   sun: THREE.Mesh;
@@ -22,7 +23,7 @@ export function createReferenceSun(): ReferenceSunBundle {
   sunTexture.colorSpace = THREE.SRGBColorSpace;
 
   const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(42, 48, 48),
+    new THREE.SphereGeometry(SUN_DRAW_RADIUS, 48, 48),
     new THREE.MeshBasicMaterial({
       map: sunTexture,
       toneMapped: false,
@@ -30,6 +31,8 @@ export function createReferenceSun(): ReferenceSunBundle {
       color: new THREE.Color(1.18, 1.08, 0.92),
     }),
   );
+  sun.userData.focusLabel = "Sun";
+  sun.userData.focusRadius = SUN_DRAW_RADIUS;
   sun.position.copy(SUN_POSITION);
 
   const sunLight = new THREE.PointLight(0xfff1d6, 28, 0, 1.5);

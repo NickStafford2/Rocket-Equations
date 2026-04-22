@@ -18,7 +18,11 @@ export type SceneObjects = {
   earthAtmosphere: THREE.Mesh
   moon: THREE.Mesh
   rocket: THREE.Group
+  launchLocationArrow: THREE.ArrowHelper
   launchRing: THREE.Mesh
+  launchTangentArrow: THREE.ArrowHelper
+  launchNormalArrow: THREE.ArrowHelper
+  launchAimArrow: THREE.ArrowHelper
   moonOrbit: THREE.Line
   trailLine: THREE.Line
   velocityArrow: THREE.ArrowHelper
@@ -37,6 +41,8 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   moonTexture.colorSpace = THREE.SRGBColorSpace
 
   const earthGroup = new THREE.Group()
+  earthGroup.userData.focusLabel = 'Earth'
+  earthGroup.userData.focusRadius = EARTH_DRAW_RADIUS
   system.add(earthGroup)
 
   const earth = new THREE.Mesh(
@@ -83,9 +89,12 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       emissiveIntensity: 0.06,
     }),
   )
+  moon.userData.focusLabel = 'Moon'
+  moon.userData.focusRadius = MOON_DRAW_RADIUS
   system.add(moon)
 
   const rocket = new THREE.Group()
+  rocket.userData.focusLabel = 'Rocket'
   const rocketMaterial = new THREE.MeshStandardMaterial({
     color: 0xe9eef7,
     roughness: 0.35,
@@ -105,6 +114,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   })
   const bodyRadius = ROCKET_DRAW_RADIUS * 0.42
   const bodyLength = ROCKET_DRAW_RADIUS * 5.5
+  rocket.userData.focusRadius = bodyLength * 0.9
 
   const body = new THREE.Mesh(
     new THREE.CylinderGeometry(bodyRadius, bodyRadius, bodyLength, 18),
@@ -145,6 +155,16 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
 
   system.add(rocket)
 
+  const launchLocationArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(),
+    EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6,
+    0xf472b6,
+    6,
+    3,
+  )
+  system.add(launchLocationArrow)
+
   const launchRing = new THREE.Mesh(
     new THREE.TorusGeometry(ROCKET_DRAW_RADIUS * 3.4, ROCKET_DRAW_RADIUS * 0.16, 12, 42),
     new THREE.MeshBasicMaterial({
@@ -154,8 +174,37 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     }),
   )
   launchRing.position.set(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 0.4, 0, 0)
-  launchRing.rotation.y = Math.PI / 2
   system.add(launchRing)
+
+  const launchTangentArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
+    16,
+    0x4dd0ff,
+    4,
+    2,
+  )
+  system.add(launchTangentArrow)
+
+  const launchNormalArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
+    16,
+    0x7dffb2,
+    4,
+    2,
+  )
+  system.add(launchNormalArrow)
+
+  const launchAimArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
+    18,
+    0xff8d5c,
+    5,
+    2.5,
+  )
+  system.add(launchAimArrow)
 
   const moonOrbitPoints: THREE.Vector3[] = []
   for (let i = 0; i <= 512; i += 1) {
@@ -216,7 +265,11 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthAtmosphere,
     moon,
     rocket,
+    launchLocationArrow,
     launchRing,
+    launchTangentArrow,
+    launchNormalArrow,
+    launchAimArrow,
     moonOrbit,
     trailLine,
     velocityArrow,

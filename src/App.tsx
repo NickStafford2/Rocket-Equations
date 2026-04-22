@@ -3,21 +3,25 @@ import * as THREE from 'three'
 import {
   DEFAULT_ANGLE_DEG,
   DEFAULT_DT,
+  DEFAULT_LAUNCH_AZIMUTH_DEG,
   DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
   R_EARTH,
   R_MOON,
+  getLaunchFrame,
+  makeInitialRocketState,
 } from './physics/bodies'
 import { EarthMoonSimulation } from './sim/simulation'
 import { createThreeScene } from './three/scene'
+import type { ThreeSceneBundle } from './three/scene'
 import { metersToScene } from './three/objects'
 import { Controls } from './ui/controls'
 
 function formatDistance(meters: number): string {
   const clamped = Math.max(meters, 0)
 
-  if (clamped >= 1_000_000) {
-    return `${(clamped / 1_000_000).toLocaleString(undefined, {
+  if (clamped >= 1_000_000_000) {
+    return `${(clamped / 1_000_000_000).toLocaleString(undefined, {
       maximumFractionDigits: 2,
     })} million km`
   }
@@ -61,12 +65,25 @@ export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const animationRef = useRef<number | null>(null)
   const runningRef = useRef(false)
+  const launchSpeedRef = useRef(DEFAULT_SPEED)
+  const launchAngleRef = useRef(DEFAULT_ANGLE_DEG)
+  const launchAzimuthRef = useRef(DEFAULT_LAUNCH_AZIMUTH_DEG)
+  const launchConfigInitializedRef = useRef(false)
+  const bundleRef = useRef<ThreeSceneBundle | null>(null)
+  const focusTransitionRef = useRef<{
+    position: THREE.Vector3
+    target: THREE.Vector3
+    status: string
+  } | null>(null)
+  const raycasterRef = useRef(new THREE.Raycaster())
+  const pointerRef = useRef(new THREE.Vector2())
 
   const simulation = useMemo(
     () =>
       new EarthMoonSimulation({
         launchSpeed: DEFAULT_SPEED,
         launchAngleDeg: DEFAULT_ANGLE_DEG,
+        launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
         dt: DEFAULT_DT,
       }),
     [],
@@ -75,6 +92,7 @@ export default function App() {
   const [running, setRunning] = useState(false)
   const [launchSpeed, setLaunchSpeed] = useState(DEFAULT_SPEED)
   const [launchAngleDeg, setLaunchAngleDeg] = useState(DEFAULT_ANGLE_DEG)
+  const [launchAzimuthDeg, setLaunchAzimuthDeg] = useState(DEFAULT_LAUNCH_AZIMUTH_DEG)
   const [dt, setDt] = useState(DEFAULT_DT)
   const [showTrail, setShowTrail] = useState(true)
   const [showVectors, setShowVectors] = useState(false)
@@ -86,23 +104,86 @@ export default function App() {
   }, [running])
 
   useEffect(() => {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, dt })
-  }, [simulation, launchSpeed, launchAngleDeg, dt])
+    launchSpeedRef.current = launchSpeed
+    launchAngleRef.current = launchAngleDeg
+    launchAzimuthRef.current = launchAzimuthDeg
+  }, [launchSpeed, launchAngleDeg, launchAzimuthDeg])
+
+  useEffect(() => {
+    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt })
+  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg, dt])
+
+  useEffect(() => {
+    if (!launchConfigInitializedRef.current) {
+      launchConfigInitializedRef.current = true
+      return
+    }
+
+    runningRef.current = false
+    simulation.reset()
+    setRunning(false)
+    setTelemetry(simulation.getTelemetry())
+    setStatus('Rocket restaged with updated launch conditions.')
+  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg])
 
   useEffect(() => {
     const mount = mountRef.current
     if (!mount) return
 
     const bundle = createThreeScene(mount)
-    const { camera, controls, objects, render, resize } = bundle
+    const { camera, controls, objects, render, resize, renderer, scene } = bundle
+    bundleRef.current = bundle
 
     function syncScene() {
       const simState = simulation.getState()
       const telemetryNow = simulation.getTelemetry()
+      const launchFrame = getLaunchFrame(0, launchAzimuthRef.current)
+      const previewState = makeInitialRocketState(
+        launchSpeedRef.current,
+        launchAngleRef.current,
+        launchAzimuthRef.current,
+      )
+      const normalizedLaunchSpeed = THREE.MathUtils.clamp(
+        (launchSpeedRef.current - 7800) / (12100 - 7800),
+        0,
+        1,
+      )
+      const aimArrowLength = THREE.MathUtils.lerp(12, 30, normalizedLaunchSpeed)
+      const stagedLaunchPreviewVisible = !runningRef.current
 
       objects.moon.position.copy(metersToScene(telemetryNow.moonPosition))
       objects.rocket.position.copy(metersToScene(simState.rocket.position))
-      objects.launchRing.visible = telemetryNow.altitudeEarth < 5_000
+      objects.launchRing.visible = stagedLaunchPreviewVisible
+      objects.launchLocationArrow.visible = stagedLaunchPreviewVisible
+      objects.launchTangentArrow.visible = stagedLaunchPreviewVisible
+      objects.launchNormalArrow.visible = false
+      objects.launchAimArrow.visible = stagedLaunchPreviewVisible
+      const launchOrigin = metersToScene(launchFrame.position)
+      objects.launchLocationArrow.position.set(0, 0, 0)
+      objects.launchLocationArrow.setDirection(launchFrame.radialHat.clone())
+      objects.launchLocationArrow.setLength(
+        launchOrigin.length(),
+        6,
+        3,
+      )
+      objects.launchRing.position.copy(launchOrigin)
+      objects.launchRing.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        launchFrame.radialHat.clone(),
+      )
+      objects.launchTangentArrow.position.copy(launchOrigin)
+      objects.launchTangentArrow.setDirection(launchFrame.tangentHat.clone())
+      objects.launchTangentArrow.setLength(14, 3.5, 1.75)
+      objects.launchNormalArrow.position.copy(launchOrigin)
+      objects.launchNormalArrow.setDirection(launchFrame.radialHat.clone())
+      objects.launchNormalArrow.setLength(14, 3.5, 1.75)
+      objects.launchAimArrow.position.copy(launchOrigin)
+      objects.launchAimArrow.setDirection(previewState.velocity.clone().normalize())
+      objects.launchAimArrow.setLength(
+        aimArrowLength,
+        Math.max(4, aimArrowLength * 0.22),
+        Math.max(2, aimArrowLength * 0.11),
+      )
       objects.earthAtmosphere.rotation.y += 0.0007
 
       objects.trailLine.visible = showTrail
@@ -140,13 +221,66 @@ export default function App() {
       setTelemetry(telemetryNow)
 
       if (simState.hit === 'earth') {
+        runningRef.current = false
         setRunning(false)
         setStatus('Rocket impacted Earth.')
       } else if (simState.hit === 'moon') {
+        runningRef.current = false
         setRunning(false)
         setStatus('Rocket impacted Moon.')
       } else if (runningRef.current) {
         setStatus(`Running: ${getMissionPhase(telemetryNow.altitudeEarth, telemetryNow.altitudeMoon)}.`)
+      }
+    }
+
+    function focusOnObject(targetObject: THREE.Object3D) {
+      const worldPosition = new THREE.Vector3()
+      targetObject.getWorldPosition(worldPosition)
+
+      const focusRadius = Number(targetObject.userData.focusRadius ?? 12)
+      const focusLabel = String(targetObject.userData.focusLabel ?? 'target')
+      const currentOffset = camera.position.clone().sub(controls.target)
+      const fallbackOffset = new THREE.Vector3(1.25, 0.75, 1.15)
+      const viewDirection =
+        currentOffset.lengthSq() > 1e-6 ? currentOffset.normalize() : fallbackOffset.normalize()
+      const focusDistance = THREE.MathUtils.clamp(focusRadius * 8, 24, 520)
+      const desiredPosition = worldPosition
+        .clone()
+        .add(viewDirection.multiplyScalar(focusDistance))
+
+      focusTransitionRef.current = {
+        position: desiredPosition,
+        target: worldPosition,
+        status: `Focused on ${focusLabel}.`,
+      }
+      setStatus(`Focusing ${focusLabel}...`)
+    }
+
+    function findFocusableObject(object: THREE.Object3D | null): THREE.Object3D | null {
+      let current: THREE.Object3D | null = object
+
+      while (current) {
+        if (current.userData.focusLabel) return current
+        current = current.parent
+      }
+
+      return null
+    }
+
+    function onDoubleClick(event: MouseEvent) {
+      const rect = renderer.domElement.getBoundingClientRect()
+      pointerRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      pointerRef.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+
+      raycasterRef.current.setFromCamera(pointerRef.current, camera)
+      const intersections = raycasterRef.current.intersectObjects(scene.children, true)
+
+      for (const hit of intersections) {
+        const focusable = findFocusableObject(hit.object)
+        if (focusable) {
+          focusOnObject(focusable)
+          return
+        }
       }
     }
 
@@ -158,6 +292,7 @@ export default function App() {
     }
 
     window.addEventListener('resize', onResize)
+    renderer.domElement.addEventListener('dblclick', onDoubleClick)
 
     function frame() {
       if (runningRef.current) {
@@ -165,6 +300,18 @@ export default function App() {
       }
 
       syncScene()
+      if (focusTransitionRef.current) {
+        camera.position.lerp(focusTransitionRef.current.position, 0.12)
+        controls.target.lerp(focusTransitionRef.current.target, 0.12)
+
+        if (
+          camera.position.distanceTo(focusTransitionRef.current.position) < 0.8 &&
+          controls.target.distanceTo(focusTransitionRef.current.target) < 0.35
+        ) {
+          setStatus(focusTransitionRef.current.status)
+          focusTransitionRef.current = null
+        }
+      }
       controls.update()
       render()
       animationRef.current = requestAnimationFrame(frame)
@@ -174,17 +321,67 @@ export default function App() {
 
     return () => {
       window.removeEventListener('resize', onResize)
+      renderer.domElement.removeEventListener('dblclick', onDoubleClick)
       if (animationRef.current !== null) cancelAnimationFrame(animationRef.current)
+      bundleRef.current = null
+      focusTransitionRef.current = null
       bundle.dispose()
     }
   }, [simulation, showTrail, showVectors])
 
   function resetSimulation() {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, dt })
+    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt })
     simulation.reset()
+    runningRef.current = false
     setRunning(false)
     setTelemetry(simulation.getTelemetry())
     setStatus("Rocket reset to Earth's surface.")
+  }
+
+  function applyCameraPreset(
+    preset: 'overview' | 'earth' | 'moon' | 'sun' | 'rocket',
+  ) {
+    const bundle = bundleRef.current
+    if (!bundle) return
+
+    if (preset === 'overview') {
+      focusTransitionRef.current = {
+        position: new THREE.Vector3(-210, 120, 210),
+        target: new THREE.Vector3(56, 0, 0),
+        status: 'Overview camera restored.',
+      }
+      setStatus('Restoring overview camera...')
+      return
+    }
+
+    let focusable: THREE.Object3D | null = null
+    bundle.scene.traverse((object) => {
+      if (focusable) return
+      if (String(object.userData.focusLabel).toLowerCase() === preset) {
+        focusable = object
+      }
+    })
+
+    if (!focusable) return
+    const focusedObject = focusable as THREE.Object3D
+
+    const worldPosition = new THREE.Vector3()
+    focusedObject.getWorldPosition(worldPosition)
+    const focusRadius = Number(focusedObject.userData.focusRadius ?? 12)
+    const currentOffset = bundle.camera.position.clone().sub(bundle.controls.target)
+    const viewDirection =
+      currentOffset.lengthSq() > 1e-6
+        ? currentOffset.normalize()
+        : new THREE.Vector3(1.25, 0.75, 1.15).normalize()
+
+    focusTransitionRef.current = {
+      position: worldPosition.clone().add(
+        viewDirection.multiplyScalar(THREE.MathUtils.clamp(focusRadius * 8, 24, 520)),
+      ),
+      target: worldPosition,
+      status: `Focused on ${focusedObject.userData.focusLabel}.`,
+    }
+    setStatus(`Focusing ${focusedObject.userData.focusLabel}...`)
   }
 
   const missionPhase = getMissionPhase(telemetry.altitudeEarth, telemetry.altitudeMoon)
@@ -269,12 +466,15 @@ export default function App() {
           <Controls
             launchSpeed={launchSpeed}
             launchAngleDeg={launchAngleDeg}
+            launchAzimuthDeg={launchAzimuthDeg}
             dt={dt}
             showTrail={showTrail}
             showVectors={showVectors}
             running={running}
+            onCameraPreset={applyCameraPreset}
             onLaunchSpeedChange={setLaunchSpeed}
             onLaunchAngleChange={setLaunchAngleDeg}
+            onLaunchAzimuthChange={setLaunchAzimuthDeg}
             onDtChange={setDt}
             onShowTrailChange={setShowTrail}
             onShowVectorsChange={setShowVectors}
@@ -358,11 +558,13 @@ function MetricCard({ label, value, accent }: MetricCardProps) {
       : 'border-amber-300/12 bg-amber-300/8 text-amber-50'
 
   return (
-    <div className={`rounded-[1.5rem] border px-4 py-4 ${accentClasses}`}>
-      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-300">
+    <div className={`min-w-0 rounded-[1.5rem] border px-4 py-4 min-h-[7.75rem] ${accentClasses}`}>
+      <div className="truncate text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-300">
         {label}
       </div>
-      <div className="mt-2 text-xl font-semibold text-white">{value}</div>
+      <div className="mt-2 truncate text-xl font-semibold text-white tabular-nums">
+        {value}
+      </div>
     </div>
   )
 }

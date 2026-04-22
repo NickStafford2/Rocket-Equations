@@ -15,6 +15,7 @@ export const MOON_ANGULAR_SPEED = (2 * Math.PI) / MOON_ORBIT_PERIOD
 export const DEFAULT_ALTITUDE = 0.0
 export const DEFAULT_SPEED = 10_900.0
 export const DEFAULT_ANGLE_DEG = 32.0
+export const DEFAULT_LAUNCH_AZIMUTH_DEG = 0.0
 export const DEFAULT_DT = 20.0
 
 export type BodyState = {
@@ -31,6 +32,12 @@ export type SimulationState = {
   hit: ImpactTarget
 }
 
+export type LaunchFrame = {
+  position: THREE.Vector3
+  radialHat: THREE.Vector3
+  tangentHat: THREE.Vector3
+}
+
 export function moonPositionMeters(t: number): THREE.Vector3 {
   const theta = MOON_ANGULAR_SPEED * t
   return new THREE.Vector3(
@@ -43,14 +50,12 @@ export function moonPositionMeters(t: number): THREE.Vector3 {
 export function makeInitialRocketState(
   speed: number,
   angleDeg: number,
+  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
   altitude: number = DEFAULT_ALTITUDE,
 ): BodyState {
-  const position = new THREE.Vector3(R_EARTH + altitude, 0, 0)
-
-  const radialHat = position.clone().normalize()
-  const tangentHat = new THREE.Vector3(0, 0, 1)
-
-  const angleRad = THREE.MathUtils.degToRad(angleDeg)
+  const { position, radialHat, tangentHat } = getLaunchFrame(altitude, launchAzimuthDeg)
+  const clampedAngleDeg = THREE.MathUtils.clamp(angleDeg, 0, 180)
+  const angleRad = THREE.MathUtils.degToRad(clampedAngleDeg)
   const direction = tangentHat
     .clone()
     .multiplyScalar(Math.cos(angleRad))
@@ -64,13 +69,34 @@ export function makeInitialRocketState(
   }
 }
 
+export function getLaunchFrame(
+  altitude: number = DEFAULT_ALTITUDE,
+  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
+): LaunchFrame {
+  const azimuthRad = THREE.MathUtils.degToRad(launchAzimuthDeg)
+  const position = new THREE.Vector3(
+    (R_EARTH + altitude) * Math.cos(azimuthRad),
+    0,
+    (R_EARTH + altitude) * Math.sin(azimuthRad),
+  )
+  const radialHat = position.clone().normalize()
+  const tangentHat = new THREE.Vector3(-Math.sin(azimuthRad), 0, Math.cos(azimuthRad))
+
+  return {
+    position,
+    radialHat,
+    tangentHat,
+  }
+}
+
 export function makeInitialSimulationState(
   speed: number = DEFAULT_SPEED,
   angleDeg: number = DEFAULT_ANGLE_DEG,
+  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
 ): SimulationState {
   return {
     t: 0,
-    rocket: makeInitialRocketState(speed, angleDeg),
+    rocket: makeInitialRocketState(speed, angleDeg, launchAzimuthDeg),
     hit: null,
   }
 }

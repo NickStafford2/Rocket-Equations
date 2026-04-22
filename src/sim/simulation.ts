@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import {
   DEFAULT_ANGLE_DEG,
   DEFAULT_DT,
+  DEFAULT_LAUNCH_AZIMUTH_DEG,
   DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
   R_EARTH,
@@ -15,6 +16,7 @@ import { altitudeAboveEarth, altitudeAboveMoon, stepSimulation } from '../physic
 export type SimulationConfig = {
   launchSpeed: number
   launchAngleDeg: number
+  launchAzimuthDeg: number
   dt: number
 }
 
@@ -39,11 +41,16 @@ export class EarthMoonSimulation {
     config: SimulationConfig = {
       launchSpeed: DEFAULT_SPEED,
       launchAngleDeg: DEFAULT_ANGLE_DEG,
+      launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
       dt: DEFAULT_DT,
     },
   ) {
     this.config = config
-    this.state = makeInitialSimulationState(config.launchSpeed, config.launchAngleDeg)
+    this.state = makeInitialSimulationState(
+      config.launchSpeed,
+      config.launchAngleDeg,
+      config.launchAzimuthDeg,
+    )
     this.trail = [this.state.rocket.position.clone()]
     this.updateFlightExtrema()
   }
@@ -56,6 +63,7 @@ export class EarthMoonSimulation {
     this.state = makeInitialSimulationState(
       this.config.launchSpeed,
       this.config.launchAngleDeg,
+      this.config.launchAzimuthDeg,
     )
     this.trail = [this.state.rocket.position.clone()]
     this.peakAltitudeEarth = 0
