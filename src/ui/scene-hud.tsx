@@ -1,8 +1,15 @@
 import type { CameraPreset } from "../mission";
+import { MissionTelemetryPanel } from "./mission-panels";
 
 type SceneHudProps = {
   currentCameraPreset: CameraPreset | null;
   running: boolean;
+  elapsedMissionTime: string;
+  currentSpeed: string;
+  moonRelativeSpeed: string;
+  earthAltitude: string;
+  moonAltitude: string;
+  status: string;
   onCameraPreset: (preset: CameraPreset) => void;
   onToggleRunning: () => void;
   onReset: () => void;
@@ -26,12 +33,30 @@ function getButtonClassName(isSelected: boolean): string {
 export function SceneHud({
   currentCameraPreset,
   running,
+  elapsedMissionTime,
+  currentSpeed,
+  moonRelativeSpeed,
+  earthAltitude,
+  moonAltitude,
+  status,
   onCameraPreset,
   onToggleRunning,
   onReset,
 }: SceneHudProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
+      <div className="pointer-events-auto absolute top-24 right-5 left-5 md:left-auto md:w-[22rem]">
+        <MissionTelemetryPanel
+          elapsedMissionTime={elapsedMissionTime}
+          currentSpeed={currentSpeed}
+          moonRelativeSpeed={moonRelativeSpeed}
+          earthAltitude={earthAltitude}
+          moonAltitude={moonAltitude}
+          status={status}
+          className="bg-[#07111f]/40 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.24)] md:max-w-[22rem]"
+        />
+      </div>
+
       <div className="absolute bottom-5 left-5">
         <div className="pointer-events-auto flex flex-col gap-2 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
           <button

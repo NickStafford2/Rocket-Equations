@@ -14,6 +14,7 @@ type MissionTelemetryPanelProps = {
   earthAltitude: string;
   moonAltitude: string;
   status: string;
+  className?: string;
 };
 
 export function MissionOverview({
@@ -88,9 +89,12 @@ export function MissionTelemetryPanel({
   earthAltitude,
   moonAltitude,
   status,
+  className,
 }: MissionTelemetryPanelProps) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
+    <div
+      className={`rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur ${className ?? ""}`}
+    >
       <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
         Telemetry
       </div>

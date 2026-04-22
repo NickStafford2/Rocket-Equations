@@ -18,7 +18,6 @@ import { Controls } from "./ui/controls";
 import {
   MissionKeyboardHelp,
   MissionOverview,
-  MissionTelemetryPanel,
 } from "./ui/mission-panels";
 import { SceneHud } from "./ui/scene-hud";
 
@@ -117,15 +116,6 @@ export default function App() {
               onShowVectorsChange={setShowVectors}
             />
 
-            <MissionTelemetryPanel
-              elapsedMissionTime={formatElapsed(telemetry.hours)}
-              currentSpeed={formatSpeed(telemetry.speed)}
-              moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
-              earthAltitude={formatDistance(currentAltitudeEarth)}
-              moonAltitude={formatDistance(currentAltitudeMoon)}
-              status={status}
-            />
-
             <MissionKeyboardHelp />
           </div>
 
@@ -159,6 +149,12 @@ export default function App() {
             <SceneHud
               currentCameraPreset={currentCameraPreset}
               running={running}
+              elapsedMissionTime={formatElapsed(telemetry.hours)}
+              currentSpeed={formatSpeed(telemetry.speed)}
+              moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
+              earthAltitude={formatDistance(currentAltitudeEarth)}
+              moonAltitude={formatDistance(currentAltitudeMoon)}
+              status={status}
               onCameraPreset={(preset) => {
                 applyCameraPreset(preset);
                 focusScene();

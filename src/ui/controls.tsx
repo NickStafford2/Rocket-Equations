@@ -30,11 +30,11 @@ export function Controls({
   onShowTrailChange,
   onShowVectorsChange,
 }: ControlsProps) {
-  const soundtrackVideoId = "qBIJFTPPp-8";
+  const soundtrackPlaylistId = "PLAikqLA5ubJ5lr05z7kcKE5za7T8n1sG3";
   const [soundtrackEnabled, setSoundtrackEnabled] = useState(false);
   const [soundtrackNonce, setSoundtrackNonce] = useState(0);
 
-  const soundtrackEmbedSrc = `https://www.youtube.com/embed/${soundtrackVideoId}?autoplay=1&loop=1&playlist=${soundtrackVideoId}&controls=1&modestbranding=1&rel=0&playsinline=1&start=0&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
+  const soundtrackEmbedSrc = `https://www.youtube.com/embed?listType=playlist&list=${soundtrackPlaylistId}&autoplay=1&loop=1&controls=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
 
   return (
     <div className="space-y-5 rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur">
@@ -166,7 +166,7 @@ export function Controls({
             Mission Soundtrack
           </div>
           <p className="text-sm leading-6 text-slate-300">
-            Plays the official YouTube upload in an embedded player and loops it
+            Plays your embedded YouTube playlist and loops the full track list
             for background music.
           </p>
         </div>
