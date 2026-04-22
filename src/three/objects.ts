@@ -261,8 +261,11 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
       color: 0xffc857,
       transparent: true,
       opacity: 0.95,
+      depthWrite: false,
     }),
   );
+  trailLine.frustumCulled = false;
+  trailLine.renderOrder = 2;
   system.add(trailLine);
 
   const velocityArrow = new THREE.ArrowHelper(
