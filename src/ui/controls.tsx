@@ -44,9 +44,7 @@ export function Controls({
           Mission Controls
         </div>
         <div>
-          <h1 className="text-2xl font-semibold text-white">
-            Lunar Landing
-          </h1>
+          <h1 className="text-2xl font-semibold text-white">Lunar Landing</h1>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             The rocket begins on Earth&apos;s surface with a launch impulse, and
             then you can steer and burn to set up a soft lunar touchdown.
@@ -55,16 +53,13 @@ export function Controls({
 
         <div className="rounded-2xl border border-cyan-300/12 bg-cyan-300/8 px-4 py-3 text-xs leading-5 text-slate-200">
           Arrow keys are live during flight: Left/Right rotate the ship, and Up
-          or Space fires thrust along the nose. Changing launch inputs
-          immediately restages the rocket at t = 0.
+          or Space fires thrust along the nose. WASD adjusts delta t: W x10, S
+          /10, A -2%, D +2%. Changing launch inputs immediately restages the
+          rocket at t = 0.
         </div>
       </div>
 
       <div className="space-y-4 rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
-        <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-          Launch Inputs
-        </div>
-
         <label className="block space-y-2">
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-slate-200">Launch speed</span>
@@ -129,14 +124,16 @@ export function Controls({
         <label className="block space-y-2">
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-slate-200">Integration time step</span>
-            <span className="text-cyan-100">{dt.toFixed(0)} s</span>
+            <span className="text-cyan-100">
+              {dt >= 100 ? dt.toFixed(0) : dt >= 10 ? dt.toFixed(1) : dt.toFixed(2)} s
+            </span>
           </div>
           <input
             className="w-full"
             type="range"
-            min={1}
-            max={60}
-            step={1}
+            min={0.1}
+            max={1000}
+            step={0.1}
             value={dt}
             onChange={(e) => onDtChange(Number(e.target.value))}
           />

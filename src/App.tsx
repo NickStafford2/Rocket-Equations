@@ -21,6 +21,9 @@ import type { ThreeSceneBundle } from "./three/scene";
 import { metersToScene } from "./three/objects";
 import { Controls } from "./ui/controls";
 
+const MIN_DT = 0.1;
+const MAX_DT = 1000;
+
 function formatDistance(meters: number): string {
   const clamped = Math.max(meters, 0);
 
@@ -60,6 +63,16 @@ function formatElapsed(hours: number): string {
   }
 
   return `${days} d ${remainingHours.toFixed(1)} hr`;
+}
+
+function formatDt(dt: number): string {
+  if (dt >= 100) return dt.toFixed(0);
+  if (dt >= 10) return dt.toFixed(1);
+  return dt.toFixed(2);
+}
+
+function clampDt(dt: number): number {
+  return THREE.MathUtils.clamp(dt, MIN_DT, MAX_DT);
 }
 
 function getMissionPhase(
@@ -151,7 +164,7 @@ export default function App() {
   const [showTrail, setShowTrail] = useState(true);
   const [showVectors, setShowVectors] = useState(false);
   const [status, setStatus] = useState(
-    "Rocket staged on Earth's surface. Use Left/Right to steer and Up or Space to thrust after launch.",
+    "Rocket staged on Earth's surface. Use the arrow keys to fly, Up or Space to thrust, and WASD to change delta t.",
   );
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
@@ -211,10 +224,17 @@ export default function App() {
         keyStateRef.current.right = true;
       } else if (
         event.code === "ArrowUp" ||
-        event.code === "Space" ||
-        event.code === "KeyW"
+        event.code === "Space"
       ) {
         keyStateRef.current.thrust = true;
+      } else if (event.code === "KeyW") {
+        setDt((current) => clampDt(current * 10));
+      } else if (event.code === "KeyS") {
+        setDt((current) => clampDt(current / 10));
+      } else if (event.code === "KeyA") {
+        setDt((current) => clampDt(current * 0.98));
+      } else if (event.code === "KeyD") {
+        setDt((current) => clampDt(current * 1.02));
       } else {
         handled = false;
       }
@@ -232,8 +252,7 @@ export default function App() {
         keyStateRef.current.right = false;
       } else if (
         event.code === "ArrowUp" ||
-        event.code === "Space" ||
-        event.code === "KeyW"
+        event.code === "Space"
       ) {
         keyStateRef.current.thrust = false;
       } else {
@@ -666,7 +685,7 @@ export default function App() {
                   runningRef.current = nextRunning;
                   setStatus(
                     nextRunning
-                      ? "Running. Use Left/Right to steer and Up or Space to burn."
+                      ? `Running. Use arrow keys to fly, Up or Space to burn, and WASD to adjust delta t (${formatDt(dt)} s).`
                       : "Paused.",
                   );
                   return nextRunning;
@@ -709,8 +728,8 @@ export default function App() {
             <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/82 p-5 text-sm leading-6 text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
               Keyboard flight controls are live while the mission is running:
               Left/Right rotate the ship, and Up or Space fires the engine
-              forward. Smaller integration steps make approach and landing burns
-              much easier to control.
+              forward. W multiplies delta t by 10, S divides it by 10, A trims
+              it down by 2%, and D bumps it up by 2%.
             </div>
           </div>
 
@@ -734,6 +753,9 @@ export default function App() {
                 </span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
                   Up/Space thrust
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  WASD time warp
                 </span>
               </div>
             </div>
