@@ -68,7 +68,7 @@ export function Controls({
             type="range"
             min={8800}
             max={12100}
-            step={25}
+            step={5}
             value={launchSpeed}
             onChange={(e) => onLaunchSpeedChange(Number(e.target.value))}
           />
@@ -179,7 +179,9 @@ export function Controls({
             setSoundtrackNonce((current) => current + 1);
           }}
         >
-          {soundtrackEnabled ? "Restart soundtrack loop" : "Play soundtrack loop"}
+          {soundtrackEnabled
+            ? "Restart soundtrack loop"
+            : "Play soundtrack loop"}
         </button>
 
         {soundtrackEnabled ? (
@@ -197,8 +199,8 @@ export function Controls({
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 px-4 py-5 text-sm leading-6 text-slate-400">
-            The player loads after you click the button so the browser will allow
-            playback to start immediately.
+            The player loads after you click the button so the browser will
+            allow playback to start immediately.
           </div>
         )}
       </div>

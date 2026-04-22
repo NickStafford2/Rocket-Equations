@@ -15,10 +15,7 @@ import {
 import { useMissionScene } from "./use-mission-scene";
 import { useMissionSimulation } from "./use-mission-simulation";
 import { Controls } from "./ui/controls";
-import {
-  MissionKeyboardHelp,
-  MissionOverview,
-} from "./ui/mission-panels";
+import { MissionKeyboardHelp, MissionOverview } from "./ui/mission-panels";
 import { SceneHud } from "./ui/scene-hud";
 
 export default function App() {
@@ -120,38 +117,14 @@ export default function App() {
           </div>
 
           <div className="relative h-fit overflow-hidden rounded-[2.25rem] border border-red-400 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
-            <div className="absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-gradient-to-b from-[#040b16]/95 to-transparent px-5 py-4 text-xs tracking-[0.22em] text-slate-300 uppercase">
-              <div className="flex items-center gap-3">
-                <span className="rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-cyan-100">
-                  Scene View
-                </span>
-                <span>Orbit view with Y-up orbital plane</span>
-              </div>
-              <div className="flex flex-wrap gap-2 text-[0.68rem]">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  Drag to rotate
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  Wheel to zoom
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  Right-drag to pan
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  Up/Space thrust
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                  WASD time warp
-                </span>
-              </div>
-            </div>
-
             <SceneHud
               currentCameraPreset={currentCameraPreset}
               running={running}
               elapsedMissionTime={formatElapsed(telemetry.hours)}
               currentSpeed={formatSpeed(telemetry.speed)}
-              moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
+              moonRelativeSpeed={formatRelativeSpeed(
+                telemetry.relativeMoonSpeed,
+              )}
               earthAltitude={formatDistance(currentAltitudeEarth)}
               moonAltitude={formatDistance(currentAltitudeMoon)}
               status={status}

@@ -45,7 +45,7 @@ export function SceneHud({
 }: SceneHudProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
-      <div className="pointer-events-auto absolute top-24 right-5 left-5 md:left-auto md:w-[22rem]">
+      <div className="pointer-events-auto absolute inset-x-5 top-24 overflow-x-auto">
         <MissionTelemetryPanel
           elapsedMissionTime={elapsedMissionTime}
           currentSpeed={currentSpeed}
@@ -53,7 +53,12 @@ export function SceneHud({
           earthAltitude={earthAltitude}
           moonAltitude={moonAltitude}
           status={status}
-          className="bg-[#07111f]/40 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.24)] md:max-w-[22rem]"
+          layout="row"
+          statusInline
+          className="min-w-max border-white/6 bg-transparent px-2 py-1.5 shadow-none backdrop-blur-0"
+          rowsClassName="flex-nowrap gap-2"
+          rowClassName="flex-none border-white/8 bg-black/20 px-3 py-2"
+          statusClassName="flex-none border-cyan-300/12 bg-cyan-300/8 px-3 py-2"
         />
       </div>
 
