@@ -3,34 +3,16 @@ import * as THREE from "three";
 export type OrientationIndicatorBundle = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  renderer: THREE.WebGLRenderer;
   rocket: THREE.Group;
-  resize: () => void;
-  render: () => void;
-  dispose: () => void;
+  sizePx: number;
 };
 
-export function createOrientationIndicator(
-  container: HTMLDivElement,
-): OrientationIndicatorBundle {
+export function createOrientationIndicator(): OrientationIndicatorBundle {
   const scene = new THREE.Scene();
 
-  const camera = new THREE.PerspectiveCamera(
-    36,
-    container.clientWidth / Math.max(container.clientHeight, 1),
-    0.1,
-    100,
-  );
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
   camera.position.set(3.4, 2.4, 4.8);
   camera.lookAt(0, 0.35, 0);
-
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-  });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearAlpha(0);
-  container.appendChild(renderer.domElement);
 
   const ambientLight = new THREE.AmbientLight(0xd7ebff, 0.95);
   scene.add(ambientLight);
@@ -60,47 +42,11 @@ export function createOrientationIndicator(
   const rocket = createIndicatorRocket();
   scene.add(rocket);
 
-  function resize() {
-    const width = Math.max(container.clientWidth, 1);
-    const height = Math.max(container.clientHeight, 1);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
-  }
-
-  function render() {
-    renderer.render(scene, camera);
-  }
-
-  function dispose() {
-    scene.traverse((object) => {
-      const mesh = object as THREE.Mesh & {
-        geometry?: THREE.BufferGeometry;
-        material?: THREE.Material | THREE.Material[];
-      };
-      mesh.geometry?.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((material) => material.dispose());
-      } else {
-        mesh.material?.dispose();
-      }
-    });
-    renderer.dispose();
-    if (renderer.domElement.parentNode === container) {
-      container.removeChild(renderer.domElement);
-    }
-  }
-
-  resize();
-
   return {
     scene,
     camera,
-    renderer,
     rocket,
-    resize,
-    render,
-    dispose,
+    sizePx: 132,
   };
 }
 

@@ -5,6 +5,8 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { createSceneObjects } from "./objects";
+import { createOrientationIndicator } from "./orientation-indicator";
+import type { OrientationIndicatorBundle } from "./orientation-indicator";
 import { createReferenceSkybox } from "./skybox";
 import { createReferenceSun } from "./sun";
 
@@ -14,6 +16,7 @@ export type ThreeSceneBundle = {
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
   objects: ReturnType<typeof createSceneObjects>;
+  orientationIndicator: OrientationIndicatorBundle;
   render: () => void;
   resize: (width: number, height: number) => void;
   dispose: () => void;
@@ -63,6 +66,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   scene.add(ambientLight);
 
   const objects = createSceneObjects(scene);
+  const orientationIndicator = createOrientationIndicator();
   objects.system.add(createOrbitalGrid());
   objects.system.add(createAxisHelper());
   scene.add(createReferenceSkybox());
@@ -95,11 +99,43 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
 
   function render() {
     composer.render();
+
+    const rendererSize = renderer.getSize(new THREE.Vector2());
+    const insetSize = Math.min(
+      orientationIndicator.sizePx,
+      Math.floor(Math.min(rendererSize.x, rendererSize.y) * 0.24),
+    );
+    const insetPadding = 20;
+    const insetX = Math.max(rendererSize.x - insetSize - insetPadding, 0);
+    const insetY = insetPadding;
+    const previousAutoClear = renderer.autoClear;
+
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    renderer.setScissorTest(true);
+    renderer.setViewport(insetX, insetY, insetSize, insetSize);
+    renderer.setScissor(insetX, insetY, insetSize, insetSize);
+    renderer.render(orientationIndicator.scene, orientationIndicator.camera);
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, rendererSize.x, rendererSize.y);
+    renderer.autoClear = previousAutoClear;
   }
 
   function dispose() {
     controls.dispose();
     scene.traverse((object: THREE.Object3D) => {
+      const mesh = object as THREE.Mesh & {
+        geometry?: THREE.BufferGeometry;
+        material?: THREE.Material | THREE.Material[];
+      };
+      mesh.geometry?.dispose();
+      if (Array.isArray(mesh.material)) {
+        mesh.material.forEach((material: THREE.Material) => material.dispose());
+      } else {
+        mesh.material?.dispose();
+      }
+    });
+    orientationIndicator.scene.traverse((object: THREE.Object3D) => {
       const mesh = object as THREE.Mesh & {
         geometry?: THREE.BufferGeometry;
         material?: THREE.Material | THREE.Material[];
@@ -123,6 +159,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     renderer,
     controls,
     objects,
+    orientationIndicator,
     render,
     resize,
     dispose,
