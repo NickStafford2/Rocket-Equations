@@ -1,4 +1,4 @@
-type CameraPreset = "overview" | "earth" | "moon" | "sun" | "rocket";
+import type { CameraPreset } from "../mission";
 
 type SceneHudProps = {
   currentCameraPreset: CameraPreset | null;

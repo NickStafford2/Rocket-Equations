@@ -1,3 +1,5 @@
+import { formatDt } from "../mission";
+
 type ControlsProps = {
   launchSpeed: number;
   launchAngleDeg: number;
@@ -30,9 +32,6 @@ export function Controls({
   return (
     <div className="space-y-5 rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur">
       <div className="space-y-3">
-        <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[0.72rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase">
-          Mission Controls
-        </div>
         <div>
           <h1 className="text-2xl font-semibold text-white">Lunar Landing</h1>
           <p className="mt-2 text-sm leading-6 text-slate-300">
@@ -114,9 +113,7 @@ export function Controls({
         <label className="block space-y-2">
           <div className="mb-2 flex items-center justify-between text-sm">
             <span className="text-slate-200">Integration time step</span>
-            <span className="text-cyan-100">
-              {dt >= 100 ? dt.toFixed(0) : dt >= 10 ? dt.toFixed(1) : dt.toFixed(2)} s
-            </span>
+            <span className="text-cyan-100">{formatDt(dt)} s</span>
           </div>
           <input
             className="w-full"
