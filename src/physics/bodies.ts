@@ -13,9 +13,9 @@ export const MOON_ORBIT_PERIOD = 27.321661 * 24 * 3600;
 export const MOON_ANGULAR_SPEED = (2 * Math.PI) / MOON_ORBIT_PERIOD;
 
 export const DEFAULT_ALTITUDE = 0.0;
-export const DEFAULT_SPEED = 11_400.0;
+export const DEFAULT_SPEED = 11_550.0;
 export const DEFAULT_ANGLE_DEG = 90.0;
-export const DEFAULT_LAUNCH_AZIMUTH_DEG = 39.0;
+export const DEFAULT_LAUNCH_AZIMUTH_DEG = 49.0;
 export const DEFAULT_DT = 400.0;
 
 export type BodyState = {
