@@ -14,9 +14,14 @@ import {
 } from "./mission";
 import type { CameraPreset } from "./mission";
 import type { EarthMoonSimulation, SimulationTelemetry } from "./sim/simulation";
+import { TRAIL_POINT_CAPACITY } from "./sim/trail";
 import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
-import { metersToScene, ROCKET_DRAW_RADIUS } from "./three/objects";
+import {
+  DISTANCE_SCALE,
+  metersToScene,
+  ROCKET_DRAW_RADIUS,
+} from "./three/objects";
 
 type UseMissionSceneParams = {
   mountRef: RefObject<HTMLDivElement | null>;
@@ -67,6 +72,7 @@ export function useMissionScene({
   const lastUiSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
   const lastRunningStatusRef = useRef<string | null>(null);
+  const previousTrailLengthRef = useRef(0);
   const [currentCameraPreset, setCurrentCameraPreset] =
     useState<CameraPreset | null>("overview");
 
@@ -99,6 +105,35 @@ export function useMissionScene({
     previousRocketPositionRef.current.copy(
       metersToScene(simulation.getState().rocket.position),
     );
+    previousTrailLengthRef.current = 0;
+
+    const trailPositions = objects.trailLine.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute;
+
+    function syncTrail() {
+      const trailLength = simulation.getTrailLength();
+      const previousTrailLength = previousTrailLengthRef.current;
+
+      const trailIsSlidingWindow =
+        trailLength === TRAIL_POINT_CAPACITY &&
+        previousTrailLength === TRAIL_POINT_CAPACITY;
+
+      if (trailLength === previousTrailLength && !trailIsSlidingWindow) {
+        return;
+      }
+
+      const startIndex =
+        trailLength < previousTrailLength || trailIsSlidingWindow
+          ? 0
+          : previousTrailLength;
+      const positionArray = trailPositions.array as Float32Array;
+      simulation.copyTrailPositionsTo(positionArray, DISTANCE_SCALE, startIndex);
+
+      trailPositions.needsUpdate = true;
+      objects.trailLine.geometry.setDrawRange(0, trailLength);
+      previousTrailLengthRef.current = trailLength;
+    }
 
     function applyFocusTransition(targetObject: THREE.Object3D) {
       const worldPosition = new THREE.Vector3();
@@ -197,11 +232,7 @@ export function useMissionScene({
       );
 
       objects.trailLine.visible = showTrailRef.current;
-      const trailPoints = simulation.getTrail().map((point) => metersToScene(point));
-      objects.trailLine.geometry.dispose();
-      objects.trailLine.geometry = new THREE.BufferGeometry().setFromPoints(
-        trailPoints,
-      );
+      syncTrail();
 
       objects.velocityArrow.visible = showVectorsRef.current;
       objects.accelerationArrow.visible = showVectorsRef.current;
@@ -379,6 +410,7 @@ export function useMissionScene({
       }
       bundleRef.current = null;
       focusTransitionRef.current = null;
+      previousTrailLengthRef.current = 0;
       bundle.dispose();
     };
   }, [

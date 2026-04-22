@@ -15,6 +15,7 @@ import {
 import type { ManeuverInput } from '../physics/bodies'
 import type { SimulationState } from '../physics/bodies'
 import { altitudeAboveEarth, altitudeAboveMoon, stepSimulation } from '../physics/integrator'
+import { TRAIL_POINT_CAPACITY } from './trail'
 
 export type SimulationConfig = {
   launchSpeed: number
@@ -39,7 +40,12 @@ export type SimulationTelemetry = {
 export class EarthMoonSimulation {
   private config: SimulationConfig
   private state: SimulationState
-  private trail: THREE.Vector3[] = []
+  private trail = Array.from(
+    { length: TRAIL_POINT_CAPACITY },
+    () => new THREE.Vector3(),
+  )
+  private trailStart = 0
+  private trailCount = 0
   private peakAltitudeEarth = 0
   private closestMoonApproach = Infinity
 
@@ -59,7 +65,7 @@ export class EarthMoonSimulation {
       config.launchAngleDeg,
       config.launchAzimuthDeg,
     )
-    this.trail = [this.state.rocket.position.clone()]
+    this.initializeTrail()
     this.updateFlightExtrema()
   }
 
@@ -73,7 +79,7 @@ export class EarthMoonSimulation {
       this.config.launchAngleDeg,
       this.config.launchAzimuthDeg,
     )
-    this.trail = [this.state.rocket.position.clone()]
+    this.initializeTrail()
     this.peakAltitudeEarth = 0
     this.closestMoonApproach = Infinity
     this.updateFlightExtrema()
@@ -91,8 +97,7 @@ export class EarthMoonSimulation {
         this.config.thrustAcceleration,
         this.config.turnRateDeg,
       )
-      this.trail.push(this.state.rocket.position.clone())
-      if (this.trail.length > 5000) this.trail.shift()
+      this.appendTrailPoint(this.state.rocket.position)
       this.updateFlightExtrema()
       if (this.state.impact) break
     }
@@ -103,7 +108,38 @@ export class EarthMoonSimulation {
   }
 
   getTrail(): THREE.Vector3[] {
-    return this.trail
+    const orderedTrail: THREE.Vector3[] = []
+
+    for (let index = 0; index < this.trailCount; index += 1) {
+      orderedTrail.push(
+        this.trail[(this.trailStart + index) % TRAIL_POINT_CAPACITY].clone(),
+      )
+    }
+
+    return orderedTrail
+  }
+
+  getTrailLength(): number {
+    return this.trailCount
+  }
+
+  copyTrailPositionsTo(
+    target: Float32Array,
+    scale: number,
+    startIndex: number = 0,
+  ): number {
+    const from = Math.max(0, Math.min(startIndex, this.trailCount))
+
+    for (let index = from; index < this.trailCount; index += 1) {
+      const point = this.trail[(this.trailStart + index) % TRAIL_POINT_CAPACITY]
+      const offset = index * 3
+
+      target[offset] = point.x * scale
+      target[offset + 1] = point.y * scale
+      target[offset + 2] = point.z * scale
+    }
+
+    return this.trailCount
   }
 
   getTelemetry(): SimulationTelemetry {
@@ -137,5 +173,22 @@ export class EarthMoonSimulation {
 
     this.peakAltitudeEarth = Math.max(this.peakAltitudeEarth, altitudeEarth)
     this.closestMoonApproach = Math.min(this.closestMoonApproach, altitudeMoon)
+  }
+
+  private initializeTrail(): void {
+    this.trailStart = 0
+    this.trailCount = 1
+    this.trail[0].copy(this.state.rocket.position)
+  }
+
+  private appendTrailPoint(position: THREE.Vector3): void {
+    if (this.trailCount < TRAIL_POINT_CAPACITY) {
+      this.trail[this.trailCount].copy(position)
+      this.trailCount += 1
+      return
+    }
+
+    this.trail[this.trailStart].copy(position)
+    this.trailStart = (this.trailStart + 1) % TRAIL_POINT_CAPACITY
   }
 }

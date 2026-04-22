@@ -1,0 +1,1 @@
+export const TRAIL_POINT_CAPACITY = 5000;

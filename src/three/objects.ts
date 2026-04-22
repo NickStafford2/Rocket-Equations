@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { EARTH_MOON_DISTANCE, R_EARTH, R_MOON } from "../physics/bodies";
+import { TRAIL_POINT_CAPACITY } from "../sim/trail";
 import earthTextureUrl from "../assets/textures/earth.jpg";
 import moonTextureUrl from "../assets/textures/mercury.jpg";
 
@@ -244,8 +245,18 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   );
   system.add(moonOrbit);
 
+  const trailGeometry = new THREE.BufferGeometry();
+  trailGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(
+      new Float32Array(TRAIL_POINT_CAPACITY * 3),
+      3,
+    ).setUsage(THREE.DynamicDrawUsage),
+  );
+  trailGeometry.setDrawRange(0, 0);
+
   const trailLine = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([]),
+    trailGeometry,
     new THREE.LineBasicMaterial({
       color: 0xffc857,
       transparent: true,
