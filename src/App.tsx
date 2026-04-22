@@ -493,6 +493,8 @@ export default function App() {
           setStatus(focusTransitionRef.current.status);
           focusTransitionRef.current = null;
         }
+      } else {
+        controls.target.lerp(objects.rocket.position, 0.22);
       }
       controls.update();
       render();
