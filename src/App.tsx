@@ -252,7 +252,7 @@ export default function App() {
         currentOffset.lengthSq() > 1e-6
           ? currentOffset.normalize()
           : fallbackOffset.normalize();
-      const focusDistance = THREE.MathUtils.clamp(focusRadius * 8, 24, 520);
+      const focusDistance = THREE.MathUtils.clamp(focusRadius * 5, 4, 520);
       const desiredPosition = worldPosition
         .clone()
         .add(viewDirection.multiplyScalar(focusDistance));
@@ -400,7 +400,7 @@ export default function App() {
         .clone()
         .add(
           viewDirection.multiplyScalar(
-            THREE.MathUtils.clamp(focusRadius * 8, 24, 520),
+            THREE.MathUtils.clamp(focusRadius * 5, 4, 520),
           ),
         ),
       target: worldPosition,

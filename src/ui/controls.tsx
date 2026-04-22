@@ -74,9 +74,9 @@ export function Controls({
           <input
             className="w-full"
             type="range"
-            min={7800}
+            min={8800}
             max={12100}
-            step={50}
+            step={25}
             value={launchSpeed}
             onChange={(e) => onLaunchSpeedChange(Number(e.target.value))}
           />
