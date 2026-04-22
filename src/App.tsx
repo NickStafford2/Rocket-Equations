@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import * as THREE from 'three'
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
 import {
   DEFAULT_ANGLE_DEG,
   DEFAULT_DT,
@@ -10,73 +10,76 @@ import {
   R_MOON,
   getLaunchFrame,
   makeInitialRocketState,
-} from './physics/bodies'
-import { EarthMoonSimulation } from './sim/simulation'
-import { createThreeScene } from './three/scene'
-import type { ThreeSceneBundle } from './three/scene'
-import { metersToScene } from './three/objects'
-import { Controls } from './ui/controls'
+} from "./physics/bodies";
+import { EarthMoonSimulation } from "./sim/simulation";
+import { createThreeScene } from "./three/scene";
+import type { ThreeSceneBundle } from "./three/scene";
+import { metersToScene } from "./three/objects";
+import { Controls } from "./ui/controls";
+
+const EARTH_SPIN_SPEED = 0.6;
+const MOON_SPIN_SPEED = 1.2;
 
 function formatDistance(meters: number): string {
-  const clamped = Math.max(meters, 0)
+  const clamped = Math.max(meters, 0);
 
   if (clamped >= 1_000_000_000) {
     return `${(clamped / 1_000_000_000).toLocaleString(undefined, {
       maximumFractionDigits: 2,
-    })} million km`
+    })} million km`;
   }
 
   return `${(clamped / 1000).toLocaleString(undefined, {
     maximumFractionDigits: 0,
-  })} km`
+  })} km`;
 }
 
 function formatSpeed(speed: number): string {
   if (speed >= 1000) {
-    return `${(speed / 1000).toFixed(2)} km/s`
+    return `${(speed / 1000).toFixed(2)} km/s`;
   }
 
-  return `${speed.toFixed(0)} m/s`
+  return `${speed.toFixed(0)} m/s`;
 }
 
 function formatElapsed(hours: number): string {
-  const days = Math.floor(hours / 24)
-  const remainingHours = hours - days * 24
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours - days * 24;
 
   if (days === 0) {
-    return `${remainingHours.toFixed(1)} hr`
+    return `${remainingHours.toFixed(1)} hr`;
   }
 
-  return `${days} d ${remainingHours.toFixed(1)} hr`
+  return `${days} d ${remainingHours.toFixed(1)} hr`;
 }
 
 function getMissionPhase(altitudeEarth: number, altitudeMoon: number): string {
-  const safeAltitudeEarth = Math.max(altitudeEarth, 0)
-  const safeAltitudeMoon = Math.max(altitudeMoon, 0)
+  const safeAltitudeEarth = Math.max(altitudeEarth, 0);
+  const safeAltitudeMoon = Math.max(altitudeMoon, 0);
 
-  if (safeAltitudeMoon < 80_000) return 'Lunar approach'
-  if (safeAltitudeEarth < 80_000) return 'Surface departure'
-  if (safeAltitudeEarth < 40_000_000) return 'Earth escape arc'
+  if (safeAltitudeMoon < 80_000) return "Lunar approach";
+  if (safeAltitudeEarth < 80_000) return "Surface departure";
+  if (safeAltitudeEarth < 40_000_000) return "Earth escape arc";
 
-  return 'Translunar coast'
+  return "Translunar coast";
 }
 
 export default function App() {
-  const mountRef = useRef<HTMLDivElement | null>(null)
-  const animationRef = useRef<number | null>(null)
-  const runningRef = useRef(false)
-  const launchSpeedRef = useRef(DEFAULT_SPEED)
-  const launchAngleRef = useRef(DEFAULT_ANGLE_DEG)
-  const launchAzimuthRef = useRef(DEFAULT_LAUNCH_AZIMUTH_DEG)
-  const launchConfigInitializedRef = useRef(false)
-  const bundleRef = useRef<ThreeSceneBundle | null>(null)
+  const mountRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const runningRef = useRef(false);
+  const launchSpeedRef = useRef(DEFAULT_SPEED);
+  const launchAngleRef = useRef(DEFAULT_ANGLE_DEG);
+  const launchAzimuthRef = useRef(DEFAULT_LAUNCH_AZIMUTH_DEG);
+  const launchConfigInitializedRef = useRef(false);
+  const bundleRef = useRef<ThreeSceneBundle | null>(null);
   const focusTransitionRef = useRef<{
-    position: THREE.Vector3
-    target: THREE.Vector3
-    status: string
-  } | null>(null)
-  const raycasterRef = useRef(new THREE.Raycaster())
-  const pointerRef = useRef(new THREE.Vector2())
+    position: THREE.Vector3;
+    target: THREE.Vector3;
+    status: string;
+  } | null>(null);
+  const raycasterRef = useRef(new THREE.Raycaster());
+  const pointerRef = useRef(new THREE.Vector2());
 
   const simulation = useMemo(
     () =>
@@ -87,322 +90,355 @@ export default function App() {
         dt: DEFAULT_DT,
       }),
     [],
-  )
+  );
 
-  const [running, setRunning] = useState(false)
-  const [launchSpeed, setLaunchSpeed] = useState(DEFAULT_SPEED)
-  const [launchAngleDeg, setLaunchAngleDeg] = useState(DEFAULT_ANGLE_DEG)
-  const [launchAzimuthDeg, setLaunchAzimuthDeg] = useState(DEFAULT_LAUNCH_AZIMUTH_DEG)
-  const [dt, setDt] = useState(DEFAULT_DT)
-  const [showTrail, setShowTrail] = useState(true)
-  const [showVectors, setShowVectors] = useState(false)
-  const [status, setStatus] = useState("Rocket staged on Earth's surface.")
-  const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry())
-
-  useEffect(() => {
-    runningRef.current = running
-  }, [running])
+  const [running, setRunning] = useState(false);
+  const [launchSpeed, setLaunchSpeed] = useState(DEFAULT_SPEED);
+  const [launchAngleDeg, setLaunchAngleDeg] = useState(DEFAULT_ANGLE_DEG);
+  const [launchAzimuthDeg, setLaunchAzimuthDeg] = useState(
+    DEFAULT_LAUNCH_AZIMUTH_DEG,
+  );
+  const [dt, setDt] = useState(DEFAULT_DT);
+  const [showTrail, setShowTrail] = useState(true);
+  const [showVectors, setShowVectors] = useState(false);
+  const [status, setStatus] = useState("Rocket staged on Earth's surface.");
+  const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
   useEffect(() => {
-    launchSpeedRef.current = launchSpeed
-    launchAngleRef.current = launchAngleDeg
-    launchAzimuthRef.current = launchAzimuthDeg
-  }, [launchSpeed, launchAngleDeg, launchAzimuthDeg])
+    runningRef.current = running;
+  }, [running]);
 
   useEffect(() => {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt })
-  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg, dt])
+    launchSpeedRef.current = launchSpeed;
+    launchAngleRef.current = launchAngleDeg;
+    launchAzimuthRef.current = launchAzimuthDeg;
+  }, [launchSpeed, launchAngleDeg, launchAzimuthDeg]);
+
+  useEffect(() => {
+    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt });
+  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg, dt]);
 
   useEffect(() => {
     if (!launchConfigInitializedRef.current) {
-      launchConfigInitializedRef.current = true
-      return
+      launchConfigInitializedRef.current = true;
+      return;
     }
 
-    runningRef.current = false
-    simulation.reset()
-    setRunning(false)
-    setTelemetry(simulation.getTelemetry())
-    setStatus('Rocket restaged with updated launch conditions.')
-  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg])
+    runningRef.current = false;
+    simulation.reset();
+    setRunning(false);
+    setTelemetry(simulation.getTelemetry());
+    setStatus("Rocket restaged with updated launch conditions.");
+  }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
-    const mount = mountRef.current
-    if (!mount) return
+    const mount = mountRef.current;
+    if (!mount) return;
 
-    const bundle = createThreeScene(mount)
-    const { camera, controls, objects, render, resize, renderer, scene } = bundle
-    bundleRef.current = bundle
+    const bundle = createThreeScene(mount);
+    const { camera, controls, objects, render, resize, renderer, scene } =
+      bundle;
+    bundleRef.current = bundle;
 
-    function syncScene() {
-      const simState = simulation.getState()
-      const telemetryNow = simulation.getTelemetry()
-      const launchFrame = getLaunchFrame(0, launchAzimuthRef.current)
+    function syncScene(deltaSeconds: number) {
+      const simState = simulation.getState();
+      const telemetryNow = simulation.getTelemetry();
+      const launchFrame = getLaunchFrame(0, launchAzimuthRef.current);
       const previewState = makeInitialRocketState(
         launchSpeedRef.current,
         launchAngleRef.current,
         launchAzimuthRef.current,
-      )
+      );
       const normalizedLaunchSpeed = THREE.MathUtils.clamp(
         (launchSpeedRef.current - 7800) / (12100 - 7800),
         0,
         1,
-      )
-      const aimArrowLength = THREE.MathUtils.lerp(12, 30, normalizedLaunchSpeed)
-      const stagedLaunchPreviewVisible = !runningRef.current
+      );
+      const aimArrowLength = THREE.MathUtils.lerp(
+        12,
+        30,
+        normalizedLaunchSpeed,
+      );
+      const stagedLaunchPreviewVisible = !runningRef.current;
 
-      objects.moon.position.copy(metersToScene(telemetryNow.moonPosition))
-      objects.rocket.position.copy(metersToScene(simState.rocket.position))
-      objects.launchRing.visible = stagedLaunchPreviewVisible
-      objects.launchLocationArrow.visible = stagedLaunchPreviewVisible
-      objects.launchTangentArrow.visible = stagedLaunchPreviewVisible
-      objects.launchNormalArrow.visible = false
-      objects.launchAimArrow.visible = stagedLaunchPreviewVisible
-      const launchOrigin = metersToScene(launchFrame.position)
-      objects.launchLocationArrow.position.set(0, 0, 0)
-      objects.launchLocationArrow.setDirection(launchFrame.radialHat.clone())
-      objects.launchLocationArrow.setLength(
-        launchOrigin.length(),
-        6,
-        3,
-      )
-      objects.launchRing.position.copy(launchOrigin)
+      objects.moon.position.copy(metersToScene(telemetryNow.moonPosition));
+      objects.rocket.position.copy(metersToScene(simState.rocket.position));
+      objects.launchRing.visible = stagedLaunchPreviewVisible;
+      objects.launchLocationArrow.visible = stagedLaunchPreviewVisible;
+      objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
+      objects.launchNormalArrow.visible = false;
+      objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
+      const launchOrigin = metersToScene(launchFrame.position);
+      objects.launchLocationArrow.position.set(0, 0, 0);
+      objects.launchLocationArrow.setDirection(launchFrame.radialHat.clone());
+      objects.launchLocationArrow.setLength(launchOrigin.length(), 6, 3);
+      objects.launchRing.position.copy(launchOrigin);
       objects.launchRing.quaternion.setFromUnitVectors(
         new THREE.Vector3(0, 0, 1),
         launchFrame.radialHat.clone(),
-      )
-      objects.launchTangentArrow.position.copy(launchOrigin)
-      objects.launchTangentArrow.setDirection(launchFrame.tangentHat.clone())
-      objects.launchTangentArrow.setLength(14, 3.5, 1.75)
-      objects.launchNormalArrow.position.copy(launchOrigin)
-      objects.launchNormalArrow.setDirection(launchFrame.radialHat.clone())
-      objects.launchNormalArrow.setLength(14, 3.5, 1.75)
-      objects.launchAimArrow.position.copy(launchOrigin)
-      objects.launchAimArrow.setDirection(previewState.velocity.clone().normalize())
+      );
+      objects.launchTangentArrow.position.copy(launchOrigin);
+      objects.launchTangentArrow.setDirection(launchFrame.tangentHat.clone());
+      objects.launchTangentArrow.setLength(14, 3.5, 1.75);
+      objects.launchNormalArrow.position.copy(launchOrigin);
+      objects.launchNormalArrow.setDirection(launchFrame.radialHat.clone());
+      objects.launchNormalArrow.setLength(14, 3.5, 1.75);
+      objects.launchAimArrow.position.copy(launchOrigin);
+      objects.launchAimArrow.setDirection(
+        previewState.velocity.clone().normalize(),
+      );
       objects.launchAimArrow.setLength(
         aimArrowLength,
         Math.max(4, aimArrowLength * 0.22),
         Math.max(2, aimArrowLength * 0.11),
-      )
-      objects.earthAtmosphere.rotation.y += 0.0007
+      );
+      objects.earth.rotation.y += EARTH_SPIN_SPEED * deltaSeconds;
+      objects.moon.rotation.y += MOON_SPIN_SPEED * deltaSeconds;
 
-      objects.trailLine.visible = showTrail
-      const trailPoints = simulation.getTrail().map((p) => metersToScene(p))
-      objects.trailLine.geometry.dispose()
-      objects.trailLine.geometry = new THREE.BufferGeometry().setFromPoints(trailPoints)
+      objects.trailLine.visible = showTrail;
+      const trailPoints = simulation.getTrail().map((p) => metersToScene(p));
+      objects.trailLine.geometry.dispose();
+      objects.trailLine.geometry = new THREE.BufferGeometry().setFromPoints(
+        trailPoints,
+      );
 
-      objects.velocityArrow.visible = showVectors
-      objects.accelerationArrow.visible = showVectors
+      objects.velocityArrow.visible = showVectors;
+      objects.accelerationArrow.visible = showVectors;
 
       if (showVectors) {
-        const rocketPos = objects.rocket.position.clone()
-        const v = simState.rocket.velocity.clone()
-        const a = simState.rocket.acceleration.clone()
+        const rocketPos = objects.rocket.position.clone();
+        const v = simState.rocket.velocity.clone();
+        const a = simState.rocket.acceleration.clone();
 
-        const vLen = Math.max(v.length(), 1)
-        objects.velocityArrow.position.copy(rocketPos)
-        objects.velocityArrow.setDirection(v.normalize())
-        objects.velocityArrow.setLength(Math.min(60, vLen / 250), 6, 4)
+        const vLen = Math.max(v.length(), 1);
+        objects.velocityArrow.position.copy(rocketPos);
+        objects.velocityArrow.setDirection(v.normalize());
+        objects.velocityArrow.setLength(Math.min(60, vLen / 250), 6, 4);
 
-        const aLen = Math.max(a.length(), 1e-9)
-        objects.accelerationArrow.position.copy(rocketPos)
-        objects.accelerationArrow.setDirection(a.normalize())
-        objects.accelerationArrow.setLength(Math.min(50, aLen * 1.5e6), 6, 4)
+        const aLen = Math.max(a.length(), 1e-9);
+        objects.accelerationArrow.position.copy(rocketPos);
+        objects.accelerationArrow.setDirection(a.normalize());
+        objects.accelerationArrow.setLength(Math.min(50, aLen * 1.5e6), 6, 4);
       }
 
       if (simState.rocket.velocity.lengthSq() > 1e-6) {
-        const heading = simState.rocket.velocity.clone().normalize()
+        const heading = simState.rocket.velocity.clone().normalize();
         objects.rocket.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
           heading,
-        )
+        );
       }
 
-      setTelemetry(telemetryNow)
+      setTelemetry(telemetryNow);
 
-      if (simState.hit === 'earth') {
-        runningRef.current = false
-        setRunning(false)
-        setStatus('Rocket impacted Earth.')
-      } else if (simState.hit === 'moon') {
-        runningRef.current = false
-        setRunning(false)
-        setStatus('Rocket impacted Moon.')
+      if (simState.hit === "earth") {
+        runningRef.current = false;
+        setRunning(false);
+        setStatus("Rocket impacted Earth.");
+      } else if (simState.hit === "moon") {
+        runningRef.current = false;
+        setRunning(false);
+        setStatus("Rocket impacted Moon.");
       } else if (runningRef.current) {
-        setStatus(`Running: ${getMissionPhase(telemetryNow.altitudeEarth, telemetryNow.altitudeMoon)}.`)
+        setStatus(
+          `Running: ${getMissionPhase(telemetryNow.altitudeEarth, telemetryNow.altitudeMoon)}.`,
+        );
       }
     }
 
     function focusOnObject(targetObject: THREE.Object3D) {
-      const worldPosition = new THREE.Vector3()
-      targetObject.getWorldPosition(worldPosition)
+      const worldPosition = new THREE.Vector3();
+      targetObject.getWorldPosition(worldPosition);
 
-      const focusRadius = Number(targetObject.userData.focusRadius ?? 12)
-      const focusLabel = String(targetObject.userData.focusLabel ?? 'target')
-      const currentOffset = camera.position.clone().sub(controls.target)
-      const fallbackOffset = new THREE.Vector3(1.25, 0.75, 1.15)
+      const focusRadius = Number(targetObject.userData.focusRadius ?? 12);
+      const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+      const currentOffset = camera.position.clone().sub(controls.target);
+      const fallbackOffset = new THREE.Vector3(1.25, 0.75, 1.15);
       const viewDirection =
-        currentOffset.lengthSq() > 1e-6 ? currentOffset.normalize() : fallbackOffset.normalize()
-      const focusDistance = THREE.MathUtils.clamp(focusRadius * 8, 24, 520)
+        currentOffset.lengthSq() > 1e-6
+          ? currentOffset.normalize()
+          : fallbackOffset.normalize();
+      const focusDistance = THREE.MathUtils.clamp(focusRadius * 8, 24, 520);
       const desiredPosition = worldPosition
         .clone()
-        .add(viewDirection.multiplyScalar(focusDistance))
+        .add(viewDirection.multiplyScalar(focusDistance));
 
       focusTransitionRef.current = {
         position: desiredPosition,
         target: worldPosition,
         status: `Focused on ${focusLabel}.`,
-      }
-      setStatus(`Focusing ${focusLabel}...`)
+      };
+      setStatus(`Focusing ${focusLabel}...`);
     }
 
-    function findFocusableObject(object: THREE.Object3D | null): THREE.Object3D | null {
-      let current: THREE.Object3D | null = object
+    function findFocusableObject(
+      object: THREE.Object3D | null,
+    ): THREE.Object3D | null {
+      let current: THREE.Object3D | null = object;
 
       while (current) {
-        if (current.userData.focusLabel) return current
-        current = current.parent
+        if (current.userData.focusLabel) return current;
+        current = current.parent;
       }
 
-      return null
+      return null;
     }
 
     function onDoubleClick(event: MouseEvent) {
-      const rect = renderer.domElement.getBoundingClientRect()
-      pointerRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-      pointerRef.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerRef.current.y =
+        -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      raycasterRef.current.setFromCamera(pointerRef.current, camera)
-      const intersections = raycasterRef.current.intersectObjects(scene.children, true)
+      raycasterRef.current.setFromCamera(pointerRef.current, camera);
+      const intersections = raycasterRef.current.intersectObjects(
+        scene.children,
+        true,
+      );
 
       for (const hit of intersections) {
-        const focusable = findFocusableObject(hit.object)
+        const focusable = findFocusableObject(hit.object);
         if (focusable) {
-          focusOnObject(focusable)
-          return
+          focusOnObject(focusable);
+          return;
         }
       }
     }
 
     function onResize() {
-      if (!mountRef.current) return
-      camera.aspect = mountRef.current.clientWidth / Math.max(mountRef.current.clientHeight, 1)
-      camera.updateProjectionMatrix()
-      resize(mountRef.current.clientWidth, mountRef.current.clientHeight)
+      if (!mountRef.current) return;
+      camera.aspect =
+        mountRef.current.clientWidth /
+        Math.max(mountRef.current.clientHeight, 1);
+      camera.updateProjectionMatrix();
+      resize(mountRef.current.clientWidth, mountRef.current.clientHeight);
     }
 
-    window.addEventListener('resize', onResize)
-    renderer.domElement.addEventListener('dblclick', onDoubleClick)
+    window.addEventListener("resize", onResize);
+    renderer.domElement.addEventListener("dblclick", onDoubleClick);
+    const clock = new THREE.Clock();
 
     function frame() {
       if (runningRef.current) {
-        simulation.tick()
+        simulation.tick();
       }
 
-      syncScene()
+      const deltaSeconds = clock.getDelta();
+      syncScene(deltaSeconds);
       if (focusTransitionRef.current) {
-        camera.position.lerp(focusTransitionRef.current.position, 0.12)
-        controls.target.lerp(focusTransitionRef.current.target, 0.12)
+        camera.position.lerp(focusTransitionRef.current.position, 0.12);
+        controls.target.lerp(focusTransitionRef.current.target, 0.12);
 
         if (
-          camera.position.distanceTo(focusTransitionRef.current.position) < 0.8 &&
+          camera.position.distanceTo(focusTransitionRef.current.position) <
+            0.8 &&
           controls.target.distanceTo(focusTransitionRef.current.target) < 0.35
         ) {
-          setStatus(focusTransitionRef.current.status)
-          focusTransitionRef.current = null
+          setStatus(focusTransitionRef.current.status);
+          focusTransitionRef.current = null;
         }
       }
-      controls.update()
-      render()
-      animationRef.current = requestAnimationFrame(frame)
+      controls.update();
+      render();
+      animationRef.current = requestAnimationFrame(frame);
     }
 
-    frame()
+    frame();
 
     return () => {
-      window.removeEventListener('resize', onResize)
-      renderer.domElement.removeEventListener('dblclick', onDoubleClick)
-      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current)
-      bundleRef.current = null
-      focusTransitionRef.current = null
-      bundle.dispose()
-    }
-  }, [simulation, showTrail, showVectors])
+      window.removeEventListener("resize", onResize);
+      renderer.domElement.removeEventListener("dblclick", onDoubleClick);
+      if (animationRef.current !== null)
+        cancelAnimationFrame(animationRef.current);
+      bundleRef.current = null;
+      focusTransitionRef.current = null;
+      bundle.dispose();
+    };
+  }, [simulation, showTrail, showVectors]);
 
   function resetSimulation() {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt })
-    simulation.reset()
-    runningRef.current = false
-    setRunning(false)
-    setTelemetry(simulation.getTelemetry())
-    setStatus("Rocket reset to Earth's surface.")
+    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt });
+    simulation.reset();
+    runningRef.current = false;
+    setRunning(false);
+    setTelemetry(simulation.getTelemetry());
+    setStatus("Rocket reset to Earth's surface.");
   }
 
   function applyCameraPreset(
-    preset: 'overview' | 'earth' | 'moon' | 'sun' | 'rocket',
+    preset: "overview" | "earth" | "moon" | "sun" | "rocket",
   ) {
-    const bundle = bundleRef.current
-    if (!bundle) return
+    const bundle = bundleRef.current;
+    if (!bundle) return;
 
-    if (preset === 'overview') {
+    if (preset === "overview") {
       focusTransitionRef.current = {
         position: new THREE.Vector3(-210, 120, 210),
         target: new THREE.Vector3(56, 0, 0),
-        status: 'Overview camera restored.',
-      }
-      setStatus('Restoring overview camera...')
-      return
+        status: "Overview camera restored.",
+      };
+      setStatus("Restoring overview camera...");
+      return;
     }
 
-    let focusable: THREE.Object3D | null = null
+    let focusable: THREE.Object3D | null = null;
     bundle.scene.traverse((object) => {
-      if (focusable) return
+      if (focusable) return;
       if (String(object.userData.focusLabel).toLowerCase() === preset) {
-        focusable = object
+        focusable = object;
       }
-    })
+    });
 
-    if (!focusable) return
-    const focusedObject = focusable as THREE.Object3D
+    if (!focusable) return;
+    const focusedObject = focusable as THREE.Object3D;
 
-    const worldPosition = new THREE.Vector3()
-    focusedObject.getWorldPosition(worldPosition)
-    const focusRadius = Number(focusedObject.userData.focusRadius ?? 12)
-    const currentOffset = bundle.camera.position.clone().sub(bundle.controls.target)
+    const worldPosition = new THREE.Vector3();
+    focusedObject.getWorldPosition(worldPosition);
+    const focusRadius = Number(focusedObject.userData.focusRadius ?? 12);
+    const currentOffset = bundle.camera.position
+      .clone()
+      .sub(bundle.controls.target);
     const viewDirection =
       currentOffset.lengthSq() > 1e-6
         ? currentOffset.normalize()
-        : new THREE.Vector3(1.25, 0.75, 1.15).normalize()
+        : new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 
     focusTransitionRef.current = {
-      position: worldPosition.clone().add(
-        viewDirection.multiplyScalar(THREE.MathUtils.clamp(focusRadius * 8, 24, 520)),
-      ),
+      position: worldPosition
+        .clone()
+        .add(
+          viewDirection.multiplyScalar(
+            THREE.MathUtils.clamp(focusRadius * 8, 24, 520),
+          ),
+        ),
       target: worldPosition,
       status: `Focused on ${focusedObject.userData.focusLabel}.`,
-    }
-    setStatus(`Focusing ${focusedObject.userData.focusLabel}...`)
+    };
+    setStatus(`Focusing ${focusedObject.userData.focusLabel}...`);
   }
 
-  const missionPhase = getMissionPhase(telemetry.altitudeEarth, telemetry.altitudeMoon)
-  const currentAltitudeEarth = Math.max(telemetry.altitudeEarth, 0)
-  const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0)
+  const missionPhase = getMissionPhase(
+    telemetry.altitudeEarth,
+    telemetry.altitudeMoon,
+  );
+  const currentAltitudeEarth = Math.max(telemetry.altitudeEarth, 0);
+  const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0);
   const lunarTransferGap = Math.max(
     EARTH_MOON_DISTANCE - R_EARTH - R_MOON - currentAltitudeEarth,
     0,
-  )
+  );
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(79,172,255,0.18),_transparent_38%),radial-gradient(circle_at_top_right,_rgba(255,185,107,0.14),_transparent_28%),linear-gradient(180deg,_rgba(2,6,13,0.94),_rgba(3,9,18,0.98))]" />
-        <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute inset-0 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px] opacity-40" />
       </div>
 
       <div className="relative mx-auto max-w-[1600px] px-4 py-4 md:px-6 lg:px-8 lg:py-6">
         <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_380px]">
           <div className="rounded-[2.25rem] border border-white/10 bg-[#07111f]/78 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
-            <div className="flex flex-wrap items-center gap-3 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-cyan-100">
+            <div className="flex flex-wrap items-center gap-3 text-[0.72rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase">
               <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1">
                 Earth to Moon
               </span>
@@ -412,17 +448,16 @@ export default function App() {
             </div>
 
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white md:text-5xl">
-              Launch from Earth&apos;s surface and tune a ballistic path toward the Moon.
+              Launch from Earth&apos;s surface and tune a ballistic path toward
+              the Moon.
             </h1>
 
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
-              This simulator now stages the rocket directly on Earth, shows a cleaner
-              mission readout, and uses a more legible space scene so the transfer arc
-              is easier to understand.
-            </p>
-
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Mission Phase" value={missionPhase} accent="cyan" />
+              <MetricCard
+                label="Mission Phase"
+                value={missionPhase}
+                accent="cyan"
+              />
               <MetricCard
                 label="Current Speed"
                 value={formatSpeed(telemetry.speed)}
@@ -442,20 +477,23 @@ export default function App() {
           </div>
 
           <div className="rounded-[2.25rem] border border-white/10 bg-[#0b1628]/82 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
-            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
               Mission Notes
             </div>
             <div className="mt-4 space-y-4 text-sm leading-6 text-slate-300">
               <p>
-                The current model is two-body gravity plus a moving Moon. There is no
-                thrust curve, atmospheric drag, or patched-conic guidance yet.
+                The current model is two-body gravity plus a moving Moon. There
+                is no thrust curve, atmospheric drag, or patched-conic guidance
+                yet.
               </p>
               <p>
-                Distances and body sizes use the same compression factor, so the visual
-                proportions stay consistent even though the whole system is scaled down.
+                Distances and body sizes use the same compression factor, so the
+                visual proportions stay consistent even though the whole system
+                is scaled down.
               </p>
               <p className="rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-slate-200">
-                Approximate Earth-to-Moon surface gap: {formatDistance(lunarTransferGap)}
+                Approximate Earth-to-Moon surface gap:{" "}
+                {formatDistance(lunarTransferGap)}
               </p>
             </div>
           </div>
@@ -463,58 +501,64 @@ export default function App() {
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
           <div className="space-y-5">
-          <Controls
-            launchSpeed={launchSpeed}
-            launchAngleDeg={launchAngleDeg}
-            launchAzimuthDeg={launchAzimuthDeg}
-            dt={dt}
-            showTrail={showTrail}
-            showVectors={showVectors}
-            running={running}
-            onCameraPreset={applyCameraPreset}
-            onLaunchSpeedChange={setLaunchSpeed}
-            onLaunchAngleChange={setLaunchAngleDeg}
-            onLaunchAzimuthChange={setLaunchAzimuthDeg}
-            onDtChange={setDt}
-            onShowTrailChange={setShowTrail}
-            onShowVectorsChange={setShowVectors}
-            onToggleRunning={() => {
-              setRunning((prev) => !prev)
-              setStatus(running ? 'Paused.' : 'Running...')
-            }}
-            onReset={resetSimulation}
-          />
+            <Controls
+              launchSpeed={launchSpeed}
+              launchAngleDeg={launchAngleDeg}
+              launchAzimuthDeg={launchAzimuthDeg}
+              dt={dt}
+              showTrail={showTrail}
+              showVectors={showVectors}
+              running={running}
+              onCameraPreset={applyCameraPreset}
+              onLaunchSpeedChange={setLaunchSpeed}
+              onLaunchAngleChange={setLaunchAngleDeg}
+              onLaunchAzimuthChange={setLaunchAzimuthDeg}
+              onDtChange={setDt}
+              onShowTrailChange={setShowTrail}
+              onShowVectorsChange={setShowVectors}
+              onToggleRunning={() => {
+                setRunning((prev) => !prev);
+                setStatus(running ? "Paused." : "Running...");
+              }}
+              onReset={resetSimulation}
+            />
 
-          <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
-            <div className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
-              Telemetry
+            <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
+              <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
+                Telemetry
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <TelemetryRow
+                  label="Elapsed mission time"
+                  value={formatElapsed(telemetry.hours)}
+                />
+                <TelemetryRow
+                  label="Current speed"
+                  value={formatSpeed(telemetry.speed)}
+                />
+                <TelemetryRow
+                  label="Altitude above Earth"
+                  value={formatDistance(currentAltitudeEarth)}
+                />
+                <TelemetryRow
+                  label="Altitude above Moon"
+                  value={formatDistance(currentAltitudeMoon)}
+                />
+              </div>
+              <div className="mt-4 rounded-2xl border border-cyan-300/10 bg-cyan-300/8 px-4 py-3 text-slate-200">
+                Status: {status}
+              </div>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <TelemetryRow label="Elapsed mission time" value={formatElapsed(telemetry.hours)} />
-              <TelemetryRow label="Current speed" value={formatSpeed(telemetry.speed)} />
-              <TelemetryRow
-                label="Altitude above Earth"
-                value={formatDistance(currentAltitudeEarth)}
-              />
-              <TelemetryRow
-                label="Altitude above Moon"
-                value={formatDistance(currentAltitudeMoon)}
-              />
-            </div>
-            <div className="mt-4 rounded-2xl border border-cyan-300/10 bg-cyan-300/8 px-4 py-3 text-slate-200">
-              Status: {status}
+
+            <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/82 p-5 text-sm leading-6 text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
+              The controls are still intentionally simple. If you want a bigger
+              next step, the highest-value upgrades are a burn timeline, lunar
+              capture burn, mission presets, and textured Earth/Moon assets.
             </div>
           </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/82 p-5 text-sm leading-6 text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
-            The controls are still intentionally simple. If you want a bigger next step,
-            the highest-value upgrades are a burn timeline, lunar capture burn, mission
-            presets, and textured Earth/Moon assets.
-          </div>
-        </div>
 
           <div className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
-            <div className="absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-gradient-to-b from-[#040b16]/95 to-transparent px-5 py-4 text-xs uppercase tracking-[0.22em] text-slate-300">
+            <div className="absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-gradient-to-b from-[#040b16]/95 to-transparent px-5 py-4 text-xs tracking-[0.22em] text-slate-300 uppercase">
               <div className="flex items-center gap-3">
                 <span className="rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-cyan-100">
                   Scene View
@@ -542,45 +586,47 @@ export default function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 type MetricCardProps = {
-  label: string
-  value: string
-  accent: 'cyan' | 'amber'
-}
+  label: string;
+  value: string;
+  accent: "cyan" | "amber";
+};
 
 function MetricCard({ label, value, accent }: MetricCardProps) {
   const accentClasses =
-    accent === 'cyan'
-      ? 'border-cyan-300/12 bg-cyan-300/8 text-cyan-50'
-      : 'border-amber-300/12 bg-amber-300/8 text-amber-50'
+    accent === "cyan"
+      ? "border-cyan-300/12 bg-cyan-300/8 text-cyan-50"
+      : "border-amber-300/12 bg-amber-300/8 text-amber-50";
 
   return (
-    <div className={`min-w-0 rounded-[1.5rem] border px-4 py-4 min-h-[7.75rem] ${accentClasses}`}>
-      <div className="truncate text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-300">
+    <div
+      className={`min-h-[7.75rem] min-w-0 rounded-[1.5rem] border px-4 py-4 ${accentClasses}`}
+    >
+      <div className="truncate text-[0.68rem] font-semibold tracking-[0.22em] text-slate-300 uppercase">
         {label}
       </div>
       <div className="mt-2 truncate text-xl font-semibold text-white tabular-nums">
         {value}
       </div>
     </div>
-  )
+  );
 }
 
 type TelemetryRowProps = {
-  label: string
-  value: string
-}
+  label: string;
+  value: string;
+};
 
 function TelemetryRow({ label, value }: TelemetryRowProps) {
   return (
     <div className="rounded-[1.35rem] border border-white/8 bg-white/4 px-4 py-3">
-      <div className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+      <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-400 uppercase">
         {label}
       </div>
       <div className="mt-1 text-base font-medium text-slate-100">{value}</div>
     </div>
-  )
+  );
 }

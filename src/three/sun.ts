@@ -35,10 +35,20 @@ export function createReferenceSun(): ReferenceSunBundle {
   sun.userData.focusRadius = SUN_DRAW_RADIUS;
   sun.position.copy(SUN_POSITION);
 
-  const sunLight = new THREE.PointLight(0xfff1d6, 28, 0, 1.5);
+  const sunLight = new THREE.PointLight(
+    new THREE.Color(1.0, 1.0, 1.0),
+    10.0,
+    0,
+    0.5,
+  );
   sunLight.position.copy(SUN_POSITION);
 
-  const fillLight = new THREE.PointLight(0x6ba9ff, 2.2, 1600, 2);
+  const fillLight = new THREE.PointLight(
+    new THREE.Color(0.2, 0.4, 1.0),
+    2.0,
+    420,
+    1,
+  );
   fillLight.position.set(260, 140, -220);
 
   const lensflare = new Lensflare();

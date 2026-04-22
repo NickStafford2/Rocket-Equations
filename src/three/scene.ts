@@ -21,8 +21,8 @@ export type ThreeSceneBundle = {
 
 export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x040812);
-  scene.fog = new THREE.Fog(0x040812, 300, 1800);
+  scene.background = new THREE.Color(0x000814);
+  scene.fog = new THREE.Fog(0x000814, 180, 2500);
 
   const camera = new THREE.PerspectiveCamera(
     55,
@@ -40,6 +40,8 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.2;
@@ -50,17 +52,17 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   composer.addPass(
     new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.7,
+      0.5,
       0.6,
       0.05,
     ),
   );
   composer.addPass(new OutputPass());
 
-  const hemisphereLight = new THREE.HemisphereLight(0xa9d4ff, 0x05070d, 0.75);
-  scene.add(hemisphereLight);
-
-  const ambientLight = new THREE.AmbientLight(0x8db7ff, 0.35);
+  const ambientLight = new THREE.AmbientLight(
+    new THREE.Color(0.13, 0.13, 0.13),
+    0.5,
+  );
   scene.add(ambientLight);
 
   const objects = createSceneObjects(scene);

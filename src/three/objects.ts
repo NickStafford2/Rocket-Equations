@@ -1,12 +1,6 @@
 import * as THREE from 'three'
-import {
-  Lensflare,
-  LensflareElement,
-} from 'three/examples/jsm/objects/Lensflare.js'
 import { EARTH_MOON_DISTANCE, R_EARTH, R_MOON } from '../physics/bodies'
-import earthTextureUrl from '../assets/textures/8k_earth.jpg'
-import lensflare0Url from '../assets/textures/lensflare0.png'
-import lensflare2Url from '../assets/textures/lensflare2.png'
+import earthTextureUrl from '../assets/textures/earth.jpg'
 import moonTextureUrl from '../assets/textures/mercury.jpg'
 
 export const DISTANCE_SCALE = 1 / 2_000_000
@@ -15,13 +9,11 @@ const _SCALE = 1
 export const EARTH_DRAW_RADIUS = R_EARTH * DISTANCE_SCALE * _SCALE
 export const MOON_DRAW_RADIUS = R_MOON * DISTANCE_SCALE * _SCALE
 export const ROCKET_DRAW_RADIUS = R_EARTH * DISTANCE_SCALE * _SCALE / 100
-const EARTH_AXIAL_TILT_DEG = 23.5
 
 export type SceneObjects = {
   system: THREE.Group
   earthGroup: THREE.Group
   earth: THREE.Mesh
-  earthAtmosphere: THREE.Mesh
   moon: THREE.Mesh
   rocket: THREE.Group
   launchLocationArrow: THREE.ArrowHelper
@@ -42,13 +34,8 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const loader = new THREE.TextureLoader()
   const earthTexture = loader.load(earthTextureUrl)
   earthTexture.colorSpace = THREE.SRGBColorSpace
-
   const moonTexture = loader.load(moonTextureUrl)
   moonTexture.colorSpace = THREE.SRGBColorSpace
-  const textureFlare0 = loader.load(lensflare0Url)
-  textureFlare0.colorSpace = THREE.SRGBColorSpace
-  const textureFlare2 = loader.load(lensflare2Url)
-  textureFlare2.colorSpace = THREE.SRGBColorSpace
 
   const earthGroup = new THREE.Group()
   earthGroup.userData.focusLabel = 'Earth'
@@ -60,59 +47,31 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     new THREE.MeshStandardMaterial({
       map: earthTexture,
       color: 0xffffff,
-      roughness: 0.94,
-      metalness: 0.02,
-      emissive: 0x061c42,
-      emissiveIntensity: 0.22,
+      roughness: 0.5,
+      metalness: 0.01,
+      emissive: new THREE.Color(0, 0, 0),
     }),
   )
-  earthGroup.add(earth)
-
-  const earthAtmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(EARTH_DRAW_RADIUS * 1.08, 64, 64),
-    new THREE.MeshBasicMaterial({
-      color: 0x79d8ff,
-      transparent: true,
-      opacity: 0.18,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-    }),
-  )
-  earthGroup.add(earthAtmosphere)
-
-  const earthAxis = new THREE.Vector3(
-    0,
-    Math.cos(THREE.MathUtils.degToRad(EARTH_AXIAL_TILT_DEG)),
-    Math.sin(THREE.MathUtils.degToRad(EARTH_AXIAL_TILT_DEG)),
-  ).normalize()
-  earthGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), earthAxis)
+  earth.castShadow = true
+  earth.receiveShadow = true
   earth.rotation.y = Math.PI * 1.15
+  earthGroup.add(earth)
 
   const moon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_DRAW_RADIUS, 48, 48),
     new THREE.MeshStandardMaterial({
       map: moonTexture,
-      color: 0xf6f3ee,
-      roughness: 0.9,
-      metalness: 0.01,
-      emissive: 0x90a7ff,
-      emissiveIntensity: 0.45,
+      color: new THREE.Color(0xc8c8c8),
+      roughness: 0.85,
+      metalness: 0.05,
+      emissive: new THREE.Color(0, 0, 0),
     }),
   )
+  moon.castShadow = true
+  moon.receiveShadow = true
+  moon.rotation.y = Math.PI * 0.35
   moon.userData.focusLabel = 'Moon'
   moon.userData.focusRadius = MOON_DRAW_RADIUS
-
-  const moonLensflare = new Lensflare()
-  moonLensflare.addElement(
-    new LensflareElement(textureFlare0, 72, 0, new THREE.Color(0.8, 0.86, 1.0)),
-  )
-  moonLensflare.addElement(
-    new LensflareElement(textureFlare2, 22, 0.18, new THREE.Color(0.74, 0.82, 1.0)),
-  )
-  moonLensflare.addElement(
-    new LensflareElement(textureFlare2, 10, 0.34, new THREE.Color(0.58, 0.68, 1.0)),
-  )
-  moon.add(moonLensflare)
   system.add(moon)
 
   const rocket = new THREE.Group()
@@ -284,7 +243,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     system,
     earthGroup,
     earth,
-    earthAtmosphere,
     moon,
     rocket,
     launchLocationArrow,
