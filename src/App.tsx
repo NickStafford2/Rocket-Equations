@@ -18,7 +18,7 @@ import type { ImpactState, ManeuverInput } from "./physics/bodies";
 import { EarthMoonSimulation } from "./sim/simulation";
 import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
-import { metersToScene } from "./three/objects";
+import { metersToScene, ROCKET_DRAW_RADIUS } from "./three/objects";
 import { Controls } from "./ui/controls";
 
 const MIN_DT = 0.1;
@@ -305,6 +305,7 @@ export default function App() {
 
       objects.moon.position.copy(metersToScene(telemetryNow.moonPosition));
       objects.rocket.position.copy(metersToScene(simState.rocket.position));
+      objects.thrustDirectionArrow.position.copy(objects.rocket.position);
       objects.enginePlume.visible =
         runningRef.current && maneuverInputRef.current.thrusting;
       if (objects.enginePlume.visible) {
@@ -368,6 +369,12 @@ export default function App() {
 
       if (simState.rocket.heading.lengthSq() > 1e-6) {
         const heading = simState.rocket.heading.clone().normalize();
+        objects.thrustDirectionArrow.setDirection(heading);
+        objects.thrustDirectionArrow.setLength(
+          ROCKET_DRAW_RADIUS * 11,
+          ROCKET_DRAW_RADIUS * 2.8,
+          ROCKET_DRAW_RADIUS * 1.4,
+        );
         objects.rocket.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
           heading,

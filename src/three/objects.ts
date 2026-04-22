@@ -17,6 +17,7 @@ export type SceneObjects = {
   moon: THREE.Mesh;
   rocket: THREE.Group;
   enginePlume: THREE.Mesh;
+  thrustDirectionArrow: THREE.ArrowHelper;
   launchLocationArrow: THREE.ArrowHelper;
   launchRing: THREE.Mesh;
   launchTangentArrow: THREE.ArrowHelper;
@@ -155,6 +156,16 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
 
   system.add(rocket);
 
+  const thrustDirectionArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(),
+    ROCKET_DRAW_RADIUS * 10,
+    0x7dffb2,
+    ROCKET_DRAW_RADIUS * 2.8,
+    ROCKET_DRAW_RADIUS * 1.4,
+  );
+  system.add(thrustDirectionArrow);
+
   const launchLocationArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
     new THREE.Vector3(),
@@ -270,6 +281,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     moon,
     rocket,
     enginePlume,
+    thrustDirectionArrow,
     launchLocationArrow,
     launchRing,
     launchTangentArrow,
