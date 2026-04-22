@@ -75,6 +75,39 @@ function clampDt(dt: number): number {
   return THREE.MathUtils.clamp(dt, MIN_DT, MAX_DT);
 }
 
+function getRocketCameraBasis(heading: THREE.Vector3) {
+  const forward = heading.clone().normalize();
+  const up = new THREE.Vector3(0, 1, 0);
+  const right = new THREE.Vector3().crossVectors(up, forward).normalize();
+
+  return { forward, up, right };
+}
+
+function worldOffsetToRocketLocal(
+  offset: THREE.Vector3,
+  heading: THREE.Vector3,
+): THREE.Vector3 {
+  const { forward, up, right } = getRocketCameraBasis(heading);
+
+  return new THREE.Vector3(
+    offset.dot(right),
+    offset.dot(up),
+    offset.dot(forward),
+  );
+}
+
+function rocketLocalOffsetToWorld(
+  localOffset: THREE.Vector3,
+  heading: THREE.Vector3,
+): THREE.Vector3 {
+  const { forward, up, right } = getRocketCameraBasis(heading);
+
+  return right
+    .multiplyScalar(localOffset.x)
+    .add(up.multiplyScalar(localOffset.y))
+    .add(forward.multiplyScalar(localOffset.z));
+}
+
 function getMissionPhase(
   altitudeEarth: number,
   altitudeMoon: number,
@@ -129,6 +162,7 @@ export default function App() {
     target: THREE.Vector3;
     status: string;
   } | null>(null);
+  const chaseOffsetLocalRef = useRef(new THREE.Vector3());
   const maneuverInputRef = useRef<ManeuverInput>({
     thrusting: false,
     turn: 0,
@@ -281,6 +315,13 @@ export default function App() {
     const { camera, controls, objects, render, resize, renderer, scene } =
       bundle;
     bundleRef.current = bundle;
+
+    const initialState = simulation.getState();
+    const initialRocketPosition = metersToScene(initialState.rocket.position);
+    chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
+      camera.position.clone().sub(initialRocketPosition),
+      initialState.rocket.heading,
+    );
 
     function syncScene() {
       const simState = simulation.getState();
@@ -481,6 +522,7 @@ export default function App() {
       }
 
       syncScene();
+      const rocketHeading = simulation.getState().rocket.heading;
       if (focusTransitionRef.current) {
         camera.position.lerp(focusTransitionRef.current.position, 0.12);
         controls.target.lerp(focusTransitionRef.current.target, 0.12);
@@ -494,9 +536,23 @@ export default function App() {
           focusTransitionRef.current = null;
         }
       } else {
+        const chaseOffsetWorld = rocketLocalOffsetToWorld(
+          chaseOffsetLocalRef.current,
+          rocketHeading,
+        );
+        const desiredCameraPosition =
+          objects.rocket.position.clone().add(chaseOffsetWorld);
+
+        camera.position.lerp(desiredCameraPosition, 0.22);
         controls.target.lerp(objects.rocket.position, 0.22);
       }
       controls.update();
+      if (!focusTransitionRef.current) {
+        chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
+          camera.position.clone().sub(objects.rocket.position),
+          rocketHeading,
+        );
+      }
       render();
       animationRef.current = requestAnimationFrame(frame);
     }
