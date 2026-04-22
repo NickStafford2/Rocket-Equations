@@ -3,6 +3,7 @@ import * as THREE from "three";
 export type OrientationIndicatorBundle = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
+  frame: THREE.Group;
   rocket: THREE.Group;
   sizePx: number;
 };
@@ -25,8 +26,11 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   fillLight.position.set(-4, 2, -3);
   scene.add(fillLight);
 
+  const frame = new THREE.Group();
+  scene.add(frame);
+
   const axes = new THREE.AxesHelper(2.6);
-  scene.add(axes);
+  frame.add(axes);
 
   const orbitRing = new THREE.Mesh(
     new THREE.TorusGeometry(1.85, 0.018, 8, 72),
@@ -37,14 +41,15 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
     }),
   );
   orbitRing.rotation.x = Math.PI / 2;
-  scene.add(orbitRing);
+  frame.add(orbitRing);
 
   const rocket = createIndicatorRocket();
-  scene.add(rocket);
+  frame.add(rocket);
 
   return {
     scene,
     camera,
+    frame,
     rocket,
     sizePx: 132,
   };

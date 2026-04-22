@@ -394,6 +394,7 @@ export default function App() {
         );
       }
 
+      orientationIndicator.frame.quaternion.copy(camera.quaternion).invert();
       orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
 
       setTelemetry(telemetryNow);
