@@ -12,8 +12,9 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  camera.position.set(3.4, 2.4, 4.8);
-  camera.lookAt(0, 0.35, 0);
+  camera.up.set(0, 1, 0);
+  camera.position.set(0, 0, 5.4);
+  camera.lookAt(0, 0, 0);
 
   const ambientLight = new THREE.AmbientLight(0xd7ebff, 0.95);
   scene.add(ambientLight);

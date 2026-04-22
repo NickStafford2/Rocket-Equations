@@ -20,9 +20,11 @@ import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
 import { metersToScene, ROCKET_DRAW_RADIUS } from "./three/objects";
 import { Controls } from "./ui/controls";
+import { SceneHud } from "./ui/scene-hud";
 
 const MIN_DT = 0.1;
 const MAX_DT = 1000;
+type CameraPreset = "overview" | "earth" | "moon" | "sun" | "rocket";
 
 function formatDistance(meters: number): string {
   const clamped = Math.max(meters, 0);
@@ -115,6 +117,22 @@ function isInteractiveElement(target: EventTarget | null): boolean {
   );
 }
 
+function normalizeFocusLabelToPreset(label: unknown): CameraPreset | null {
+  const normalized = String(label).toLowerCase();
+
+  if (
+    normalized === "overview" ||
+    normalized === "earth" ||
+    normalized === "moon" ||
+    normalized === "sun" ||
+    normalized === "rocket"
+  ) {
+    return normalized;
+  }
+
+  return null;
+}
+
 export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const animationRef = useRef<number | null>(null);
@@ -164,10 +182,16 @@ export default function App() {
   const [dt, setDt] = useState(DEFAULT_DT);
   const [showTrail, setShowTrail] = useState(true);
   const [showVectors, setShowVectors] = useState(false);
+  const [currentCameraPreset, setCurrentCameraPreset] =
+    useState<CameraPreset | null>("overview");
   const [status, setStatus] = useState(
     "Rocket staged on Earth's surface. Use the arrow keys to fly, Up or Space to thrust, and WASD to change delta t.",
   );
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
+
+  function focusScene() {
+    mountRef.current?.focus({ preventScroll: true });
+  }
 
   useEffect(() => {
     runningRef.current = running;
@@ -426,6 +450,7 @@ export default function App() {
 
       const focusRadius = Number(targetObject.userData.focusRadius ?? 12);
       const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+      const preset = normalizeFocusLabelToPreset(focusLabel);
       const currentOffset = camera.position.clone().sub(controls.target);
       const fallbackOffset = new THREE.Vector3(1.25, 0.75, 1.15);
       const viewDirection =
@@ -442,6 +467,7 @@ export default function App() {
         target: worldPosition,
         status: `Focused on ${focusLabel}.`,
       };
+      setCurrentCameraPreset(preset);
       setStatus(`Focusing ${focusLabel}...`);
     }
 
@@ -488,7 +514,19 @@ export default function App() {
       resize(mountRef.current.clientWidth, mountRef.current.clientHeight);
     }
 
+    function onScenePointerDown() {
+      focusScene();
+    }
+
+    function onControlsStart() {
+      if (!focusTransitionRef.current) {
+        setCurrentCameraPreset(null);
+      }
+    }
+
     window.addEventListener("resize", onResize);
+    mount.addEventListener("pointerdown", onScenePointerDown);
+    controls.addEventListener("start", onControlsStart);
     renderer.domElement.addEventListener("dblclick", onDoubleClick);
 
     function frame() {
@@ -527,6 +565,8 @@ export default function App() {
 
     return () => {
       window.removeEventListener("resize", onResize);
+      mount.removeEventListener("pointerdown", onScenePointerDown);
+      controls.removeEventListener("start", onControlsStart);
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
       if (animationRef.current !== null)
         cancelAnimationFrame(animationRef.current);
@@ -555,7 +595,7 @@ export default function App() {
   }
 
   function applyCameraPreset(
-    preset: "overview" | "earth" | "moon" | "sun" | "rocket",
+    preset: CameraPreset,
   ) {
     const bundle = bundleRef.current;
     if (!bundle) return;
@@ -566,6 +606,7 @@ export default function App() {
         target: new THREE.Vector3(56, 0, 0),
         status: "Overview camera restored.",
       };
+      setCurrentCameraPreset("overview");
       setStatus("Restoring overview camera...");
       return;
     }
@@ -603,6 +644,7 @@ export default function App() {
       target: worldPosition,
       status: `Focused on ${focusedObject.userData.focusLabel}.`,
     };
+    setCurrentCameraPreset(preset);
     setStatus(`Focusing ${focusedObject.userData.focusLabel}...`);
   }
 
@@ -698,31 +740,12 @@ export default function App() {
               dt={dt}
               showTrail={showTrail}
               showVectors={showVectors}
-              running={running}
-              onCameraPreset={applyCameraPreset}
               onLaunchSpeedChange={setLaunchSpeed}
               onLaunchAngleChange={setLaunchAngleDeg}
               onLaunchAzimuthChange={setLaunchAzimuthDeg}
               onDtChange={setDt}
               onShowTrailChange={setShowTrail}
               onShowVectorsChange={setShowVectors}
-              onToggleRunning={() => {
-                if (simulation.getState().impact) {
-                  resetSimulation();
-                }
-
-                setRunning((prev) => {
-                  const nextRunning = !prev;
-                  runningRef.current = nextRunning;
-                  setStatus(
-                    nextRunning
-                      ? `Running. Use arrow keys to fly, Up or Space to burn, and WASD to adjust delta t (${formatDt(dt)} s).`
-                      : "Paused.",
-                  );
-                  return nextRunning;
-                });
-              }}
-              onReset={resetSimulation}
             />
 
             <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
@@ -791,9 +814,40 @@ export default function App() {
               </div>
             </div>
 
+            <SceneHud
+              currentCameraPreset={currentCameraPreset}
+              running={running}
+              onCameraPreset={(preset) => {
+                applyCameraPreset(preset);
+                focusScene();
+              }}
+              onToggleRunning={() => {
+                if (simulation.getState().impact) {
+                  resetSimulation();
+                }
+
+                setRunning((prev) => {
+                  const nextRunning = !prev;
+                  runningRef.current = nextRunning;
+                  setStatus(
+                    nextRunning
+                      ? `Running. Use arrow keys to fly, Up or Space to burn, and WASD to adjust delta t (${formatDt(dt)} s).`
+                      : "Paused.",
+                  );
+                  return nextRunning;
+                });
+                focusScene();
+              }}
+              onReset={() => {
+                resetSimulation();
+                focusScene();
+              }}
+            />
+
             <div
               ref={mountRef}
-              className="h-[min(78vh,860px)] min-h-[620px] w-full"
+              tabIndex={0}
+              className="h-[min(78vh,860px)] min-h-[620px] w-full focus:outline-none"
             />
 
             <div className="pointer-events-none absolute bottom-5 right-5 z-20 rounded-[1.4rem] border border-cyan-300/18 bg-transparent p-3 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">

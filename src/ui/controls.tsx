@@ -5,18 +5,12 @@ type ControlsProps = {
   dt: number;
   showTrail: boolean;
   showVectors: boolean;
-  running: boolean;
-  onCameraPreset: (
-    preset: "overview" | "earth" | "moon" | "sun" | "rocket",
-  ) => void;
   onLaunchSpeedChange: (value: number) => void;
   onLaunchAngleChange: (value: number) => void;
   onLaunchAzimuthChange: (value: number) => void;
   onDtChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
   onShowVectorsChange: (value: boolean) => void;
-  onToggleRunning: () => void;
-  onReset: () => void;
 };
 
 export function Controls({
@@ -26,16 +20,12 @@ export function Controls({
   dt,
   showTrail,
   showVectors,
-  running,
-  onCameraPreset,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
   onDtChange,
   onShowTrailChange,
   onShowVectorsChange,
-  onToggleRunning,
-  onReset,
 }: ControlsProps) {
   return (
     <div className="space-y-5 rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 shadow-[0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur">
@@ -142,69 +132,6 @@ export function Controls({
             larger steps speed up long coasts but make manual burns coarser.
           </div>
         </label>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="rounded-2xl bg-[#8be3ff] px-4 py-2 font-semibold text-[#03111a] shadow-[0_14px_30px_rgba(91,207,255,0.25)] transition-colors hover:bg-[#9ce8ff]"
-          onClick={onToggleRunning}
-        >
-          {running ? "Pause" : "Start"}
-        </button>
-        <button
-          type="button"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 font-semibold text-slate-100 transition-colors hover:bg-white/10"
-          onClick={onReset}
-        >
-          Reset
-        </button>
-      </div>
-
-      <div className="space-y-3 rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
-        <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-          Camera
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-            onClick={() => onCameraPreset("overview")}
-          >
-            Overview
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-            onClick={() => onCameraPreset("earth")}
-          >
-            Earth
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-            onClick={() => onCameraPreset("moon")}
-          >
-            Moon
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-            onClick={() => onCameraPreset("rocket")}
-          >
-            Rocket
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
-            onClick={() => onCameraPreset("sun")}
-          >
-            Sun
-          </button>
-        </div>
-        <div className="text-xs leading-5 text-slate-400">
-          Double-click Earth, Moon, Rocket, or Sun to focus the camera.
-        </div>
       </div>
 
       <div className="space-y-3 rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
