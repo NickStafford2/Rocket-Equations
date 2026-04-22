@@ -16,20 +16,37 @@ export const DEFAULT_ALTITUDE = 0.0;
 export const DEFAULT_SPEED = 11_550.0;
 export const DEFAULT_ANGLE_DEG = 90.0;
 export const DEFAULT_LAUNCH_AZIMUTH_DEG = 49.0;
-export const DEFAULT_DT = 400.0;
+export const DEFAULT_DT = 10.0;
+export const MAX_SIMULATION_STEP = 2.0;
+export const DEFAULT_THRUST_ACCELERATION = 4.0;
+export const DEFAULT_TURN_RATE_DEG = 1.25;
+export const SOFT_LANDING_SPEED = 25.0;
 
 export type BodyState = {
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   acceleration: THREE.Vector3;
+  heading: THREE.Vector3;
 };
 
 export type ImpactTarget = "earth" | "moon" | null;
 
+export type ManeuverInput = {
+  thrusting: boolean;
+  turn: -1 | 0 | 1;
+};
+
+export type ImpactState = {
+  target: Exclude<ImpactTarget, null>;
+  speed: number;
+  relativeSpeed: number;
+  softLanding: boolean;
+};
+
 export type SimulationState = {
   t: number;
   rocket: BodyState;
-  hit: ImpactTarget;
+  impact: ImpactState | null;
 };
 
 export type LaunchFrame = {
@@ -44,6 +61,17 @@ export function moonPositionMeters(t: number): THREE.Vector3 {
     EARTH_MOON_DISTANCE * Math.cos(theta),
     0,
     EARTH_MOON_DISTANCE * Math.sin(theta),
+  );
+}
+
+export function moonVelocityMeters(t: number): THREE.Vector3 {
+  const theta = MOON_ANGULAR_SPEED * t;
+  const orbitalSpeed = EARTH_MOON_DISTANCE * MOON_ANGULAR_SPEED;
+
+  return new THREE.Vector3(
+    -orbitalSpeed * Math.sin(theta),
+    0,
+    orbitalSpeed * Math.cos(theta),
   );
 }
 
@@ -67,8 +95,9 @@ export function makeInitialRocketState(
 
   return {
     position,
-    velocity: direction.multiplyScalar(speed),
+    velocity: direction.clone().multiplyScalar(speed),
     acceleration: new THREE.Vector3(),
+    heading: direction,
   };
 }
 
@@ -104,6 +133,6 @@ export function makeInitialSimulationState(
   return {
     t: 0,
     rocket: makeInitialRocketState(speed, angleDeg, launchAzimuthDeg),
-    hit: null,
+    impact: null,
   };
 }

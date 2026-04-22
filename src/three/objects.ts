@@ -16,6 +16,7 @@ export type SceneObjects = {
   earth: THREE.Mesh;
   moon: THREE.Mesh;
   rocket: THREE.Group;
+  enginePlume: THREE.Mesh;
   launchLocationArrow: THREE.ArrowHelper;
   launchRing: THREE.Mesh;
   launchTangentArrow: THREE.ArrowHelper;
@@ -121,6 +122,19 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   );
   engine.position.y = -bodyLength / 2 - ROCKET_DRAW_RADIUS * 0.15;
   rocket.add(engine);
+
+  const enginePlume = new THREE.Mesh(
+    new THREE.ConeGeometry(bodyRadius * 0.82, ROCKET_DRAW_RADIUS * 2.8, 18),
+    new THREE.MeshBasicMaterial({
+      color: 0xffc857,
+      transparent: true,
+      opacity: 0.85,
+    }),
+  );
+  enginePlume.rotation.z = Math.PI;
+  enginePlume.position.y = -bodyLength / 2 - ROCKET_DRAW_RADIUS * 1.6;
+  enginePlume.visible = false;
+  rocket.add(enginePlume);
 
   for (const side of [-1, 1] as const) {
     const fin = new THREE.Mesh(
@@ -255,6 +269,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earth,
     moon,
     rocket,
+    enginePlume,
     launchLocationArrow,
     launchRing,
     launchTangentArrow,

@@ -45,12 +45,18 @@ export function Controls({
         </div>
         <div>
           <h1 className="text-2xl font-semibold text-white">
-            Translunar Launch
+            Lunar Landing
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            The rocket begins on Earth&apos;s surface, receives an initial
-            impulse, and then coasts under Earth and Moon gravity only.
+            The rocket begins on Earth&apos;s surface with a launch impulse, and
+            then you can steer and burn to set up a soft lunar touchdown.
           </p>
+        </div>
+
+        <div className="rounded-2xl border border-cyan-300/12 bg-cyan-300/8 px-4 py-3 text-xs leading-5 text-slate-200">
+          Arrow keys are live during flight: Left/Right rotate the ship, and Up
+          or Space fires thrust along the nose. Changing launch inputs
+          immediately restages the rocket at t = 0.
         </div>
       </div>
 
@@ -128,15 +134,15 @@ export function Controls({
           <input
             className="w-full"
             type="range"
-            min={5}
-            max={1000}
-            step={5}
+            min={1}
+            max={60}
+            step={1}
             value={dt}
             onChange={(e) => onDtChange(Number(e.target.value))}
           />
           <div className="text-xs leading-5 text-slate-400">
-            Smaller steps improve accuracy near Earth and the Moon but require
-            more frames to cover the same mission time.
+            Smaller steps improve control precision and landing accuracy, while
+            larger steps speed up long coasts but make manual burns coarser.
           </div>
         </label>
       </div>

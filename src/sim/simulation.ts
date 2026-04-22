@@ -5,11 +5,14 @@ import {
   DEFAULT_LAUNCH_AZIMUTH_DEG,
   DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
+  MAX_SIMULATION_STEP,
   R_EARTH,
   R_MOON,
   makeInitialSimulationState,
+  moonVelocityMeters,
   moonPositionMeters,
 } from '../physics/bodies'
+import type { ManeuverInput } from '../physics/bodies'
 import type { SimulationState } from '../physics/bodies'
 import { altitudeAboveEarth, altitudeAboveMoon, stepSimulation } from '../physics/integrator'
 
@@ -18,11 +21,14 @@ export type SimulationConfig = {
   launchAngleDeg: number
   launchAzimuthDeg: number
   dt: number
+  thrustAcceleration: number
+  turnRateDeg: number
 }
 
 export type SimulationTelemetry = {
   hours: number
   speed: number
+  relativeMoonSpeed: number
   altitudeEarth: number
   altitudeMoon: number
   peakAltitudeEarth: number
@@ -43,6 +49,8 @@ export class EarthMoonSimulation {
       launchAngleDeg: DEFAULT_ANGLE_DEG,
       launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
       dt: DEFAULT_DT,
+      thrustAcceleration: 4,
+      turnRateDeg: 1.25,
     },
   ) {
     this.config = config
@@ -71,11 +79,23 @@ export class EarthMoonSimulation {
     this.updateFlightExtrema()
   }
 
-  tick(): void {
-    this.state = stepSimulation(this.state, this.config.dt)
-    this.trail.push(this.state.rocket.position.clone())
-    if (this.trail.length > 5000) this.trail.shift()
-    this.updateFlightExtrema()
+  tick(input: ManeuverInput = { thrusting: false, turn: 0 }): void {
+    const steps = Math.max(1, Math.ceil(this.config.dt / MAX_SIMULATION_STEP))
+    const stepDt = this.config.dt / steps
+
+    for (let index = 0; index < steps; index += 1) {
+      this.state = stepSimulation(
+        this.state,
+        stepDt,
+        input,
+        this.config.thrustAcceleration,
+        this.config.turnRateDeg,
+      )
+      this.trail.push(this.state.rocket.position.clone())
+      if (this.trail.length > 5000) this.trail.shift()
+      this.updateFlightExtrema()
+      if (this.state.impact) break
+    }
   }
 
   getState(): SimulationState {
@@ -91,6 +111,7 @@ export class EarthMoonSimulation {
     return {
       hours: this.state.t / 3600,
       speed: this.state.rocket.velocity.length(),
+      relativeMoonSpeed: this.state.rocket.velocity.clone().sub(moonVelocityMeters(this.state.t)).length(),
       altitudeEarth: altitudeAboveEarth(this.state.rocket.position, R_EARTH),
       altitudeMoon: altitudeAboveMoon(this.state.rocket.position, moonPos, R_MOON),
       peakAltitudeEarth: this.peakAltitudeEarth,

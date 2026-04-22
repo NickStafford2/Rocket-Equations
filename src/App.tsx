@@ -5,12 +5,16 @@ import {
   DEFAULT_DT,
   DEFAULT_LAUNCH_AZIMUTH_DEG,
   DEFAULT_SPEED,
+  DEFAULT_THRUST_ACCELERATION,
+  DEFAULT_TURN_RATE_DEG,
   EARTH_MOON_DISTANCE,
   R_EARTH,
   R_MOON,
   getLaunchFrame,
   makeInitialRocketState,
+  SOFT_LANDING_SPEED,
 } from "./physics/bodies";
+import type { ImpactState, ManeuverInput } from "./physics/bodies";
 import { EarthMoonSimulation } from "./sim/simulation";
 import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
@@ -39,6 +43,14 @@ function formatSpeed(speed: number): string {
   return `${speed.toFixed(0)} m/s`;
 }
 
+function formatRelativeSpeed(speed: number): string {
+  if (speed >= 1000) {
+    return `${(speed / 1000).toFixed(3)} km/s`;
+  }
+
+  return `${speed.toFixed(1)} m/s`;
+}
+
 function formatElapsed(hours: number): string {
   const days = Math.floor(hours / 24);
   const remainingHours = hours - days * 24;
@@ -50,15 +62,44 @@ function formatElapsed(hours: number): string {
   return `${days} d ${remainingHours.toFixed(1)} hr`;
 }
 
-function getMissionPhase(altitudeEarth: number, altitudeMoon: number): string {
+function getMissionPhase(
+  altitudeEarth: number,
+  altitudeMoon: number,
+  relativeMoonSpeed: number,
+): string {
   const safeAltitudeEarth = Math.max(altitudeEarth, 0);
   const safeAltitudeMoon = Math.max(altitudeMoon, 0);
 
+  if (safeAltitudeMoon < 15_000 && relativeMoonSpeed < 250)
+    return "Landing burn";
   if (safeAltitudeMoon < 80_000) return "Lunar approach";
   if (safeAltitudeEarth < 80_000) return "Surface departure";
   if (safeAltitudeEarth < 40_000_000) return "Earth escape arc";
 
   return "Translunar coast";
+}
+
+function describeMoonLanding(impact: ImpactState): string {
+  if (impact.softLanding) {
+    return `Soft lunar landing at ${formatRelativeSpeed(impact.relativeSpeed)} relative speed.`;
+  }
+
+  return `Hard lunar impact at ${formatRelativeSpeed(impact.relativeSpeed)} relative speed. Target is ${formatRelativeSpeed(
+    SOFT_LANDING_SPEED,
+  )} or less.`;
+}
+
+function isInteractiveElement(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+
+  return (
+    target.isContentEditable ||
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    tag === "BUTTON"
+  );
 }
 
 export default function App() {
@@ -75,6 +116,15 @@ export default function App() {
     target: THREE.Vector3;
     status: string;
   } | null>(null);
+  const maneuverInputRef = useRef<ManeuverInput>({
+    thrusting: false,
+    turn: 0,
+  });
+  const keyStateRef = useRef({
+    left: false,
+    right: false,
+    thrust: false,
+  });
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
 
@@ -85,6 +135,8 @@ export default function App() {
         launchAngleDeg: DEFAULT_ANGLE_DEG,
         launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
         dt: DEFAULT_DT,
+        thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
+        turnRateDeg: DEFAULT_TURN_RATE_DEG,
       }),
     [],
   );
@@ -98,7 +150,9 @@ export default function App() {
   const [dt, setDt] = useState(DEFAULT_DT);
   const [showTrail, setShowTrail] = useState(true);
   const [showVectors, setShowVectors] = useState(false);
-  const [status, setStatus] = useState("Rocket staged on Earth's surface.");
+  const [status, setStatus] = useState(
+    "Rocket staged on Earth's surface. Use Left/Right to steer and Up or Space to thrust after launch.",
+  );
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
   useEffect(() => {
@@ -112,7 +166,14 @@ export default function App() {
   }, [launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt });
+    simulation.setConfig({
+      launchSpeed,
+      launchAngleDeg,
+      launchAzimuthDeg,
+      dt,
+      thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
+      turnRateDeg: DEFAULT_TURN_RATE_DEG,
+    });
   }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg, dt]);
 
   useEffect(() => {
@@ -127,6 +188,71 @@ export default function App() {
     setTelemetry(simulation.getTelemetry());
     setStatus("Rocket restaged with updated launch conditions.");
   }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
+
+  useEffect(() => {
+    function syncManeuverInput() {
+      maneuverInputRef.current = {
+        thrusting: keyStateRef.current.thrust,
+        turn: keyStateRef.current.right
+          ? 1
+          : keyStateRef.current.left
+            ? -1
+            : 0,
+      };
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (isInteractiveElement(event.target)) return;
+
+      let handled = true;
+      if (event.code === "ArrowLeft") {
+        keyStateRef.current.left = true;
+      } else if (event.code === "ArrowRight") {
+        keyStateRef.current.right = true;
+      } else if (
+        event.code === "ArrowUp" ||
+        event.code === "Space" ||
+        event.code === "KeyW"
+      ) {
+        keyStateRef.current.thrust = true;
+      } else {
+        handled = false;
+      }
+
+      if (!handled) return;
+      event.preventDefault();
+      syncManeuverInput();
+    }
+
+    function onKeyUp(event: KeyboardEvent) {
+      let handled = true;
+      if (event.code === "ArrowLeft") {
+        keyStateRef.current.left = false;
+      } else if (event.code === "ArrowRight") {
+        keyStateRef.current.right = false;
+      } else if (
+        event.code === "ArrowUp" ||
+        event.code === "Space" ||
+        event.code === "KeyW"
+      ) {
+        keyStateRef.current.thrust = false;
+      } else {
+        handled = false;
+      }
+
+      if (!handled) return;
+      event.preventDefault();
+      syncManeuverInput();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -160,6 +286,12 @@ export default function App() {
 
       objects.moon.position.copy(metersToScene(telemetryNow.moonPosition));
       objects.rocket.position.copy(metersToScene(simState.rocket.position));
+      objects.enginePlume.visible =
+        runningRef.current && maneuverInputRef.current.thrusting;
+      if (objects.enginePlume.visible) {
+        const plumeScale = 0.9 + Math.abs(Math.sin(simState.t * 0.08)) * 0.45;
+        objects.enginePlume.scale.setScalar(plumeScale);
+      }
       objects.launchRing.visible = stagedLaunchPreviewVisible;
       objects.launchLocationArrow.visible = stagedLaunchPreviewVisible;
       objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
@@ -215,8 +347,8 @@ export default function App() {
         objects.accelerationArrow.setLength(Math.min(50, aLen * 1.5e6), 6, 4);
       }
 
-      if (simState.rocket.velocity.lengthSq() > 1e-6) {
-        const heading = simState.rocket.velocity.clone().normalize();
+      if (simState.rocket.heading.lengthSq() > 1e-6) {
+        const heading = simState.rocket.heading.clone().normalize();
         objects.rocket.quaternion.setFromUnitVectors(
           new THREE.Vector3(0, 1, 0),
           heading,
@@ -225,17 +357,23 @@ export default function App() {
 
       setTelemetry(telemetryNow);
 
-      if (simState.hit === "earth") {
+      if (simState.impact?.target === "earth") {
         runningRef.current = false;
         setRunning(false);
-        setStatus("Rocket impacted Earth.");
-      } else if (simState.hit === "moon") {
+        setStatus(
+          `Rocket impacted Earth at ${formatSpeed(simState.impact.speed)}.`,
+        );
+      } else if (simState.impact?.target === "moon") {
         runningRef.current = false;
         setRunning(false);
-        setStatus("Rocket impacted Moon.");
+        setStatus(describeMoonLanding(simState.impact));
       } else if (runningRef.current) {
         setStatus(
-          `Running: ${getMissionPhase(telemetryNow.altitudeEarth, telemetryNow.altitudeMoon)}.`,
+          `Running: ${getMissionPhase(
+            telemetryNow.altitudeEarth,
+            telemetryNow.altitudeMoon,
+            telemetryNow.relativeMoonSpeed,
+          )}.`,
         );
       }
     }
@@ -313,7 +451,7 @@ export default function App() {
 
     function frame() {
       if (runningRef.current) {
-        simulation.tick();
+        simulation.tick(maneuverInputRef.current);
       }
 
       syncScene();
@@ -349,7 +487,16 @@ export default function App() {
   }, [simulation, showTrail, showVectors]);
 
   function resetSimulation() {
-    simulation.setConfig({ launchSpeed, launchAngleDeg, launchAzimuthDeg, dt });
+    maneuverInputRef.current = { thrusting: false, turn: 0 };
+    keyStateRef.current = { left: false, right: false, thrust: false };
+    simulation.setConfig({
+      launchSpeed,
+      launchAngleDeg,
+      launchAzimuthDeg,
+      dt,
+      thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
+      turnRateDeg: DEFAULT_TURN_RATE_DEG,
+    });
     simulation.reset();
     runningRef.current = false;
     setRunning(false);
@@ -412,6 +559,7 @@ export default function App() {
   const missionPhase = getMissionPhase(
     telemetry.altitudeEarth,
     telemetry.altitudeMoon,
+    telemetry.relativeMoonSpeed,
   );
   const currentAltitudeEarth = Math.max(telemetry.altitudeEarth, 0);
   const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0);
@@ -440,8 +588,8 @@ export default function App() {
             </div>
 
             <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white md:text-5xl">
-              Launch from Earth&apos;s surface and tune a ballistic path toward
-              the Moon.
+              Fly from Earth to the Moon and try to land with zero relative
+              velocity.
             </h1>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -474,9 +622,8 @@ export default function App() {
             </div>
             <div className="mt-4 space-y-4 text-sm leading-6 text-slate-300">
               <p>
-                The current model is two-body gravity plus a moving Moon. There
-                is no thrust curve, atmospheric drag, or patched-conic guidance
-                yet.
+                The current model is Earth-Moon gravity plus a steerable main
+                engine for small course corrections and landing burns.
               </p>
               <p>
                 Distances and body sizes use the same compression factor, so the
@@ -484,8 +631,9 @@ export default function App() {
                 is scaled down.
               </p>
               <p className="rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-slate-200">
-                Approximate Earth-to-Moon surface gap:{" "}
-                {formatDistance(lunarTransferGap)}
+                Goal: touch down below {formatRelativeSpeed(SOFT_LANDING_SPEED)}{" "}
+                Moon-relative speed. Current Earth-to-Moon surface gap:{" "}
+                {formatDistance(lunarTransferGap)}.
               </p>
             </div>
           </div>
@@ -509,8 +657,20 @@ export default function App() {
               onShowTrailChange={setShowTrail}
               onShowVectorsChange={setShowVectors}
               onToggleRunning={() => {
-                setRunning((prev) => !prev);
-                setStatus(running ? "Paused." : "Running...");
+                if (simulation.getState().impact) {
+                  resetSimulation();
+                }
+
+                setRunning((prev) => {
+                  const nextRunning = !prev;
+                  runningRef.current = nextRunning;
+                  setStatus(
+                    nextRunning
+                      ? "Running. Use Left/Right to steer and Up or Space to burn."
+                      : "Paused.",
+                  );
+                  return nextRunning;
+                });
               }}
               onReset={resetSimulation}
             />
@@ -529,6 +689,10 @@ export default function App() {
                   value={formatSpeed(telemetry.speed)}
                 />
                 <TelemetryRow
+                  label="Moon-relative speed"
+                  value={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
+                />
+                <TelemetryRow
                   label="Altitude above Earth"
                   value={formatDistance(currentAltitudeEarth)}
                 />
@@ -543,9 +707,10 @@ export default function App() {
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/82 p-5 text-sm leading-6 text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
-              The controls are still intentionally simple. If you want a bigger
-              next step, the highest-value upgrades are a burn timeline, lunar
-              capture burn, mission presets, and textured Earth/Moon assets.
+              Keyboard flight controls are live while the mission is running:
+              Left/Right rotate the ship, and Up or Space fires the engine
+              forward. Smaller integration steps make approach and landing burns
+              much easier to control.
             </div>
           </div>
 
@@ -566,6 +731,9 @@ export default function App() {
                 </span>
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
                   Right-drag to pan
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  Up/Space thrust
                 </span>
               </div>
             </div>
