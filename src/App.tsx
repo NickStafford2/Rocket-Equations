@@ -75,39 +75,6 @@ function clampDt(dt: number): number {
   return THREE.MathUtils.clamp(dt, MIN_DT, MAX_DT);
 }
 
-function getRocketCameraBasis(heading: THREE.Vector3) {
-  const forward = heading.clone().normalize();
-  const up = new THREE.Vector3(0, 1, 0);
-  const right = new THREE.Vector3().crossVectors(up, forward).normalize();
-
-  return { forward, up, right };
-}
-
-function worldOffsetToRocketLocal(
-  offset: THREE.Vector3,
-  heading: THREE.Vector3,
-): THREE.Vector3 {
-  const { forward, up, right } = getRocketCameraBasis(heading);
-
-  return new THREE.Vector3(
-    offset.dot(right),
-    offset.dot(up),
-    offset.dot(forward),
-  );
-}
-
-function rocketLocalOffsetToWorld(
-  localOffset: THREE.Vector3,
-  heading: THREE.Vector3,
-): THREE.Vector3 {
-  const { forward, up, right } = getRocketCameraBasis(heading);
-
-  return right
-    .multiplyScalar(localOffset.x)
-    .add(up.multiplyScalar(localOffset.y))
-    .add(forward.multiplyScalar(localOffset.z));
-}
-
 function getMissionPhase(
   altitudeEarth: number,
   altitudeMoon: number,
@@ -162,9 +129,7 @@ export default function App() {
     target: THREE.Vector3;
     status: string;
   } | null>(null);
-  const chaseOffsetLocalRef = useRef(new THREE.Vector3());
   const previousRocketPositionRef = useRef(new THREE.Vector3());
-  const previousRocketHeadingRef = useRef(new THREE.Vector3(0, 1, 0));
   const maneuverInputRef = useRef<ManeuverInput>({
     thrusting: false,
     turn: 0,
@@ -320,12 +285,7 @@ export default function App() {
 
     const initialState = simulation.getState();
     const initialRocketPosition = metersToScene(initialState.rocket.position);
-    chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
-      camera.position.clone().sub(initialRocketPosition),
-      initialState.rocket.heading,
-    );
     previousRocketPositionRef.current.copy(initialRocketPosition);
-    previousRocketHeadingRef.current.copy(initialState.rocket.heading);
 
     function syncScene() {
       const simState = simulation.getState();
@@ -527,7 +487,6 @@ export default function App() {
 
       syncScene();
       const rocketPosition = objects.rocket.position.clone();
-      const rocketHeading = simulation.getState().rocket.heading;
       if (focusTransitionRef.current) {
         camera.position.lerp(focusTransitionRef.current.position, 0.12);
         controls.target.lerp(focusTransitionRef.current.target, 0.12);
@@ -541,31 +500,14 @@ export default function App() {
           focusTransitionRef.current = null;
         }
       } else {
-        chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
-          camera.position
-            .clone()
-            .sub(previousRocketPositionRef.current),
-          previousRocketHeadingRef.current,
-        );
-        const chaseOffsetWorld = rocketLocalOffsetToWorld(
-          chaseOffsetLocalRef.current,
-          rocketHeading,
-        );
-        const desiredCameraPosition =
-          rocketPosition.clone().add(chaseOffsetWorld);
-
-        camera.position.copy(desiredCameraPosition);
-        controls.target.copy(rocketPosition);
+        const rocketDelta = rocketPosition
+          .clone()
+          .sub(previousRocketPositionRef.current);
+        camera.position.add(rocketDelta);
+        controls.target.add(rocketDelta);
       }
       controls.update();
-      if (!focusTransitionRef.current) {
-        chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
-          camera.position.clone().sub(rocketPosition),
-          rocketHeading,
-        );
-      }
       previousRocketPositionRef.current.copy(rocketPosition);
-      previousRocketHeadingRef.current.copy(rocketHeading);
       render();
       animationRef.current = requestAnimationFrame(frame);
     }
