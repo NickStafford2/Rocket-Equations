@@ -19,7 +19,7 @@ export const DEFAULT_LAUNCH_AZIMUTH_DEG = 49.0;
 export const DEFAULT_DT = 10.0;
 export const MAX_SIMULATION_STEP = 2.0;
 export const DEFAULT_THRUST_ACCELERATION = 4.0;
-export const DEFAULT_TURN_RATE_DEG = 1.25;
+export const DEFAULT_TURN_RATE_DEG = 0.25;
 export const SOFT_LANDING_SPEED = 25.0;
 
 export type BodyState = {
