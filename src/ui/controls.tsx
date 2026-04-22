@@ -52,20 +52,10 @@ export function Controls({
             impulse, and then coasts under Earth and Moon gravity only.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 text-[0.72rem] tracking-[0.18em] text-slate-300 uppercase">
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-            Surface start
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-            Ballistic coast
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-            Earth + Moon gravity
-          </span>
-        </div>
+
         <div className="rounded-2xl border border-cyan-300/12 bg-cyan-300/8 px-4 py-3 text-xs leading-5 text-slate-200">
-          Changing any launch input immediately restages the rocket at t = 0 so the
-          preview arrows always match the next launch.
+          Changing any launch input immediately restages the rocket at t = 0 so
+          the preview arrows always match the next launch.
         </div>
       </div>
 
@@ -130,8 +120,8 @@ export function Controls({
             onChange={(e) => onLaunchAngleChange(Number(e.target.value))}
           />
           <div className="text-xs leading-5 text-slate-400">
-            The preview is planar: 0° follows the local tangent, 90° points straight
-            away from Earth, and 180° reverses along the tangent.
+            The preview is planar: 0° follows the local tangent, 90° points
+            straight away from Earth, and 180° reverses along the tangent.
           </div>
         </label>
 

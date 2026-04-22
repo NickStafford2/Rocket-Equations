@@ -42,7 +42,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.2;
   container.appendChild(renderer.domElement);
 
   const composer = new EffectComposer(renderer);
@@ -50,9 +50,9 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   composer.addPass(
     new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      1.6,
-      0.55,
-      0.72,
+      0.7,
+      0.6,
+      0.05,
     ),
   );
   composer.addPass(new OutputPass());
