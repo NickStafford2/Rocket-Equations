@@ -16,6 +16,7 @@ import {
 } from "./physics/bodies";
 import type { ImpactState, ManeuverInput } from "./physics/bodies";
 import { EarthMoonSimulation } from "./sim/simulation";
+import { createOrientationIndicator } from "./three/orientation-indicator";
 import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
 import { metersToScene, ROCKET_DRAW_RADIUS } from "./three/objects";
@@ -117,6 +118,7 @@ function isInteractiveElement(target: EventTarget | null): boolean {
 
 export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const orientationRef = useRef<HTMLDivElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const launchSpeedRef = useRef(DEFAULT_SPEED);
@@ -276,9 +278,11 @@ export default function App() {
 
   useEffect(() => {
     const mount = mountRef.current;
-    if (!mount) return;
+    const orientationMount = orientationRef.current;
+    if (!mount || !orientationMount) return;
 
     const bundle = createThreeScene(mount);
+    const orientationIndicator = createOrientationIndicator(orientationMount);
     const { camera, controls, objects, render, resize, renderer, scene } =
       bundle;
     bundleRef.current = bundle;
@@ -386,6 +390,8 @@ export default function App() {
         );
       }
 
+      orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
+
       setTelemetry(telemetryNow);
 
       if (simState.impact?.target === "earth") {
@@ -475,6 +481,7 @@ export default function App() {
         Math.max(mountRef.current.clientHeight, 1);
       camera.updateProjectionMatrix();
       resize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      orientationIndicator.resize();
     }
 
     window.addEventListener("resize", onResize);
@@ -509,6 +516,7 @@ export default function App() {
       controls.update();
       previousRocketPositionRef.current.copy(rocketPosition);
       render();
+      orientationIndicator.render();
       animationRef.current = requestAnimationFrame(frame);
     }
 
@@ -521,6 +529,7 @@ export default function App() {
         cancelAnimationFrame(animationRef.current);
       bundleRef.current = null;
       focusTransitionRef.current = null;
+      orientationIndicator.dispose();
       bundle.dispose();
     };
   }, [simulation, showTrail, showVectors]);
@@ -784,6 +793,16 @@ export default function App() {
               ref={mountRef}
               className="h-[min(78vh,860px)] min-h-[620px] w-full"
             />
+
+            <div className="pointer-events-none absolute bottom-5 right-5 z-20 rounded-[1.4rem] border border-cyan-300/14 bg-[#07111f]/78 p-3 shadow-[0_20px_50px_rgba(0,0,0,0.32)] backdrop-blur">
+              <div className="mb-2 text-[0.64rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase">
+                Orientation Vector
+              </div>
+              <div
+                ref={orientationRef}
+                className="h-[132px] w-[132px] rounded-[1rem] border border-white/8 bg-[radial-gradient(circle_at_30%_20%,rgba(125,211,252,0.14),transparent_42%),linear-gradient(180deg,rgba(4,11,22,0.95),rgba(6,15,28,0.88))]"
+              />
+            </div>
           </div>
         </div>
       </div>
