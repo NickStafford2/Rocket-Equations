@@ -18,66 +18,18 @@ type MissionTelemetryPanelProps = {
 };
 
 export function MissionOverview({
-  missionPhase,
-  currentSpeed,
-  peakAltitudeEarth,
-  closestMoonApproach,
   lunarTransferGap,
   landingTargetSpeed,
 }: MissionOverviewProps) {
   return (
-    <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_380px]">
-      <div className="rounded-[2.25rem] border border-white/10 bg-[#07111f]/78 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
-        <div className="flex flex-wrap items-center gap-3 text-[0.72rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase">
-          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1">
-            Earth to Moon
-          </span>
-          <span className="rounded-full border border-amber-300/20 bg-amber-200/10 px-3 py-1 text-amber-100">
-            Three.js orbital sandbox
-          </span>
-        </div>
-
-        <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white md:text-5xl">
-          Fly from Earth to the Moon and try to land with zero relative
-          velocity.
-        </h1>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Mission Phase" value={missionPhase} accent="cyan" />
-          <MetricCard label="Current Speed" value={currentSpeed} accent="amber" />
-          <MetricCard
-            label="Peak Earth Altitude"
-            value={peakAltitudeEarth}
-            accent="cyan"
-          />
-          <MetricCard
-            label="Closest Moon Approach"
-            value={closestMoonApproach}
-            accent="amber"
-          />
-        </div>
-      </div>
-
-      <div className="rounded-[2.25rem] border border-white/10 bg-[#0b1628]/82 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
-        <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-          Mission Notes
-        </div>
-        <div className="mt-4 space-y-4 text-sm leading-6 text-slate-300">
-          <p>
-            The current model is Earth-Moon gravity plus a steerable main engine
-            for small course corrections and landing burns.
-          </p>
-          <p>
-            Distances and body sizes use the same compression factor, so the
-            visual proportions stay consistent even though the whole system is
-            scaled down.
-          </p>
-          <p className="rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-slate-200">
-            Goal: touch down below {landingTargetSpeed} Moon-relative speed.
-            Current Earth-to-Moon surface gap: {lunarTransferGap}.
-          </p>
-        </div>
-      </div>
+    <div className="mb-6 rounded-[2.25rem] border border-white/10 bg-[#07111f]/78 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
+      <h1 className="my-4 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white md:text-5xl">
+        To the Moon!
+      </h1>
+      <p>
+        Goal: touch down below {landingTargetSpeed} Moon-relative speed. Current
+        Earth-to-Moon surface gap: {lunarTransferGap}.
+      </p>
     </div>
   );
 }
