@@ -40,6 +40,7 @@ type FocusTransition = {
 };
 
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
+const UI_SYNC_INTERVAL_MS = 100;
 
 export function useMissionScene({
   mountRef,
@@ -63,6 +64,9 @@ export function useMissionScene({
   const pointerRef = useRef(new THREE.Vector2());
   const showTrailRef = useRef(showTrail);
   const showVectorsRef = useRef(showVectors);
+  const lastUiSyncAtRef = useRef(0);
+  const lastTelemetryTimeRef = useRef<number | null>(null);
+  const lastRunningStatusRef = useRef<string | null>(null);
   const [currentCameraPreset, setCurrentCameraPreset] =
     useState<CameraPreset | null>("overview");
 
@@ -134,6 +138,7 @@ export function useMissionScene({
     }
 
     function syncScene() {
+      const now = performance.now();
       const simState = simulation.getState();
       const telemetry = simulation.getTelemetry();
       const launchFrame = getLaunchFrame(0, launchAzimuthRef.current);
@@ -238,24 +243,49 @@ export function useMissionScene({
       orientationIndicator.frame.quaternion.copy(camera.quaternion).invert();
       orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
 
-      setTelemetry(telemetry);
-
       if (simState.impact?.target === "earth") {
         runningRef.current = false;
         setRunning(false);
+        lastUiSyncAtRef.current = now;
+        lastTelemetryTimeRef.current = simState.t;
+        lastRunningStatusRef.current = null;
+        setTelemetry(telemetry);
         setStatus(`Rocket impacted Earth at ${formatSpeed(simState.impact.speed)}.`);
       } else if (simState.impact?.target === "moon") {
         runningRef.current = false;
         setRunning(false);
+        lastUiSyncAtRef.current = now;
+        lastTelemetryTimeRef.current = simState.t;
+        lastRunningStatusRef.current = null;
+        setTelemetry(telemetry);
         setStatus(describeMoonLanding(simState.impact));
-      } else if (runningRef.current) {
-        setStatus(
-          `Running: ${getMissionPhase(
+      } else {
+        const telemetryChanged = lastTelemetryTimeRef.current !== simState.t;
+        const shouldSyncUi =
+          telemetryChanged &&
+          (now - lastUiSyncAtRef.current >= UI_SYNC_INTERVAL_MS ||
+            !runningRef.current);
+
+        if (shouldSyncUi) {
+          lastUiSyncAtRef.current = now;
+          lastTelemetryTimeRef.current = simState.t;
+          setTelemetry(telemetry);
+        }
+
+        if (runningRef.current && shouldSyncUi) {
+          const runningStatus = `Running: ${getMissionPhase(
             telemetry.altitudeEarth,
             telemetry.altitudeMoon,
             telemetry.relativeMoonSpeed,
-          )}.`,
-        );
+          )}.`;
+
+          if (lastRunningStatusRef.current !== runningStatus) {
+            lastRunningStatusRef.current = runningStatus;
+            setStatus(runningStatus);
+          }
+        } else if (!runningRef.current) {
+          lastRunningStatusRef.current = null;
+        }
       }
     }
 
