@@ -231,11 +231,7 @@ export default function App() {
     function syncManeuverInput() {
       maneuverInputRef.current = {
         thrusting: keyStateRef.current.thrust,
-        turn: keyStateRef.current.right
-          ? 1
-          : keyStateRef.current.left
-            ? -1
-            : 0,
+        turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
       };
     }
 
@@ -247,10 +243,7 @@ export default function App() {
         keyStateRef.current.left = true;
       } else if (event.code === "ArrowRight") {
         keyStateRef.current.right = true;
-      } else if (
-        event.code === "ArrowUp" ||
-        event.code === "Space"
-      ) {
+      } else if (event.code === "ArrowUp" || event.code === "Space") {
         keyStateRef.current.thrust = true;
       } else if (event.code === "KeyW") {
         setDt((current) => clampDt(current * 10));
@@ -275,10 +268,7 @@ export default function App() {
         keyStateRef.current.left = false;
       } else if (event.code === "ArrowRight") {
         keyStateRef.current.right = false;
-      } else if (
-        event.code === "ArrowUp" ||
-        event.code === "Space"
-      ) {
+      } else if (event.code === "ArrowUp" || event.code === "Space") {
         keyStateRef.current.thrust = false;
       } else {
         handled = false;
@@ -594,9 +584,7 @@ export default function App() {
     setStatus("Rocket reset to Earth's surface.");
   }
 
-  function applyCameraPreset(
-    preset: CameraPreset,
-  ) {
+  function applyCameraPreset(preset: CameraPreset) {
     const bundle = bundleRef.current;
     if (!bundle) return;
 
@@ -787,7 +775,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
+          <div className="relative h-fit overflow-hidden rounded-[2.25rem] border border-red-400 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
             <div className="absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-gradient-to-b from-[#040b16]/95 to-transparent px-5 py-4 text-xs tracking-[0.22em] text-slate-300 uppercase">
               <div className="flex items-center gap-3">
                 <span className="rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-cyan-100">
@@ -850,7 +838,7 @@ export default function App() {
               className="h-[min(78vh,860px)] min-h-[620px] w-full focus:outline-none"
             />
 
-            <div className="pointer-events-none absolute bottom-5 right-5 z-20 rounded-[1.4rem] border border-cyan-300/18 bg-transparent p-3 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
+            <div className="pointer-events-none absolute right-5 bottom-5 z-20 rounded-[1.4rem] border border-cyan-300/18 bg-transparent p-3 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
               <div className="mb-2 inline-flex rounded-full border border-cyan-300/18 bg-[#07111f]/78 px-3 py-1 text-[0.64rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase backdrop-blur">
                 Orientation Vector
               </div>
