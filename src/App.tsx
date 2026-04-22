@@ -163,6 +163,8 @@ export default function App() {
     status: string;
   } | null>(null);
   const chaseOffsetLocalRef = useRef(new THREE.Vector3());
+  const previousRocketPositionRef = useRef(new THREE.Vector3());
+  const previousRocketHeadingRef = useRef(new THREE.Vector3(0, 1, 0));
   const maneuverInputRef = useRef<ManeuverInput>({
     thrusting: false,
     turn: 0,
@@ -322,6 +324,8 @@ export default function App() {
       camera.position.clone().sub(initialRocketPosition),
       initialState.rocket.heading,
     );
+    previousRocketPositionRef.current.copy(initialRocketPosition);
+    previousRocketHeadingRef.current.copy(initialState.rocket.heading);
 
     function syncScene() {
       const simState = simulation.getState();
@@ -522,6 +526,7 @@ export default function App() {
       }
 
       syncScene();
+      const rocketPosition = objects.rocket.position.clone();
       const rocketHeading = simulation.getState().rocket.heading;
       if (focusTransitionRef.current) {
         camera.position.lerp(focusTransitionRef.current.position, 0.12);
@@ -536,23 +541,31 @@ export default function App() {
           focusTransitionRef.current = null;
         }
       } else {
+        chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
+          camera.position
+            .clone()
+            .sub(previousRocketPositionRef.current),
+          previousRocketHeadingRef.current,
+        );
         const chaseOffsetWorld = rocketLocalOffsetToWorld(
           chaseOffsetLocalRef.current,
           rocketHeading,
         );
         const desiredCameraPosition =
-          objects.rocket.position.clone().add(chaseOffsetWorld);
+          rocketPosition.clone().add(chaseOffsetWorld);
 
-        camera.position.lerp(desiredCameraPosition, 0.22);
-        controls.target.lerp(objects.rocket.position, 0.22);
+        camera.position.copy(desiredCameraPosition);
+        controls.target.copy(rocketPosition);
       }
       controls.update();
       if (!focusTransitionRef.current) {
         chaseOffsetLocalRef.current = worldOffsetToRocketLocal(
-          camera.position.clone().sub(objects.rocket.position),
+          camera.position.clone().sub(rocketPosition),
           rocketHeading,
         );
       }
+      previousRocketPositionRef.current.copy(rocketPosition);
+      previousRocketHeadingRef.current.copy(rocketHeading);
       render();
       animationRef.current = requestAnimationFrame(frame);
     }
