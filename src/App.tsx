@@ -837,13 +837,6 @@ export default function App() {
               tabIndex={0}
               className="h-[min(78vh,860px)] min-h-[620px] w-full focus:outline-none"
             />
-
-            <div className="pointer-events-none absolute right-5 bottom-5 z-20 rounded-[1.4rem] border border-cyan-300/18 bg-transparent p-3 shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
-              <div className="mb-2 inline-flex rounded-full border border-cyan-300/18 bg-[#07111f]/78 px-3 py-1 text-[0.64rem] font-semibold tracking-[0.24em] text-cyan-100 uppercase backdrop-blur">
-                Orientation Vector
-              </div>
-              <div className="h-[132px] w-[132px] rounded-[1rem] border border-white/10 bg-transparent" />
-            </div>
           </div>
         </div>
       </div>
