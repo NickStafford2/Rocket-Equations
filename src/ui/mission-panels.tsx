@@ -10,12 +10,6 @@ type MissionTelemetryPanelProps = {
   earthAltitude: string;
   moonAltitude: string;
   status: string;
-  layout?: "grid" | "row";
-  statusInline?: boolean;
-  className?: string;
-  rowsClassName?: string;
-  rowClassName?: string;
-  statusClassName?: string;
 };
 
 export function MissionOverview({
@@ -42,62 +36,21 @@ export function MissionTelemetryPanel({
   earthAltitude,
   moonAltitude,
   status,
-  layout = "grid",
-  statusInline = false,
-  className,
-  rowsClassName,
-  rowClassName,
-  statusClassName,
 }: MissionTelemetryPanelProps) {
-  const rowsBaseClassName =
-    layout === "row"
-      ? "mt-2 flex flex-row flex-wrap items-stretch gap-2"
-      : "mt-4 grid gap-3 sm:grid-cols-2";
-
-  const statusContent = (
-    <div
-      className={`rounded-2xl border border-cyan-300/10 bg-cyan-300/8 px-4 py-3 text-slate-200 ${statusClassName ?? ""}`}
-    >
-      Status: {status}
-    </div>
-  );
+  const items = [
+    ["Elapsed mission time", elapsedMissionTime],
+    ["Current speed", currentSpeed],
+    ["Moon-relative speed", moonRelativeSpeed],
+    ["Altitude above Earth", earthAltitude],
+    ["Altitude above Moon", moonAltitude],
+    ["Status", status],
+  ] as const;
 
   return (
-    <div
-      className={`rounded-[2rem] border border-white/10 bg-[#07111f]/85 p-5 text-sm shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur ${className ?? ""}`}
-    >
-      <div className="text-[0.72rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-        Telemetry
-      </div>
-      <div className={`${rowsBaseClassName} ${rowsClassName ?? ""}`}>
-        <TelemetryRow
-          label="Elapsed mission time"
-          value={elapsedMissionTime}
-          className={rowClassName}
-        />
-        <TelemetryRow
-          label="Current speed"
-          value={currentSpeed}
-          className={rowClassName}
-        />
-        <TelemetryRow
-          label="Moon-relative speed"
-          value={moonRelativeSpeed}
-          className={rowClassName}
-        />
-        <TelemetryRow
-          label="Altitude above Earth"
-          value={earthAltitude}
-          className={rowClassName}
-        />
-        <TelemetryRow
-          label="Altitude above Moon"
-          value={moonAltitude}
-          className={rowClassName}
-        />
-        {statusInline ? statusContent : null}
-      </div>
-      {statusInline ? null : <div className="mt-4">{statusContent}</div>}
+    <div className="flex min-w-max flex-row items-stretch gap-2 rounded-[2rem] border border-white/6 bg-transparent px-2 py-1.5 text-sm shadow-none">
+      {items.map(([label, value]) => (
+        <TelemetryRow key={label} label={label} value={value} />
+      ))}
     </div>
   );
 }
@@ -116,14 +69,11 @@ export function MissionKeyboardHelp() {
 type TelemetryRowProps = {
   label: string;
   value: string;
-  className?: string;
 };
 
-function TelemetryRow({ label, value, className }: TelemetryRowProps) {
+function TelemetryRow({ label, value }: TelemetryRowProps) {
   return (
-    <div
-      className={`rounded-[1.35rem] border border-white/8 bg-white/4 px-4 py-3 ${className ?? ""}`}
-    >
+    <div className="flex-none rounded-[1.35rem] border border-white/8 bg-black/20 px-3 py-2">
       <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-400 uppercase">
         {label}
       </div>

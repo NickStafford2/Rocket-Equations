@@ -53,12 +53,6 @@ export function SceneHud({
           earthAltitude={earthAltitude}
           moonAltitude={moonAltitude}
           status={status}
-          layout="row"
-          statusInline
-          className="min-w-max border-white/6 bg-transparent px-2 py-1.5 shadow-none backdrop-blur-0"
-          rowsClassName="flex-nowrap gap-2"
-          rowClassName="flex-none border-white/8 bg-black/20 px-3 py-2"
-          statusClassName="flex-none border-cyan-300/12 bg-cyan-300/8 px-3 py-2"
         />
       </div>
 
