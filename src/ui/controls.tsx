@@ -52,11 +52,6 @@ export function Controls({
             impulse, and then coasts under Earth and Moon gravity only.
           </p>
         </div>
-
-        <div className="rounded-2xl border border-cyan-300/12 bg-cyan-300/8 px-4 py-3 text-xs leading-5 text-slate-200">
-          Changing any launch input immediately restages the rocket at t = 0 so
-          the preview arrows always match the next launch.
-        </div>
       </div>
 
       <div className="space-y-4 rounded-[1.5rem] border border-white/8 bg-black/20 p-4">
