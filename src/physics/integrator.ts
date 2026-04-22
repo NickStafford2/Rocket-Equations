@@ -20,18 +20,30 @@ export function stepSimulation(
   }
 
   const moonPos = moonPositionMeters(next.t)
-  next.rocket.acceleration = gravitationalAccelerationMeters(
+  const initialAcceleration = gravitationalAccelerationMeters(
     next.rocket.position,
     moonPos,
   )
 
-  // Semi-implicit Euler
-  next.rocket.velocity.add(next.rocket.acceleration.clone().multiplyScalar(dt))
-  next.rocket.position.add(next.rocket.velocity.clone().multiplyScalar(dt))
-  next.t += dt
+  next.rocket.position
+    .add(next.rocket.velocity.clone().multiplyScalar(dt))
+    .add(initialAcceleration.clone().multiplyScalar(0.5 * dt * dt))
+
+  const nextTime = next.t + dt
+  const nextMoonPos = moonPositionMeters(nextTime)
+  const nextAcceleration = gravitationalAccelerationMeters(
+    next.rocket.position,
+    nextMoonPos,
+  )
+
+  next.rocket.velocity.add(
+    initialAcceleration.add(nextAcceleration).multiplyScalar(0.5 * dt),
+  )
+  next.rocket.acceleration.copy(nextAcceleration)
+  next.t = nextTime
 
   const earthDistance = next.rocket.position.length()
-  const moonDistance = next.rocket.position.clone().sub(moonPos).length()
+  const moonDistance = next.rocket.position.clone().sub(nextMoonPos).length()
 
   if (earthDistance <= R_EARTH) {
     next.hit = 'earth'
