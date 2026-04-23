@@ -43,7 +43,7 @@ export function SceneHud({
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
       <div className="flex flex-col items-end gap-3">
         <MissionOverview />
-        <div className="flex flex-row justify-between">
+        <div className="flex w-full flex-row justify-between">
           <MissionTelemetryPanel
             elapsedMissionTime={elapsedMissionTime}
             currentSpeed={currentSpeed}
