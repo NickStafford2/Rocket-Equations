@@ -89,10 +89,6 @@ export default function App() {
   return (
     <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
       <div className="relative mx-auto max-w-[1600px] px-4 pb-4 md:px-6 lg:px-8 lg:py-6">
-        <MissionOverview
-          landingTargetSpeed={formatRelativeSpeed(SOFT_LANDING_SPEED)}
-        />
-
         <div className="relative h-fit overflow-hidden rounded-[2.25rem] bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
           <SceneHud
             isOverviewActive={isOverviewActive}
