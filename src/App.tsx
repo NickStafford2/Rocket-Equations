@@ -102,7 +102,7 @@ export default function App() {
           landingTargetSpeed={formatRelativeSpeed(SOFT_LANDING_SPEED)}
         />
 
-        <div className="relative h-fit overflow-hidden rounded-[2.25rem] border border-red-400 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
+        <div className="relative h-fit overflow-hidden rounded-[2.25rem] bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
           <SceneHud
             isOverviewActive={isOverviewActive}
             currentLockTarget={currentLockTarget}
