@@ -146,32 +146,35 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
 
   return (
     <div className="pointer-events-auto flex flex-col items-end overflow-hidden rounded-lg border-white/50">
-      <div className="flex flex-row items-start gap-3">
+      <div className="flex flex-row items-start">
         <div
           className={
             soundtrackOpen
-              ? "aspect-video w-[320px] overflow-hidden rounded-xl"
+              ? "aspect-video w-[320px] overflow-hidden rounded-l-xl"
               : "pointer-events-none h-px w-px overflow-hidden opacity-0"
           }
         >
           <div ref={playerHostRef} className="h-full w-full" />
         </div>
 
-        {!soundtrackOpen ? (
-          <span className="self-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs tracking-[0.18em] text-slate-300 uppercase">
-            {soundtrackStatus}
+        <button
+          type="button"
+          className={
+            soundtrackOpen
+              ? "flex h-full flex-row items-center justify-between rounded-r-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
+              : "h-full rounded-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
+          }
+          onClick={() => setSoundtrackOpen((current) => !current)}
+        >
+          {!soundtrackOpen ? (
+            <span className="tracking-[0.18em] text-slate-300 uppercase">
+              {soundtrackStatus}
+            </span>
+          ) : null}
+          <span className="min-h-12 min-w-12">
+            {soundtrackOpen ? "-" : "+"}
           </span>
-        ) : null}
-
-        <div className="flex flex-col justify-between">
-          <button
-            type="button"
-            className="flex h-12 w-12 items-center justify-between rounded-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
-            onClick={() => setSoundtrackOpen((current) => !current)}
-          >
-            <span className="w-full">{soundtrackOpen ? "-" : "+"}</span>
-          </button>
-        </div>
+        </button>
       </div>
     </div>
   );
