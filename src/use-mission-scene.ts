@@ -12,7 +12,7 @@ import {
   getMissionPhase,
   normalizeFocusLabelToPreset,
 } from "./mission";
-import type { CameraPreset } from "./mission";
+import type { CameraPreset, CameraTarget } from "./mission";
 import type { EarthMoonSimulation, SimulationTelemetry } from "./sim/simulation";
 import { TRAIL_POINT_CAPACITY } from "./sim/trail";
 import { createThreeScene } from "./three/scene";
@@ -39,13 +39,92 @@ type UseMissionSceneParams = {
 };
 
 type FocusTransition = {
-  position: THREE.Vector3;
-  target: THREE.Vector3;
+  mode: "overview" | "snap" | "look";
+  preset: CameraPreset;
+  object?: THREE.Object3D;
+  offset?: THREE.Vector3;
+  position?: THREE.Vector3;
+  target?: THREE.Vector3;
   status: string;
 };
 
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 const UI_SYNC_INTERVAL_MS = 100;
+
+function createFocusTransition(
+  camera: THREE.PerspectiveCamera,
+  controls: ThreeSceneBundle["controls"],
+  targetObject: THREE.Object3D,
+  mode: "snap" | "look",
+): FocusTransition | null {
+  const focusRadius = Number(targetObject.userData.focusRadius ?? 12);
+  const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+  const preset = normalizeFocusLabelToPreset(focusLabel);
+  if (!preset || preset === "overview") return null;
+
+  if (mode === "look") {
+    return {
+      mode,
+      preset,
+      object: targetObject,
+      status: `Looking at ${focusLabel}.`,
+    };
+  }
+
+  const currentOffset = camera.position.clone().sub(controls.target);
+  const viewDirection =
+    currentOffset.lengthSq() > 1e-6
+      ? currentOffset.normalize()
+      : FALLBACK_VIEW_DIRECTION.clone();
+
+  return {
+    mode,
+    preset,
+    object: targetObject,
+    offset: viewDirection.multiplyScalar(
+      THREE.MathUtils.clamp(focusRadius * 5, 4, 520),
+    ),
+    status: `Focused on ${focusLabel}.`,
+  };
+}
+
+function resolveFocusTransitionTarget(
+  transition: FocusTransition,
+  currentCameraPosition: THREE.Vector3,
+): { position: THREE.Vector3; target: THREE.Vector3 } {
+  if (transition.mode === "overview") {
+    return {
+      position: transition.position!.clone(),
+      target: transition.target!.clone(),
+    };
+  }
+
+  const worldPosition = new THREE.Vector3();
+  transition.object!.getWorldPosition(worldPosition);
+
+  return {
+    position:
+      transition.mode === "snap"
+        ? worldPosition.clone().add(transition.offset!)
+        : currentCameraPosition.clone(),
+    target: worldPosition,
+  };
+}
+
+function findFocusableByPreset(
+  scene: THREE.Scene,
+  preset: CameraTarget,
+): THREE.Object3D | null {
+  let focusable: THREE.Object3D | null = null;
+  scene.traverse((object) => {
+    if (focusable) return;
+    if (String(object.userData.focusLabel).toLowerCase() === preset) {
+      focusable = object;
+    }
+  });
+
+  return focusable;
+}
 
 export function useMissionScene({
   mountRef,
@@ -64,7 +143,7 @@ export function useMissionScene({
   const animationRef = useRef<number | null>(null);
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
   const focusTransitionRef = useRef<FocusTransition | null>(null);
-  const previousRocketPositionRef = useRef(new THREE.Vector3());
+  const activeFocusRef = useRef<FocusTransition | null>(null);
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
   const showTrailRef = useRef(showTrail);
@@ -75,6 +154,39 @@ export function useMissionScene({
   const previousTrailLengthRef = useRef(0);
   const [currentCameraPreset, setCurrentCameraPreset] =
     useState<CameraPreset | null>("overview");
+  const [currentLookTarget, setCurrentLookTarget] =
+    useState<CameraTarget | null>(null);
+
+  function applyFocusSelection(
+    targetObject: THREE.Object3D,
+    mode: "snap" | "look",
+  ) {
+    const bundle = bundleRef.current;
+    if (!bundle) return;
+
+    const transition = createFocusTransition(
+      bundle.camera,
+      bundle.controls,
+      targetObject,
+      mode,
+    );
+    if (!transition) return;
+
+    activeFocusRef.current = transition;
+    focusTransitionRef.current = transition;
+
+    const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+    if (mode === "snap") {
+      setCurrentCameraPreset(transition.preset);
+      setCurrentLookTarget(null);
+      setStatus(`Focusing ${focusLabel}...`);
+      return;
+    }
+
+    setCurrentCameraPreset(null);
+    setCurrentLookTarget(transition.preset as CameraTarget);
+    setStatus(`Turning toward ${focusLabel}...`);
+  }
 
   useEffect(() => {
     showTrailRef.current = showTrail;
@@ -102,9 +214,6 @@ export function useMissionScene({
     } = bundle;
     bundleRef.current = bundle;
 
-    previousRocketPositionRef.current.copy(
-      metersToScene(simulation.getState().rocket.position),
-    );
     previousTrailLengthRef.current = 0;
 
     const trailPositions = objects.trailLine.geometry.getAttribute(
@@ -133,30 +242,6 @@ export function useMissionScene({
       trailPositions.needsUpdate = true;
       objects.trailLine.geometry.setDrawRange(0, trailLength);
       previousTrailLengthRef.current = trailLength;
-    }
-
-    function applyFocusTransition(targetObject: THREE.Object3D) {
-      const worldPosition = new THREE.Vector3();
-      targetObject.getWorldPosition(worldPosition);
-
-      const focusRadius = Number(targetObject.userData.focusRadius ?? 12);
-      const focusLabel = String(targetObject.userData.focusLabel ?? "target");
-      const currentOffset = camera.position.clone().sub(controls.target);
-      const viewDirection =
-        currentOffset.lengthSq() > 1e-6
-          ? currentOffset.normalize()
-          : FALLBACK_VIEW_DIRECTION.clone();
-      const focusDistance = THREE.MathUtils.clamp(focusRadius * 5, 4, 520);
-
-      focusTransitionRef.current = {
-        position: worldPosition
-          .clone()
-          .add(viewDirection.multiplyScalar(focusDistance)),
-        target: worldPosition,
-        status: `Focused on ${focusLabel}.`,
-      };
-      setCurrentCameraPreset(normalizeFocusLabelToPreset(focusLabel));
-      setStatus(`Focusing ${focusLabel}...`);
     }
 
     function findFocusableObject(
@@ -335,7 +420,7 @@ export function useMissionScene({
       for (const hit of intersections) {
         const focusable = findFocusableObject(hit.object);
         if (focusable) {
-          applyFocusTransition(focusable);
+          applyFocusSelection(focusable, "snap");
           return;
         }
       }
@@ -355,9 +440,10 @@ export function useMissionScene({
     }
 
     function onControlsStart() {
-      if (!focusTransitionRef.current) {
-        setCurrentCameraPreset(null);
-      }
+      activeFocusRef.current = null;
+      focusTransitionRef.current = null;
+      setCurrentCameraPreset(null);
+      setCurrentLookTarget(null);
     }
 
     window.addEventListener("resize", onResize);
@@ -372,28 +458,34 @@ export function useMissionScene({
 
       syncScene();
 
-      const rocketPosition = objects.rocket.position.clone();
-      if (focusTransitionRef.current) {
-        camera.position.lerp(focusTransitionRef.current.position, 0.12);
-        controls.target.lerp(focusTransitionRef.current.target, 0.12);
+      if (activeFocusRef.current) {
+        const desiredFocus = resolveFocusTransitionTarget(
+          activeFocusRef.current,
+          camera.position,
+        );
+        const isTransitioning = focusTransitionRef.current !== null;
+        const transitionAlpha = isTransitioning ? 0.12 : 1;
 
-        if (
-          camera.position.distanceTo(focusTransitionRef.current.position) < 0.8 &&
-          controls.target.distanceTo(focusTransitionRef.current.target) < 0.35
-        ) {
-          setStatus(focusTransitionRef.current.status);
-          focusTransitionRef.current = null;
+        if (activeFocusRef.current.mode !== "look") {
+          camera.position.lerp(desiredFocus.position, transitionAlpha);
         }
-      } else {
-        const rocketDelta = rocketPosition
-          .clone()
-          .sub(previousRocketPositionRef.current);
-        camera.position.add(rocketDelta);
-        controls.target.add(rocketDelta);
+        controls.target.lerp(desiredFocus.target, transitionAlpha);
+
+        if (isTransitioning) {
+          const cameraSettled =
+            activeFocusRef.current.mode === "look" ||
+            camera.position.distanceTo(desiredFocus.position) < 0.8;
+          const targetSettled =
+            controls.target.distanceTo(desiredFocus.target) < 0.35;
+
+          if (cameraSettled && targetSettled) {
+            setStatus(activeFocusRef.current.status);
+            focusTransitionRef.current = null;
+          }
+        }
       }
 
       controls.update();
-      previousRocketPositionRef.current.copy(rocketPosition);
       render();
       animationRef.current = requestAnimationFrame(frame);
     }
@@ -410,6 +502,7 @@ export function useMissionScene({
       }
       bundleRef.current = null;
       focusTransitionRef.current = null;
+      activeFocusRef.current = null;
       previousTrailLengthRef.current = 0;
       bundle.dispose();
     };
@@ -431,54 +524,39 @@ export function useMissionScene({
     if (!bundle) return;
 
     if (preset === "overview") {
-      focusTransitionRef.current = {
+      const transition: FocusTransition = {
+        mode: "overview",
+        preset: "overview",
         position: new THREE.Vector3(-210, 120, 210),
         target: new THREE.Vector3(56, 0, 0),
         status: "Overview camera restored.",
       };
+      activeFocusRef.current = transition;
+      focusTransitionRef.current = transition;
       setCurrentCameraPreset("overview");
+      setCurrentLookTarget(null);
       setStatus("Restoring overview camera...");
       return;
     }
 
-    let focusable: THREE.Object3D | null = null;
-    bundle.scene.traverse((object) => {
-      if (focusable) return;
-      if (String(object.userData.focusLabel).toLowerCase() === preset) {
-        focusable = object;
-      }
-    });
-
+    const focusable = findFocusableByPreset(bundle.scene, preset);
     if (!focusable) return;
-    const focusedObject = focusable as THREE.Object3D;
+    applyFocusSelection(focusable, "snap");
+  }
 
-    const worldPosition = new THREE.Vector3();
-    focusedObject.getWorldPosition(worldPosition);
+  function applyLookAtTarget(target: CameraTarget) {
+    const bundle = bundleRef.current;
+    if (!bundle) return;
 
-    const focusRadius = Number(focusedObject.userData.focusRadius ?? 12);
-    const currentOffset = bundle.camera.position.clone().sub(bundle.controls.target);
-    const viewDirection =
-      currentOffset.lengthSq() > 1e-6
-        ? currentOffset.normalize()
-        : FALLBACK_VIEW_DIRECTION.clone();
-
-    focusTransitionRef.current = {
-      position: worldPosition
-        .clone()
-        .add(
-          viewDirection.multiplyScalar(
-            THREE.MathUtils.clamp(focusRadius * 5, 4, 520),
-          ),
-        ),
-      target: worldPosition,
-      status: `Focused on ${focusedObject.userData.focusLabel}.`,
-    };
-    setCurrentCameraPreset(preset);
-    setStatus(`Focusing ${focusedObject.userData.focusLabel}...`);
+    const focusable = findFocusableByPreset(bundle.scene, target);
+    if (!focusable) return;
+    applyFocusSelection(focusable, "look");
   }
 
   return {
     currentCameraPreset,
+    currentLookTarget,
     applyCameraPreset,
+    applyLookAtTarget,
   };
 }

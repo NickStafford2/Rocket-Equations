@@ -6,6 +6,7 @@ const MIN_DT = 0.1;
 const MAX_DT = 1000;
 
 export type CameraPreset = "overview" | "earth" | "moon" | "sun" | "rocket";
+export type CameraTarget = Exclude<CameraPreset, "overview">;
 
 export function formatDistance(meters: number): string {
   const clamped = Math.max(meters, 0);

@@ -47,7 +47,12 @@ export default function App() {
     launchAngleRef,
     launchAzimuthRef,
   } = useMissionSimulation();
-  const { currentCameraPreset, applyCameraPreset } = useMissionScene({
+  const {
+    currentCameraPreset,
+    currentLookTarget,
+    applyCameraPreset,
+    applyLookAtTarget,
+  } = useMissionScene({
     mountRef,
     simulation,
     setRunning,
@@ -109,6 +114,7 @@ export default function App() {
           <div className="relative h-fit overflow-hidden rounded-[2.25rem] border border-red-400 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
             <SceneHud
               currentCameraPreset={currentCameraPreset}
+              currentLookTarget={currentLookTarget}
               running={running}
               elapsedMissionTime={formatElapsed(telemetry.hours)}
               currentSpeed={formatSpeed(telemetry.speed)}
@@ -120,6 +126,10 @@ export default function App() {
               status={status}
               onCameraPreset={(preset) => {
                 applyCameraPreset(preset);
+                focusScene();
+              }}
+              onLookAtTarget={(target) => {
+                applyLookAtTarget(target);
                 focusScene();
               }}
               onToggleRunning={() => {

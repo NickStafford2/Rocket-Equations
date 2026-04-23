@@ -1,8 +1,9 @@
-import type { CameraPreset } from "../mission";
+import type { CameraPreset, CameraTarget } from "../mission";
 import { MissionTelemetryPanel } from "./mission-panels";
 
 type SceneHudProps = {
   currentCameraPreset: CameraPreset | null;
+  currentLookTarget: CameraTarget | null;
   running: boolean;
   elapsedMissionTime: string;
   currentSpeed: string;
@@ -11,6 +12,7 @@ type SceneHudProps = {
   moonAltitude: string;
   status: string;
   onCameraPreset: (preset: CameraPreset) => void;
+  onLookAtTarget: (target: CameraTarget) => void;
   onToggleRunning: () => void;
   onReset: () => void;
 };
@@ -32,6 +34,7 @@ function getButtonClassName(isSelected: boolean): string {
 
 export function SceneHud({
   currentCameraPreset,
+  currentLookTarget,
   running,
   elapsedMissionTime,
   currentSpeed,
@@ -40,6 +43,7 @@ export function SceneHud({
   moonAltitude,
   status,
   onCameraPreset,
+  onLookAtTarget,
   onToggleRunning,
   onReset,
 }: SceneHudProps) {
@@ -57,42 +61,81 @@ export function SceneHud({
       </div>
 
       <div className="absolute bottom-5 left-5">
-        <div className="pointer-events-auto flex flex-col gap-2 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
-          <button
-            type="button"
-            className={getButtonClassName(currentCameraPreset === "overview")}
-            onClick={() => onCameraPreset("overview")}
-          >
-            Overview
-          </button>
-          <button
-            type="button"
-            className={getButtonClassName(currentCameraPreset === "earth")}
-            onClick={() => onCameraPreset("earth")}
-          >
-            Earth
-          </button>
-          <button
-            type="button"
-            className={getButtonClassName(currentCameraPreset === "moon")}
-            onClick={() => onCameraPreset("moon")}
-          >
-            Moon
-          </button>
-          <button
-            type="button"
-            className={getButtonClassName(currentCameraPreset === "rocket")}
-            onClick={() => onCameraPreset("rocket")}
-          >
-            Rocket
-          </button>
-          <button
-            type="button"
-            className={getButtonClassName(currentCameraPreset === "sun")}
-            onClick={() => onCameraPreset("sun")}
-          >
-            Sun
-          </button>
+        <div className="pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+          <div className="flex flex-col gap-2">
+            <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
+              Snap To
+            </div>
+            <button
+              type="button"
+              className={getButtonClassName(currentCameraPreset === "overview")}
+              onClick={() => onCameraPreset("overview")}
+            >
+              Overview
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentCameraPreset === "earth")}
+              onClick={() => onCameraPreset("earth")}
+            >
+              Earth
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentCameraPreset === "moon")}
+              onClick={() => onCameraPreset("moon")}
+            >
+              Moon
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentCameraPreset === "rocket")}
+              onClick={() => onCameraPreset("rocket")}
+            >
+              Rocket
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentCameraPreset === "sun")}
+              onClick={() => onCameraPreset("sun")}
+            >
+              Sun
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
+              Look At
+            </div>
+            <button
+              type="button"
+              className={getButtonClassName(currentLookTarget === "earth")}
+              onClick={() => onLookAtTarget("earth")}
+            >
+              Earth
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentLookTarget === "moon")}
+              onClick={() => onLookAtTarget("moon")}
+            >
+              Moon
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentLookTarget === "rocket")}
+              onClick={() => onLookAtTarget("rocket")}
+            >
+              Rocket
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(currentLookTarget === "sun")}
+              onClick={() => onLookAtTarget("sun")}
+            >
+              Sun
+            </button>
+          </div>
         </div>
       </div>
 
