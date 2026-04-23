@@ -53,6 +53,7 @@ type UseMissionSceneParams = {
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
   showTrail: boolean;
+  showThrustDirectionArrow: boolean;
 };
 
 type CameraSelection = {
@@ -159,6 +160,7 @@ export function useMissionScene({
   launchAngleRef,
   launchAzimuthRef,
   showTrail,
+  showThrustDirectionArrow,
 }: UseMissionSceneParams) {
   const animationRef = useRef<number | null>(null);
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
@@ -166,6 +168,7 @@ export function useMissionScene({
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
   const showTrailRef = useRef(showTrail);
+  const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
   const lastUiSyncAtRef = useRef(0);
   const lastCameraDebugSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
@@ -212,6 +215,10 @@ export function useMissionScene({
   useEffect(() => {
     showTrailRef.current = showTrail;
   }, [showTrail]);
+
+  useEffect(() => {
+    showThrustDirectionArrowRef.current = showThrustDirectionArrow;
+  }, [showThrustDirectionArrow]);
 
   useEffect(() => {
     const mountElement = mountRef.current;
@@ -296,6 +303,7 @@ export function useMissionScene({
       objects.moon.position.copy(metersToScene(telemetry.moonPosition));
       objects.rocket.position.copy(metersToScene(simState.rocket.position));
       objects.thrustDirectionArrow.position.copy(objects.rocket.position);
+      objects.thrustDirectionArrow.visible = showThrustDirectionArrowRef.current;
       objects.enginePlume.visible =
         runningRef.current && maneuverInputRef.current.thrusting;
       if (objects.enginePlume.visible) {

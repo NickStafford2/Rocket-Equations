@@ -33,6 +33,8 @@ export default function App() {
     setDt,
     showTrail,
     setShowTrail,
+    showThrustDirectionArrow,
+    setShowThrustDirectionArrow,
     status,
     setStatus,
     telemetry,
@@ -65,6 +67,7 @@ export default function App() {
     launchAngleRef,
     launchAzimuthRef,
     showTrail,
+    showThrustDirectionArrow,
   });
 
   function focusScene() {
@@ -124,6 +127,7 @@ export default function App() {
               earthAltitude={formatDistance(currentAltitudeEarth)}
               moonAltitude={formatDistance(currentAltitudeMoon)}
               status={status}
+              showThrustDirectionArrow={showThrustDirectionArrow}
               onOverview={() => {
                 applyOverviewCamera();
                 focusScene();
@@ -142,6 +146,10 @@ export default function App() {
               }}
               onReset={() => {
                 resetSimulation();
+                focusScene();
+              }}
+              onToggleThrustDirectionArrow={() => {
+                setShowThrustDirectionArrow((current) => !current);
                 focusScene();
               }}
             />

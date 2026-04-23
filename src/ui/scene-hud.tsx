@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { CameraTarget } from "../mission";
 import { MissionTelemetryPanel } from "./mission-panels";
 
@@ -27,11 +28,13 @@ type SceneHudProps = {
   earthAltitude: string;
   moonAltitude: string;
   status: string;
+  showThrustDirectionArrow: boolean;
   onOverview: () => void;
   onLockTarget: (target: CameraTarget) => void;
   onLookAtTarget: (target: CameraTarget) => void;
   onToggleRunning: () => void;
   onReset: () => void;
+  onToggleThrustDirectionArrow: () => void;
 };
 
 const baseButtonClassName =
@@ -61,12 +64,16 @@ export function SceneHud({
   earthAltitude,
   moonAltitude,
   status,
+  showThrustDirectionArrow,
   onOverview,
   onLockTarget,
   onLookAtTarget,
   onToggleRunning,
   onReset,
+  onToggleThrustDirectionArrow,
 }: SceneHudProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
       <div className="pointer-events-auto absolute inset-x-5 overflow-x-auto">
@@ -177,6 +184,32 @@ export function SceneHud({
               Sun
             </button>
           </div>
+        </div>
+
+        <div className="pointer-events-auto min-w-[210px] rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/6 px-3 py-2 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
+            onClick={() => setSettingsOpen((current) => !current)}
+          >
+            <span className="tracking-[0.18em] uppercase text-slate-300">
+              Settings
+            </span>
+            <span className="text-xs text-cyan-100">
+              {settingsOpen ? "Hide" : "Show"}
+            </span>
+          </button>
+
+          {settingsOpen ? (
+            <label className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-slate-200">
+              <span>Show thrust direction arrow</span>
+              <input
+                type="checkbox"
+                checked={showThrustDirectionArrow}
+                onChange={onToggleThrustDirectionArrow}
+              />
+            </label>
+          ) : null}
         </div>
       </div>
 
