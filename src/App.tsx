@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { SOFT_LANDING_SPEED } from "./physics/bodies";
 import {
   formatDistance,
   formatElapsed,
@@ -11,7 +10,6 @@ import {
   type MissionControlKey,
   useMissionSimulation,
 } from "./use-mission-simulation";
-import { MissionOverview } from "./ui/scene-hud/MissionOverview";
 import { SceneHud } from "./ui/scene-hud";
 
 export default function App() {
@@ -87,68 +85,64 @@ export default function App() {
   const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0);
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
-      <div className="relative mx-auto max-w-[1600px] px-4 pb-4 md:px-6 lg:px-8 lg:py-6">
-        <div className="relative h-fit overflow-hidden rounded-[2.25rem] bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
-          <SceneHud
-            isOverviewActive={isOverviewActive}
-            currentLockTarget={currentLockTarget}
-            currentLookTarget={currentLookTarget}
-            cameraDebug={cameraDebug}
-            running={running}
-            elapsedMissionTime={formatElapsed(telemetry.hours)}
-            currentSpeed={formatSpeed(telemetry.speed)}
-            moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
-            earthAltitude={formatDistance(currentAltitudeEarth)}
-            moonAltitude={formatDistance(currentAltitudeMoon)}
-            status={status}
-            launchSpeed={launchSpeed}
-            launchAngleDeg={launchAngleDeg}
-            launchAzimuthDeg={launchAzimuthDeg}
-            dt={dt}
-            showTrail={showTrail}
-            showThrustDirectionArrow={showThrustDirectionArrow}
-            pressedControls={pressedControls}
-            onOverview={() => {
-              applyOverviewCamera();
-              focusScene();
-            }}
-            onLockTarget={(target) => {
-              applyLockTarget(target);
-              focusScene();
-            }}
-            onLookAtTarget={(target) => {
-              applyLookAtTarget(target);
-              focusScene();
-            }}
-            onToggleRunning={() => {
-              toggleRunning();
-              focusScene();
-            }}
-            onReset={() => {
-              resetSimulation();
-              focusScene();
-            }}
-            onLaunchSpeedChange={setLaunchSpeed}
-            onLaunchAngleChange={setLaunchAngleDeg}
-            onLaunchAzimuthChange={setLaunchAzimuthDeg}
-            onDtChange={setDt}
-            onShowTrailChange={setShowTrail}
-            onToggleThrustDirectionArrow={() => {
-              setShowThrustDirectionArrow((current) => !current);
-              focusScene();
-            }}
-            onMissionControlPress={handleMissionControlPress}
-            onMissionControlRelease={handleMissionControlRelease}
-          />
+    <div className="h-screen w-screen overflow-hidden bg-[#02060d] text-slate-100">
+      <SceneHud
+        isOverviewActive={isOverviewActive}
+        currentLockTarget={currentLockTarget}
+        currentLookTarget={currentLookTarget}
+        cameraDebug={cameraDebug}
+        running={running}
+        elapsedMissionTime={formatElapsed(telemetry.hours)}
+        currentSpeed={formatSpeed(telemetry.speed)}
+        moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
+        earthAltitude={formatDistance(currentAltitudeEarth)}
+        moonAltitude={formatDistance(currentAltitudeMoon)}
+        status={status}
+        launchSpeed={launchSpeed}
+        launchAngleDeg={launchAngleDeg}
+        launchAzimuthDeg={launchAzimuthDeg}
+        dt={dt}
+        showTrail={showTrail}
+        showThrustDirectionArrow={showThrustDirectionArrow}
+        pressedControls={pressedControls}
+        onOverview={() => {
+          applyOverviewCamera();
+          focusScene();
+        }}
+        onLockTarget={(target) => {
+          applyLockTarget(target);
+          focusScene();
+        }}
+        onLookAtTarget={(target) => {
+          applyLookAtTarget(target);
+          focusScene();
+        }}
+        onToggleRunning={() => {
+          toggleRunning();
+          focusScene();
+        }}
+        onReset={() => {
+          resetSimulation();
+          focusScene();
+        }}
+        onLaunchSpeedChange={setLaunchSpeed}
+        onLaunchAngleChange={setLaunchAngleDeg}
+        onLaunchAzimuthChange={setLaunchAzimuthDeg}
+        onDtChange={setDt}
+        onShowTrailChange={setShowTrail}
+        onToggleThrustDirectionArrow={() => {
+          setShowThrustDirectionArrow((current) => !current);
+          focusScene();
+        }}
+        onMissionControlPress={handleMissionControlPress}
+        onMissionControlRelease={handleMissionControlRelease}
+      />
 
-          <div
-            ref={mountRef}
-            tabIndex={0}
-            className="h-[min(78vh,860px)] min-h-[620px] w-full focus:outline-none"
-          />
-        </div>
-      </div>
+      <div
+        ref={mountRef}
+        tabIndex={0}
+        className="h-full w-full focus:outline-none"
+      />
     </div>
   );
 }

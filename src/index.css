@@ -66,10 +66,10 @@ code {
   color: white;
 }
 
-input[type='range'] {
+input[type="range"] {
   accent-color: var(--accent);
 }
 
-input[type='checkbox'] {
+input[type="checkbox"] {
   accent-color: var(--accent-warm);
 }
