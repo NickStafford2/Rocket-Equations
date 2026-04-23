@@ -53,7 +53,6 @@ type UseMissionSceneParams = {
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
   showTrail: boolean;
-  showVectors: boolean;
 };
 
 type CameraSelection = {
@@ -160,7 +159,6 @@ export function useMissionScene({
   launchAngleRef,
   launchAzimuthRef,
   showTrail,
-  showVectors,
 }: UseMissionSceneParams) {
   const animationRef = useRef<number | null>(null);
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
@@ -168,7 +166,6 @@ export function useMissionScene({
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
   const showTrailRef = useRef(showTrail);
-  const showVectorsRef = useRef(showVectors);
   const lastUiSyncAtRef = useRef(0);
   const lastCameraDebugSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
@@ -215,10 +212,6 @@ export function useMissionScene({
   useEffect(() => {
     showTrailRef.current = showTrail;
   }, [showTrail]);
-
-  useEffect(() => {
-    showVectorsRef.current = showVectors;
-  }, [showVectors]);
 
   useEffect(() => {
     const mountElement = mountRef.current;
@@ -313,7 +306,6 @@ export function useMissionScene({
       objects.launchRing.visible = stagedLaunchPreviewVisible;
       objects.launchLocationArrow.visible = stagedLaunchPreviewVisible;
       objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
-      objects.launchNormalArrow.visible = false;
       objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
 
       const launchOrigin = metersToScene(launchFrame.position);
@@ -328,9 +320,6 @@ export function useMissionScene({
       objects.launchTangentArrow.position.copy(launchOrigin);
       objects.launchTangentArrow.setDirection(launchFrame.tangentHat.clone());
       objects.launchTangentArrow.setLength(14, 3.5, 1.75);
-      objects.launchNormalArrow.position.copy(launchOrigin);
-      objects.launchNormalArrow.setDirection(launchFrame.radialHat.clone());
-      objects.launchNormalArrow.setLength(14, 3.5, 1.75);
       objects.launchAimArrow.position.copy(launchOrigin);
       objects.launchAimArrow.setDirection(
         previewState.velocity.clone().normalize(),
@@ -343,29 +332,6 @@ export function useMissionScene({
 
       objects.trailLine.visible = showTrailRef.current;
       syncTrail();
-
-      objects.velocityArrow.visible = showVectorsRef.current;
-      objects.accelerationArrow.visible = showVectorsRef.current;
-
-      if (showVectorsRef.current) {
-        const rocketPosition = objects.rocket.position.clone();
-        const velocity = simState.rocket.velocity.clone();
-        const acceleration = simState.rocket.acceleration.clone();
-
-        const velocityLength = Math.max(velocity.length(), 1);
-        objects.velocityArrow.position.copy(rocketPosition);
-        objects.velocityArrow.setDirection(velocity.normalize());
-        objects.velocityArrow.setLength(Math.min(60, velocityLength / 250), 6, 4);
-
-        const accelerationLength = Math.max(acceleration.length(), 1e-9);
-        objects.accelerationArrow.position.copy(rocketPosition);
-        objects.accelerationArrow.setDirection(acceleration.normalize());
-        objects.accelerationArrow.setLength(
-          Math.min(50, accelerationLength * 1.5e6),
-          6,
-          4,
-        );
-      }
 
       if (simState.rocket.heading.lengthSq() > 1e-6) {
         const heading = simState.rocket.heading.clone().normalize();

@@ -7,13 +7,11 @@ type ControlsProps = {
   launchAzimuthDeg: number;
   dt: number;
   showTrail: boolean;
-  showVectors: boolean;
   onLaunchSpeedChange: (value: number) => void;
   onLaunchAngleChange: (value: number) => void;
   onLaunchAzimuthChange: (value: number) => void;
   onDtChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
-  onShowVectorsChange: (value: boolean) => void;
 };
 
 export function Controls({
@@ -22,13 +20,11 @@ export function Controls({
   launchAzimuthDeg,
   dt,
   showTrail,
-  showVectors,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
   onDtChange,
   onShowTrailChange,
-  onShowVectorsChange,
 }: ControlsProps) {
   const soundtrackPlaylistId = "PLAikqLA5ubJ5lr05z7kcKE5za7T8n1sG3";
   const [soundtrackEnabled, setSoundtrackEnabled] = useState(false);
@@ -149,14 +145,6 @@ export function Controls({
             onChange={(e) => onShowTrailChange(e.target.checked)}
           />
           Show trail
-        </label>
-        <label className="inline-flex items-center gap-3 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            checked={showVectors}
-            onChange={(e) => onShowVectorsChange(e.target.checked)}
-          />
-          Show velocity and acceleration vectors
         </label>
       </div>
 

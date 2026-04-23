@@ -33,8 +33,6 @@ export default function App() {
     setDt,
     showTrail,
     setShowTrail,
-    showVectors,
-    setShowVectors,
     status,
     setStatus,
     telemetry,
@@ -67,7 +65,6 @@ export default function App() {
     launchAngleRef,
     launchAzimuthRef,
     showTrail,
-    showVectors,
   });
 
   function focusScene() {
@@ -102,13 +99,11 @@ export default function App() {
               launchAzimuthDeg={launchAzimuthDeg}
               dt={dt}
               showTrail={showTrail}
-              showVectors={showVectors}
               onLaunchSpeedChange={setLaunchSpeed}
               onLaunchAngleChange={setLaunchAngleDeg}
               onLaunchAzimuthChange={setLaunchAzimuthDeg}
               onDtChange={setDt}
               onShowTrailChange={setShowTrail}
-              onShowVectorsChange={setShowVectors}
             />
 
             <MissionKeyboardHelp />

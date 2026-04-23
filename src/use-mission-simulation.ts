@@ -48,7 +48,6 @@ export function useMissionSimulation() {
   );
   const [dt, setDtState] = useState(DEFAULT_DT);
   const [showTrail, setShowTrail] = useState(true);
-  const [showVectors, setShowVectors] = useState(false);
   const [status, setStatus] = useState(
     "Rocket staged on Earth's surface. Use the arrow keys to fly, Up or Space to thrust, and WASD to change delta t.",
   );
@@ -202,8 +201,6 @@ export function useMissionSimulation() {
     setDt,
     showTrail,
     setShowTrail,
-    showVectors,
-    setShowVectors,
     status,
     setStatus,
     telemetry,

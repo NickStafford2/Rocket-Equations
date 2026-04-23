@@ -28,12 +28,9 @@ export type SceneObjects = {
   launchLocationArrow: THREE.ArrowHelper;
   launchRing: THREE.Mesh;
   launchTangentArrow: THREE.ArrowHelper;
-  launchNormalArrow: THREE.ArrowHelper;
   launchAimArrow: THREE.ArrowHelper;
   moonOrbit: THREE.Line;
   trailLine: THREE.Line;
-  velocityArrow: THREE.ArrowHelper;
-  accelerationArrow: THREE.ArrowHelper;
 };
 
 export function createSceneObjects(scene: THREE.Scene): SceneObjects {
@@ -221,16 +218,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   );
   system.add(launchTangentArrow);
 
-  const launchNormalArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
-    16,
-    0x7dffb2,
-    4,
-    2,
-  );
-  system.add(launchNormalArrow);
-
   const launchAimArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, 1),
     new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
@@ -286,26 +273,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   trailLine.renderOrder = 2;
   system.add(trailLine);
 
-  const velocityArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(),
-    0,
-    0x4dd0ff,
-    4,
-    2,
-  );
-  system.add(velocityArrow);
-
-  const accelerationArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(),
-    0,
-    0xffdf6e,
-    4,
-    2,
-  );
-  system.add(accelerationArrow);
-
   return {
     system,
     earthGroup,
@@ -319,12 +286,9 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchLocationArrow,
     launchRing,
     launchTangentArrow,
-    launchNormalArrow,
     launchAimArrow,
     moonOrbit,
     trailLine,
-    velocityArrow,
-    accelerationArrow,
   };
 }
 
