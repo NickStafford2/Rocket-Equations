@@ -94,20 +94,9 @@ export default function App() {
           landingTargetSpeed={formatRelativeSpeed(SOFT_LANDING_SPEED)}
         />
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
           <div className="space-y-5">
-            <Controls
-              launchSpeed={launchSpeed}
-              launchAngleDeg={launchAngleDeg}
-              launchAzimuthDeg={launchAzimuthDeg}
-              dt={dt}
-              showTrail={showTrail}
-              onLaunchSpeedChange={setLaunchSpeed}
-              onLaunchAngleChange={setLaunchAngleDeg}
-              onLaunchAzimuthChange={setLaunchAzimuthDeg}
-              onDtChange={setDt}
-              onShowTrailChange={setShowTrail}
-            />
+            <Controls />
 
             <MissionKeyboardHelp />
           </div>
@@ -127,6 +116,11 @@ export default function App() {
               earthAltitude={formatDistance(currentAltitudeEarth)}
               moonAltitude={formatDistance(currentAltitudeMoon)}
               status={status}
+              launchSpeed={launchSpeed}
+              launchAngleDeg={launchAngleDeg}
+              launchAzimuthDeg={launchAzimuthDeg}
+              dt={dt}
+              showTrail={showTrail}
               showThrustDirectionArrow={showThrustDirectionArrow}
               onOverview={() => {
                 applyOverviewCamera();
@@ -148,6 +142,11 @@ export default function App() {
                 resetSimulation();
                 focusScene();
               }}
+              onLaunchSpeedChange={setLaunchSpeed}
+              onLaunchAngleChange={setLaunchAngleDeg}
+              onLaunchAzimuthChange={setLaunchAzimuthDeg}
+              onDtChange={setDt}
+              onShowTrailChange={setShowTrail}
               onToggleThrustDirectionArrow={() => {
                 setShowThrustDirectionArrow((current) => !current);
                 focusScene();
@@ -159,32 +158,6 @@ export default function App() {
               tabIndex={0}
               className="h-[min(78vh,860px)] min-h-[620px] w-full focus:outline-none"
             />
-          </div>
-        </div>
-
-        <div className="inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/8 bg-gradient-to-b from-[#040b16]/95 to-transparent px-5 py-4 text-xs tracking-[0.22em] text-slate-300 uppercase">
-          <div className="flex items-center gap-3">
-            <span className="rounded-full border border-cyan-300/15 bg-cyan-300/10 px-3 py-1 text-cyan-100">
-              Scene View
-            </span>
-            <span>Orbit view with Y-up orbital plane</span>
-          </div>
-          <div className="flex flex-wrap gap-2 text-[0.68rem]">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Drag to rotate
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Wheel to zoom
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Right-drag to pan
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              Up/Space thrust
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-              WASD time warp
-            </span>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatDt } from "../mission";
 import type { CameraTarget } from "../mission";
 import { MissionTelemetryPanel } from "./mission-panels";
 
@@ -28,12 +29,22 @@ type SceneHudProps = {
   earthAltitude: string;
   moonAltitude: string;
   status: string;
+  launchSpeed: number;
+  launchAngleDeg: number;
+  launchAzimuthDeg: number;
+  dt: number;
+  showTrail: boolean;
   showThrustDirectionArrow: boolean;
   onOverview: () => void;
   onLockTarget: (target: CameraTarget) => void;
   onLookAtTarget: (target: CameraTarget) => void;
   onToggleRunning: () => void;
   onReset: () => void;
+  onLaunchSpeedChange: (value: number) => void;
+  onLaunchAngleChange: (value: number) => void;
+  onLaunchAzimuthChange: (value: number) => void;
+  onDtChange: (value: number) => void;
+  onShowTrailChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;
 };
 
@@ -64,12 +75,22 @@ export function SceneHud({
   earthAltitude,
   moonAltitude,
   status,
+  launchSpeed,
+  launchAngleDeg,
+  launchAzimuthDeg,
+  dt,
+  showTrail,
   showThrustDirectionArrow,
   onOverview,
   onLockTarget,
   onLookAtTarget,
   onToggleRunning,
   onReset,
+  onLaunchSpeedChange,
+  onLaunchAngleChange,
+  onLaunchAzimuthChange,
+  onDtChange,
+  onShowTrailChange,
   onToggleThrustDirectionArrow,
 }: SceneHudProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -201,14 +222,60 @@ export function SceneHud({
           </button>
 
           {settingsOpen ? (
-            <label className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-slate-200">
-              <span>Show thrust direction arrow</span>
-              <input
-                type="checkbox"
-                checked={showThrustDirectionArrow}
-                onChange={onToggleThrustDirectionArrow}
+            <div className="mt-3 max-h-[55vh] min-w-[280px] space-y-3 overflow-y-auto pr-1">
+              <CompactSlider
+                label="Launch speed"
+                description="Initial launch impulse at staging."
+                valueLabel={`${launchSpeed.toLocaleString()} m/s`}
+                min={8800}
+                max={12100}
+                step={5}
+                value={launchSpeed}
+                onChange={onLaunchSpeedChange}
               />
-            </label>
+              <CompactSlider
+                label="Launch azimuth"
+                description="Rotates the launch point around Earth's equator."
+                valueLabel={`${launchAzimuthDeg.toFixed(0)}°`}
+                min={0}
+                max={360}
+                step={1}
+                value={launchAzimuthDeg}
+                onChange={onLaunchAzimuthChange}
+              />
+              <CompactSlider
+                label="Flight path angle"
+                description="0 degrees follows the local tangent, 90 points away from Earth, and 180 reverses along the tangent."
+                valueLabel={`${launchAngleDeg.toFixed(1)}°`}
+                min={0}
+                max={180}
+                step={1}
+                value={launchAngleDeg}
+                onChange={onLaunchAngleChange}
+              />
+              <CompactSlider
+                label="Time step"
+                description="Smaller steps improve control precision; larger steps speed up long coasts."
+                valueLabel={`${formatDt(dt)} s`}
+                min={0.1}
+                max={1000}
+                step={0.1}
+                value={dt}
+                onChange={onDtChange}
+              />
+              <CompactCheckbox
+                label="Show trail"
+                description="Keeps the rocket path visible."
+                checked={showTrail}
+                onChange={onShowTrailChange}
+              />
+              <CompactCheckbox
+                label="Show thrust arrow"
+                description="Displays the rocket heading vector in the scene."
+                checked={showThrustDirectionArrow}
+                onChange={() => onToggleThrustDirectionArrow()}
+              />
+            </div>
           ) : null}
         </div>
       </div>
@@ -232,5 +299,90 @@ export function SceneHud({
         </div>
       </div>
     </div>
+  );
+}
+
+type CompactSliderProps = {
+  label: string;
+  description: string;
+  valueLabel: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+};
+
+function CompactSlider({
+  label,
+  description,
+  valueLabel,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: CompactSliderProps) {
+  return (
+    <label className="block rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+      <div className="mb-1.5 flex items-center justify-between gap-3 text-[0.72rem] text-slate-200">
+        <SettingLabel label={label} description={description} />
+        <span className="text-cyan-100">{valueLabel}</span>
+      </div>
+      <input
+        className="block w-full accent-cyan-300"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+type CompactCheckboxProps = {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+};
+
+function CompactCheckbox({
+  label,
+  description,
+  checked,
+  onChange,
+}: CompactCheckboxProps) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-slate-200">
+      <SettingLabel label={label} description={description} />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+    </label>
+  );
+}
+
+type SettingLabelProps = {
+  label: string;
+  description: string;
+};
+
+function SettingLabel({ label, description }: SettingLabelProps) {
+  return (
+    <span className="flex items-center gap-2">
+      <span>{label}</span>
+      <span
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/12 bg-white/8 text-[0.6rem] font-semibold text-slate-300"
+        title={description}
+        aria-label={description}
+      >
+        ?
+      </span>
+    </span>
   );
 }
