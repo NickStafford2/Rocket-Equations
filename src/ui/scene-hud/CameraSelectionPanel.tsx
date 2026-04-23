@@ -4,8 +4,19 @@ import {
   CameraTargetColumn,
   getButtonClassName,
 } from "./shared";
-import type { CameraSelectionPanelProps } from "./types";
 import { CameraDebugPanel } from "./CameraDebugPanel";
+import type { SceneHudProps } from "./types";
+
+type CameraSelectionPanelProps = Pick<
+  SceneHudProps,
+  | "isOverviewActive"
+  | "currentLockTarget"
+  | "currentLookTarget"
+  | "onOverview"
+  | "onLockTarget"
+  | "onLookAtTarget"
+  | "cameraDebug"
+>;
 
 export const CameraSelectionPanel = memo(function CameraSelectionPanel({
   isOverviewActive,

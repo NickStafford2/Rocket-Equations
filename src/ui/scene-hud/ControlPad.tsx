@@ -1,6 +1,16 @@
 import { memo } from "react";
 import { KeyboardCluster, type KeyboardClusterConfig } from "./shared";
-import type { ControlPadProps } from "./types";
+import type { SceneHudProps } from "./types";
+
+type ControlPadProps = Pick<
+  SceneHudProps,
+  | "running"
+  | "pressedControls"
+  | "onToggleRunning"
+  | "onReset"
+  | "onMissionControlPress"
+  | "onMissionControlRelease"
+>;
 
 export const ControlPad = memo(function ControlPad({
   running,

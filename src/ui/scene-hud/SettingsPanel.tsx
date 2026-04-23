@@ -1,10 +1,22 @@
 import { memo, useState } from "react";
-import {
-  CompactCheckbox,
-  CompactSlider,
-  formatTimeStepLabel,
-} from "./shared";
-import type { SettingsPanelProps } from "./types";
+import { CompactCheckbox, CompactSlider, formatTimeStepLabel } from "./shared";
+import type { SceneHudProps } from "./types";
+
+type SettingsPanelProps = Pick<
+  SceneHudProps,
+  | "launchSpeed"
+  | "launchAngleDeg"
+  | "launchAzimuthDeg"
+  | "dt"
+  | "showTrail"
+  | "showThrustDirectionArrow"
+  | "onLaunchSpeedChange"
+  | "onLaunchAngleChange"
+  | "onLaunchAzimuthChange"
+  | "onDtChange"
+  | "onShowTrailChange"
+  | "onToggleThrustDirectionArrow"
+>;
 
 export const SettingsPanel = memo(function SettingsPanel({
   launchSpeed,
@@ -29,7 +41,7 @@ export const SettingsPanel = memo(function SettingsPanel({
         className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/6 px-3 py-2 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
         onClick={() => setSettingsOpen((current) => !current)}
       >
-        <span className="tracking-[0.18em] uppercase text-slate-300">
+        <span className="tracking-[0.18em] text-slate-300 uppercase">
           Settings
         </span>
         <span className="text-xs text-cyan-100">

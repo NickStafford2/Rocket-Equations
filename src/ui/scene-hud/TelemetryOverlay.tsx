@@ -1,6 +1,16 @@
 import { memo } from "react";
 import { MissionTelemetryPanel } from "../mission-panels";
-import type { TelemetryOverlayProps } from "./types";
+import type { SceneHudProps } from "./types";
+
+type TelemetryOverlayProps = Pick<
+  SceneHudProps,
+  | "elapsedMissionTime"
+  | "currentSpeed"
+  | "moonRelativeSpeed"
+  | "earthAltitude"
+  | "moonAltitude"
+  | "status"
+>;
 
 export const TelemetryOverlay = memo(function TelemetryOverlay({
   elapsedMissionTime,
