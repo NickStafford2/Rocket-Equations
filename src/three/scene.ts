@@ -13,6 +13,9 @@ import { createReferenceSun } from "./sun";
 const BLOOM_STRENGTH = 0.38;
 const BLOOM_RADIUS = 0.42;
 const BLOOM_THRESHOLD = 0.52;
+const GRID_SIZE = 520 * 9;
+const GRID_MINOR_SPACING = 6;
+const GRID_MAJOR_SPACING = GRID_MINOR_SPACING * 4;
 
 export type ThreeSceneBundle = {
   scene: THREE.Scene;
@@ -169,22 +172,80 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   };
 }
 
-function createOrbitalGrid(): THREE.GridHelper {
-  const grid = new THREE.GridHelper(520 * 9, 24 * 9, 0x4dd0ff, 0x28455d);
+function createOrbitalGrid(): THREE.Mesh {
+  const geometry = new THREE.PlaneGeometry(GRID_SIZE, GRID_SIZE, 1, 1);
+  geometry.rotateX(-Math.PI / 2);
 
-  const material = grid.material as THREE.Material | THREE.Material[];
-  if (Array.isArray(material)) {
-    material.forEach((entry) => {
-      entry.transparent = true;
-      entry.opacity = 0.32;
-      entry.depthWrite = false;
-    });
-  } else {
-    material.transparent = true;
-    material.opacity = 0.32;
-    material.depthWrite = false;
-  }
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    uniforms: {
+      uMinorColor: { value: new THREE.Color(0x28455d) },
+      uMajorColor: { value: new THREE.Color(0x4dd0ff) },
+      uMinorSpacing: { value: GRID_MINOR_SPACING },
+      uMajorSpacing: { value: GRID_MAJOR_SPACING },
+      uMinorOpacity: { value: 0.3 },
+      uMajorOpacity: { value: 0.05 },
+      uFadeNear: { value: GRID_SIZE * 0.08 },
+      uFadeFar: { value: GRID_SIZE * 0.29 },
+      uGridHalfSize: { value: GRID_SIZE / 2 },
+    },
+    vertexShader: `
+      varying vec3 vWorldPosition;
 
+      void main() {
+        vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+        vWorldPosition = worldPosition.xyz;
+        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uMinorColor;
+      uniform vec3 uMajorColor;
+      uniform float uMinorSpacing;
+      uniform float uMajorSpacing;
+      uniform float uMinorOpacity;
+      uniform float uMajorOpacity;
+      uniform float uFadeNear;
+      uniform float uFadeFar;
+      uniform float uGridHalfSize;
+
+      varying vec3 vWorldPosition;
+
+      float gridLineFactor(vec2 coord, float spacing) {
+        vec2 grid = abs(fract(coord / spacing - 0.5) - 0.5) / fwidth(coord / spacing);
+        return 1.0 - min(min(grid.x, grid.y), 1.0);
+      }
+
+      void main() {
+        vec2 coord = vWorldPosition.xz;
+        float radialDistance = distance(cameraPosition.xz, coord);
+        float fade = 1.0 - smoothstep(uFadeNear, uFadeFar, radialDistance);
+
+        float edgeFade = 1.0 - smoothstep(uGridHalfSize * 0.82, uGridHalfSize, max(abs(coord.x), abs(coord.y)));
+        float visibility = fade * edgeFade;
+
+        float minorLine = gridLineFactor(coord, uMinorSpacing);
+        float majorLine = gridLineFactor(coord, uMajorSpacing);
+
+        vec3 color = mix(uMinorColor, uMajorColor, majorLine);
+        float alpha = max(
+          minorLine * uMinorOpacity * (1.0 - majorLine),
+          majorLine * uMajorOpacity
+        ) * visibility;
+
+        if (alpha <= 0.001) {
+          discard;
+        }
+
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+  });
+
+  const grid = new THREE.Mesh(geometry, material);
+  grid.renderOrder = -1;
   return grid;
 }
 
