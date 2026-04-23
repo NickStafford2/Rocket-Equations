@@ -319,7 +319,7 @@ function createBodyLabelSprite(
     context.stroke();
   }
 
-  context.font = "600 34px sans-serif";
+  context.font = "300 100px sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillStyle = "rgba(232, 245, 255, 0.96)";
@@ -354,7 +354,12 @@ function roundRect(
   context.lineTo(x + width - radius, y);
   context.quadraticCurveTo(x + width, y, x + width, y + radius);
   context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height,
+  );
   context.lineTo(x + radius, y + height);
   context.quadraticCurveTo(x, y + height, x, y + height - radius);
   context.lineTo(x, y + radius);
