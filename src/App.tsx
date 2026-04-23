@@ -51,6 +51,7 @@ export default function App() {
     isOverviewActive,
     currentLockTarget,
     currentLookTarget,
+    cameraDebug,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
@@ -118,6 +119,7 @@ export default function App() {
               isOverviewActive={isOverviewActive}
               currentLockTarget={currentLockTarget}
               currentLookTarget={currentLookTarget}
+              cameraDebug={cameraDebug}
               running={running}
               elapsedMissionTime={formatElapsed(telemetry.hours)}
               currentSpeed={formatSpeed(telemetry.speed)}

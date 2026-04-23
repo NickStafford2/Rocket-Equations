@@ -44,6 +44,20 @@ type CameraSelection = {
   lookTarget: CameraTarget | null;
 };
 
+type CameraDebugState = {
+  mode: string;
+  position: {
+    x: string;
+    y: string;
+    z: string;
+  };
+  target: {
+    x: string;
+    y: string;
+    z: string;
+  };
+};
+
 type OverviewModeState = {
   active: boolean;
   position: THREE.Vector3;
@@ -163,6 +177,7 @@ export function useMissionScene({
   const showTrailRef = useRef(showTrail);
   const showVectorsRef = useRef(showVectors);
   const lastUiSyncAtRef = useRef(0);
+  const lastCameraDebugSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
   const lastRunningStatusRef = useRef<string | null>(null);
   const previousTrailLengthRef = useRef(0);
@@ -170,6 +185,19 @@ export function useMissionScene({
     isOverviewActive: true,
     lockTarget: null,
     lookTarget: null,
+  });
+  const [cameraDebug, setCameraDebug] = useState<CameraDebugState>({
+    mode: "overview",
+    position: {
+      x: "-210.0",
+      y: "120.0",
+      z: "210.0",
+    },
+    target: {
+      x: "56.0",
+      y: "0.0",
+      z: "0.0",
+    },
   });
 
   function setCameraSelectionState(selection: CameraSelection) {
@@ -453,6 +481,33 @@ export function useMissionScene({
           lastRunningStatusRef.current = null;
         }
       }
+
+      if (now - lastCameraDebugSyncAtRef.current >= UI_SYNC_INTERVAL_MS) {
+        lastCameraDebugSyncAtRef.current = now;
+        const tracking = cameraTrackingRef.current;
+        const mode = tracking.overview.active
+          ? "overview"
+          : tracking.lock && tracking.look
+            ? `lock:${tracking.lock.preset} look:${tracking.look.preset}`
+            : tracking.lock
+              ? `lock:${tracking.lock.preset}`
+              : tracking.look
+                ? `look:${tracking.look.preset}`
+                : "free";
+        setCameraDebug({
+          mode,
+          position: {
+            x: camera.position.x.toFixed(1),
+            y: camera.position.y.toFixed(1),
+            z: camera.position.z.toFixed(1),
+          },
+          target: {
+            x: controls.target.x.toFixed(1),
+            y: controls.target.y.toFixed(1),
+            z: controls.target.z.toFixed(1),
+          },
+        });
+      }
     }
 
     function onDoubleClick(event: MouseEvent) {
@@ -693,6 +748,7 @@ export function useMissionScene({
     isOverviewActive: cameraSelection.isOverviewActive,
     currentLockTarget: cameraSelection.lockTarget,
     currentLookTarget: cameraSelection.lookTarget,
+    cameraDebug,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
