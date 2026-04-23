@@ -39,7 +39,7 @@ export function SceneHud({
   onMissionControlRelease,
 }: SceneHudProps) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-20">
+    <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
       <TelemetryOverlay
         elapsedMissionTime={elapsedMissionTime}
         currentSpeed={currentSpeed}
@@ -51,18 +51,7 @@ export function SceneHud({
 
       <div className="flex flex-col items-end gap-3">
         <SoundtrackPanel />
-      </div>
 
-      <div className="flex flex-col gap-3">
-        <CameraSelectionPanel
-          isOverviewActive={isOverviewActive}
-          currentLockTarget={currentLockTarget}
-          currentLookTarget={currentLookTarget}
-          onOverview={onOverview}
-          onLockTarget={onLockTarget}
-          cameraDebug={cameraDebug}
-          onLookAtTarget={onLookAtTarget}
-        />
         <SettingsPanel
           launchSpeed={launchSpeed}
           launchAngleDeg={launchAngleDeg}
@@ -79,7 +68,17 @@ export function SceneHud({
         />
       </div>
 
-      <div className="inset-x-5 bottom-5 flex justify-center">
+      <div className="flex flex-row gap-3">
+        <CameraSelectionPanel
+          isOverviewActive={isOverviewActive}
+          currentLockTarget={currentLockTarget}
+          currentLookTarget={currentLookTarget}
+          onOverview={onOverview}
+          onLockTarget={onLockTarget}
+          cameraDebug={cameraDebug}
+          onLookAtTarget={onLookAtTarget}
+        />
+
         <ControlPad
           running={running}
           pressedControls={pressedControls}
