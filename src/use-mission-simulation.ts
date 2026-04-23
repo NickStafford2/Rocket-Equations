@@ -18,7 +18,9 @@ export type MissionControlKey =
   | "KeyW"
   | "KeyA"
   | "KeyS"
-  | "KeyD";
+  | "KeyD"
+  | "Space"
+  | "KeyR";
 
 type PressedMissionControls = Record<MissionControlKey, boolean>;
 
@@ -30,6 +32,8 @@ const INITIAL_PRESSED_CONTROLS: PressedMissionControls = {
   KeyA: false,
   KeyS: false,
   KeyD: false,
+  Space: false,
+  KeyR: false,
 };
 
 export function useMissionSimulation() {
@@ -74,7 +78,7 @@ export function useMissionSimulation() {
     INITIAL_PRESSED_CONTROLS,
   );
   const [status, setStatus] = useState(
-    "Rocket staged on Earth's surface. Use the arrow keys to fly, Up or Space to thrust, and WASD to change delta t.",
+    "Rocket staged on Earth's surface. Use the arrow keys to fly, Space to start or pause, R to restart, and WASD to change delta t.",
   );
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
@@ -135,6 +139,10 @@ export function useMissionSimulation() {
         keyStateRef.current.right = true;
       } else if (control === "ArrowUp") {
         keyStateRef.current.thrust = true;
+      } else if (control === "Space") {
+        toggleRunning();
+      } else if (control === "KeyR") {
+        resetSimulation();
       } else if (control === "KeyW") {
         setDtState((current) => clampDt(current * 10));
       } else if (control === "KeyS") {
@@ -167,11 +175,13 @@ export function useMissionSimulation() {
     ): MissionControlKey | null {
       if (code === "ArrowLeft") return "ArrowLeft";
       if (code === "ArrowRight") return "ArrowRight";
-      if (code === "ArrowUp" || code === "Space") return "ArrowUp";
+      if (code === "ArrowUp") return "ArrowUp";
+      if (code === "Space") return "Space";
       if (code === "KeyW") return "KeyW";
       if (code === "KeyA") return "KeyA";
       if (code === "KeyS") return "KeyS";
       if (code === "KeyD") return "KeyD";
+      if (code === "KeyR") return "KeyR";
       return null;
     }
 
@@ -180,6 +190,11 @@ export function useMissionSimulation() {
 
       const control = toMissionControl(event.code);
       if (!control) return;
+
+      if (event.repeat && (control === "Space" || control === "KeyR")) {
+        event.preventDefault();
+        return;
+      }
 
       event.preventDefault();
       pressControl(control);
@@ -235,7 +250,7 @@ export function useMissionSimulation() {
       runningRef.current = nextRunning;
       setStatus(
         nextRunning
-          ? `Running. Use arrow keys to fly, Up or Space to burn, and WASD to adjust delta t (${formatDt(dt)} s).`
+          ? `Running. Use Left and Right to steer, Up to burn, Space to pause, R to restart, and WASD to adjust delta t (${formatDt(dt)} s).`
           : "Paused.",
       );
       return nextRunning;
@@ -249,6 +264,10 @@ export function useMissionSimulation() {
       keyStateRef.current.right = true;
     } else if (control === "ArrowUp") {
       keyStateRef.current.thrust = true;
+    } else if (control === "Space") {
+      toggleRunning();
+    } else if (control === "KeyR") {
+      resetSimulation();
     } else if (control === "KeyW") {
       setDtState((current) => clampDt(current * 10));
     } else if (control === "KeyS") {

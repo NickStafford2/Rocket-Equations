@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { formatDt } from "../mission";
 import type { CameraTarget } from "../mission";
 import type { MissionControlKey } from "../use-mission-simulation";
+import { HoverHelp } from "./hover-help";
 import { MissionTelemetryPanel } from "./mission-panels";
 
 type CameraDebugProps = {
@@ -341,120 +342,142 @@ export function SceneHud({
                 checked={showThrustDirectionArrow}
                 onChange={() => onToggleThrustDirectionArrow()}
               />
-              <StaticControlHint
-                label="Arrow key controls"
-                description="Left and Right rotate the ship. Up applies thrust while you hold it."
-                summary="Steer with Left and Right. Hold Up to burn."
-              />
-              <StaticControlHint
-                label="WASD time controls"
-                description="W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%."
-                summary="W/S change scale. A/D make fine delta t adjustments."
-              />
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="absolute inset-x-5 bottom-5 flex justify-center">
-        <div className="pointer-events-auto flex flex-col items-center gap-3">
-          <div className="flex flex-wrap items-end justify-center gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 px-4 py-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
-            <KeyboardCluster
-              label="Arrow keys"
-              className="min-w-[176px]"
-              topKey={
-                <KeyboardKeyButton
-                  label="↑"
-                  caption="Thrust"
-                  control="ArrowUp"
-                  pressed={pressedControls.ArrowUp}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />
-              }
-              bottomKeys={[
-                <KeyboardKeyButton
-                  key="ArrowLeft"
-                  label="←"
-                  caption="Left"
-                  control="ArrowLeft"
-                  pressed={pressedControls.ArrowLeft}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />,
-                <KeyboardKeyButton
-                  key="ArrowRight"
-                  label="→"
-                  caption="Right"
-                  control="ArrowRight"
-                  pressed={pressedControls.ArrowRight}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />,
-              ]}
-            />
+        <div className="pointer-events-auto flex flex-wrap items-end justify-center gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 px-4 py-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+          <KeyboardCluster
+            label="Arrow keys"
+            description="Left and Right rotate the ship. Up applies thrust while you hold it."
+            className="min-w-[176px]"
+            topKey={
+              <KeyboardKeyButton
+                label="↑"
+                caption="Thrust"
+                control="ArrowUp"
+                pressed={pressedControls.ArrowUp}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />
+            }
+            bottomKeys={[
+              <KeyboardKeyButton
+                key="ArrowLeft"
+                label="←"
+                caption="Left"
+                control="ArrowLeft"
+                pressed={pressedControls.ArrowLeft}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+              <KeyboardKeyButton
+                key="ArrowRight"
+                label="→"
+                caption="Right"
+                control="ArrowRight"
+                pressed={pressedControls.ArrowRight}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+            ]}
+          />
 
-            <KeyboardCluster
-              label="WASD"
-              className="min-w-[232px]"
-              topKey={
-                <KeyboardKeyButton
-                  label="W"
-                  caption="x10"
-                  control="KeyW"
-                  pressed={pressedControls.KeyW}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />
-              }
-              bottomKeys={[
-                <KeyboardKeyButton
-                  key="KeyA"
-                  label="A"
-                  caption="-2%"
-                  control="KeyA"
-                  pressed={pressedControls.KeyA}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />,
-                <KeyboardKeyButton
-                  key="KeyS"
-                  label="S"
-                  caption="/10"
-                  control="KeyS"
-                  pressed={pressedControls.KeyS}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />,
-                <KeyboardKeyButton
-                  key="KeyD"
-                  label="D"
-                  caption="+2%"
-                  control="KeyD"
-                  pressed={pressedControls.KeyD}
-                  onPress={onMissionControlPress}
-                  onRelease={onMissionControlRelease}
-                />,
-              ]}
-            />
+          <KeyboardCluster
+            label="WASD"
+            description="W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%."
+            className="min-w-[232px]"
+            topKey={
+              <KeyboardKeyButton
+                label="W"
+                caption="x10"
+                control="KeyW"
+                pressed={pressedControls.KeyW}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />
+            }
+            bottomKeys={[
+              <KeyboardKeyButton
+                key="KeyA"
+                label="A"
+                caption="-2%"
+                control="KeyA"
+                pressed={pressedControls.KeyA}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+              <KeyboardKeyButton
+                key="KeyS"
+                label="S"
+                caption="/10"
+                control="KeyS"
+                pressed={pressedControls.KeyS}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+              <KeyboardKeyButton
+                key="KeyD"
+                label="D"
+                caption="+2%"
+                control="KeyD"
+                pressed={pressedControls.KeyD}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+            ]}
+          />
+
+          <div className="flex min-w-[168px] flex-col items-center gap-2 self-stretch">
+            <div className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
+              Mission
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                className={getButtonClassName(running)}
+                onClick={onToggleRunning}
+              >
+                {running ? "Pause" : "Start"}
+              </button>
+              <button
+                type="button"
+                className={getButtonClassName(false)}
+                onClick={onReset}
+              >
+                Restart
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
-            <button
-              type="button"
-              className={getButtonClassName(running)}
-              onClick={onToggleRunning}
-            >
-              {running ? "Pause" : "Start"}
-            </button>
-            <button
-              type="button"
-              className={getButtonClassName(false)}
-              onClick={onReset}
-            >
-              Reset
-            </button>
-          </div>
+          <KeyboardCluster
+            label="Mission keys"
+            className="min-w-[176px]"
+            topKey={
+              <KeyboardKeyButton
+                label="Space"
+                caption={running ? "Pause" : "Start"}
+                control="Space"
+                pressed={pressedControls.Space}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+                wide
+              />
+            }
+            bottomKeys={[
+              <KeyboardKeyButton
+                key="KeyR"
+                label="R"
+                caption="Restart"
+                control="KeyR"
+                pressed={pressedControls.KeyR}
+                onPress={onMissionControlPress}
+                onRelease={onMissionControlRelease}
+              />,
+            ]}
+          />
         </div>
       </div>
     </div>
@@ -485,7 +508,7 @@ function CompactSlider({
   return (
     <label className="block rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between gap-3 text-[0.72rem] text-slate-200">
-        <SettingLabel label={label} description={description} />
+        <LabelWithHelp label={label} description={description} />
         <span className="text-cyan-100">{valueLabel}</span>
       </div>
       <input
@@ -516,7 +539,7 @@ function CompactCheckbox({
 }: CompactCheckboxProps) {
   return (
     <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-slate-200">
-      <SettingLabel label={label} description={description} />
+      <LabelWithHelp label={label} description={description} />
       <input
         type="checkbox"
         checked={checked}
@@ -526,29 +549,9 @@ function CompactCheckbox({
   );
 }
 
-type StaticControlHintProps = {
-  label: string;
-  description: string;
-  summary: string;
-};
-
-function StaticControlHint({
-  label,
-  description,
-  summary,
-}: StaticControlHintProps) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
-      <div className="text-[0.72rem] text-slate-200">
-        <SettingLabel label={label} description={description} />
-      </div>
-      <div className="mt-1 text-xs leading-5 text-slate-400">{summary}</div>
-    </div>
-  );
-}
-
 type KeyboardClusterProps = {
   label: string;
+  description?: string;
   className?: string;
   topKey: ReactNode;
   bottomKeys: ReactNode[];
@@ -556,14 +559,16 @@ type KeyboardClusterProps = {
 
 function KeyboardCluster({
   label,
+  description,
   className,
   topKey,
   bottomKeys,
 }: KeyboardClusterProps) {
   return (
     <div className={`flex flex-col items-center gap-2 ${className ?? ""}`}>
-      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
-        {label}
+      <div className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
+        <span>{label}</span>
+        {description ? <HoverHelp description={description} /> : null}
       </div>
       <div className="flex justify-center">{topKey}</div>
       <div className="flex items-center justify-center gap-2">{bottomKeys}</div>
@@ -578,6 +583,7 @@ type KeyboardKeyButtonProps = {
   pressed: boolean;
   onPress: (control: MissionControlKey) => void;
   onRelease: (control: MissionControlKey) => void;
+  wide?: boolean;
 };
 
 function KeyboardKeyButton({
@@ -587,6 +593,7 @@ function KeyboardKeyButton({
   pressed,
   onPress,
   onRelease,
+  wide = false,
 }: KeyboardKeyButtonProps) {
   const className = pressed
     ? "border-white/95 bg-white text-slate-950 shadow-[0_0_0_1px_rgba(255,255,255,0.5)_inset,0_10px_22px_rgba(255,255,255,0.18)]"
@@ -596,7 +603,7 @@ function KeyboardKeyButton({
     <button
       type="button"
       aria-label={`${label} control`}
-      className={`flex h-14 min-w-14 select-none touch-none flex-col items-center justify-center rounded-[1rem] border px-3 transition-colors ${className}`}
+      className={`flex h-14 ${wide ? "min-w-[7.5rem]" : "min-w-14"} select-none touch-none flex-col items-center justify-center rounded-[1rem] border px-3 transition-colors ${className}`}
       onPointerDown={(event) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -622,22 +629,16 @@ function KeyboardKeyButton({
   );
 }
 
-type SettingLabelProps = {
+type LabelWithHelpProps = {
   label: string;
   description: string;
 };
 
-function SettingLabel({ label, description }: SettingLabelProps) {
+function LabelWithHelp({ label, description }: LabelWithHelpProps) {
   return (
     <span className="flex items-center gap-2">
       <span>{label}</span>
-      <span
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/12 bg-white/8 text-[0.6rem] font-semibold text-slate-300"
-        title={description}
-        aria-label={description}
-      >
-        ?
-      </span>
+      <HoverHelp description={description} />
     </span>
   );
 }

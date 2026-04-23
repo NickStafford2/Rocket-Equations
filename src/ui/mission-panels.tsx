@@ -55,17 +55,6 @@ export function MissionTelemetryPanel({
   );
 }
 
-export function MissionKeyboardHelp() {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-[#07111f]/82 p-5 text-sm leading-6 text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
-      Keyboard flight controls are live while the mission is running: Left/Right
-      rotate the ship, and Up or Space fires the engine forward. W multiplies
-      delta t by 10, S divides it by 10, A trims it down by 2%, and D bumps it
-      up by 2%.
-    </div>
-  );
-}
-
 type TelemetryRowProps = {
   label: string;
   value: string;
