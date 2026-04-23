@@ -10,6 +10,10 @@ import type { OrientationIndicatorBundle } from "./orientation-indicator";
 import { createReferenceSkybox } from "./skybox";
 import { createReferenceSun } from "./sun";
 
+const BLOOM_STRENGTH = 0.38;
+const BLOOM_RADIUS = 0.42;
+const BLOOM_THRESHOLD = 0.52;
+
 export type ThreeSceneBundle = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -52,14 +56,13 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(
-    new UnrealBloomPass(
-      new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.5,
-      0.6,
-      0.05,
-    ),
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(container.clientWidth, container.clientHeight),
+    BLOOM_STRENGTH,
+    BLOOM_RADIUS,
+    BLOOM_THRESHOLD,
   );
+  composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
   const ambientLight = new THREE.AmbientLight(0x1e2633, 0.16);

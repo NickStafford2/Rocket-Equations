@@ -28,7 +28,7 @@ export function createReferenceSun(): ReferenceSunBundle {
       map: sunTexture,
       toneMapped: false,
       fog: false,
-      color: new THREE.Color(1.18, 1.08, 0.92),
+      color: new THREE.Color(1.32, 1.16, 0.96),
     }),
   );
   sun.userData.focusLabel = "Sun";
