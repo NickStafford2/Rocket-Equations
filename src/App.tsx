@@ -97,12 +97,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(79,172,255,0.18),_transparent_38%),radial-gradient(circle_at_top_right,_rgba(255,185,107,0.14),_transparent_28%),linear-gradient(180deg,_rgba(2,6,13,0.94),_rgba(3,9,18,0.98))]" />
-        <div className="absolute inset-0 [background-image:linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:72px_72px] opacity-40" />
-      </div>
-
-      <div className="relative mx-auto max-w-[1600px] px-4 py-4 md:px-6 lg:px-8 lg:py-6">
+      <div className="relative mx-auto max-w-[1600px] px-4 pb-4 md:px-6 lg:px-8 lg:py-6">
         <MissionOverview
           lunarTransferGap={formatDistance(lunarTransferGap)}
           landingTargetSpeed={formatRelativeSpeed(SOFT_LANDING_SPEED)}
