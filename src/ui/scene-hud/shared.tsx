@@ -26,38 +26,15 @@ const defaultButtonClassName =
 const selectedButtonClassName =
   "border-cyan-100/75 bg-cyan-300/20 text-cyan-50 shadow-[0_0_0_1px_rgba(207,250,254,0.18)_inset]";
 
-export const CAMERA_TARGETS: CameraTarget[] = ["earth", "moon", "rocket", "sun"];
+export const CAMERA_TARGETS: CameraTarget[] = [
+  "earth",
+  "moon",
+  "rocket",
+  "sun",
+];
 
 export const CAMERA_CONTROL_PANEL_CLASS_NAME =
   "pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md";
-
-export const ARROW_CLUSTER: KeyboardClusterConfig = {
-  label: "Arrow keys",
-  description: "Left and Right rotate the ship. Up applies thrust while you hold it.",
-  className: "min-w-[176px]",
-  rows: [
-    [{ control: "ArrowUp", label: "↑", caption: "Thrust" }],
-    [
-      { control: "ArrowLeft", label: "←", caption: "Left" },
-      { control: "ArrowRight", label: "→", caption: "Right" },
-    ],
-  ],
-};
-
-export const WASD_CLUSTER: KeyboardClusterConfig = {
-  label: "WASD",
-  description:
-    "W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%.",
-  className: "min-w-[232px]",
-  rows: [
-    [{ control: "KeyW", label: "W", caption: "x10" }],
-    [
-      { control: "KeyA", label: "A", caption: "-2%" },
-      { control: "KeyS", label: "S", caption: "/10" },
-      { control: "KeyD", label: "D", caption: "+2%" },
-    ],
-  ],
-};
 
 export function getButtonClassName(isSelected: boolean): string {
   return `${baseButtonClassName} ${
@@ -171,13 +148,20 @@ export function KeyboardCluster({
   onRelease: (control: MissionControlKey) => void;
 }) {
   return (
-    <div className={`flex flex-col items-center gap-2 ${cluster.className ?? ""}`}>
-      <div className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
+    <div
+      className={`flex flex-col items-center gap-2 ${cluster.className ?? ""}`}
+    >
+      <div className="flex items-center gap-1.5 text-[0.62rem] font-semibold tracking-[0.24em] text-slate-400 uppercase">
         <span>{cluster.label}</span>
-        {cluster.description ? <HoverHelp description={cluster.description} /> : null}
+        {cluster.description ? (
+          <HoverHelp description={cluster.description} />
+        ) : null}
       </div>
       {cluster.rows.map((row, rowIndex) => (
-        <div key={`${cluster.label}-${rowIndex}`} className="flex items-center justify-center gap-2">
+        <div
+          key={`${cluster.label}-${rowIndex}`}
+          className="flex items-center justify-center gap-2"
+        >
           {row.map((keyConfig) => (
             <KeyboardKeyButton
               key={keyConfig.control}
@@ -223,7 +207,7 @@ function KeyboardKeyButton({
     <button
       type="button"
       aria-label={`${label} control`}
-      className={`flex h-14 ${wide ? "min-w-[7.5rem]" : "min-w-14"} select-none touch-none flex-col items-center justify-center rounded-[1rem] border px-3 transition-colors ${className}`}
+      className={`flex h-14 ${wide ? "min-w-[7.5rem]" : "min-w-14"} touch-none flex-col items-center justify-center rounded-[1rem] border px-3 transition-colors select-none ${className}`}
       onPointerDown={(event) => {
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -239,10 +223,10 @@ function KeyboardKeyButton({
       onPointerLeave={() => onRelease(control)}
       onPointerCancel={() => onRelease(control)}
     >
-      <span className="text-base font-semibold uppercase tracking-[0.08em]">
+      <span className="text-base font-semibold tracking-[0.08em] uppercase">
         {label}
       </span>
-      <span className="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.16em] opacity-70">
+      <span className="mt-0.5 text-[0.58rem] font-medium tracking-[0.16em] uppercase opacity-70">
         {caption}
       </span>
     </button>

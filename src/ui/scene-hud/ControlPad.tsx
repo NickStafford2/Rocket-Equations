@@ -1,10 +1,5 @@
 import { memo } from "react";
-import {
-  ARROW_CLUSTER,
-  KeyboardCluster,
-  WASD_CLUSTER,
-  type KeyboardClusterConfig,
-} from "./shared";
+import { KeyboardCluster, type KeyboardClusterConfig } from "./shared";
 import { MissionControls } from "./MissionControls";
 import type { ControlPadProps } from "./types";
 
@@ -29,6 +24,35 @@ export const ControlPad = memo(function ControlPad({
         },
       ],
       [{ control: "KeyR", label: "R", caption: "Restart" }],
+    ],
+  };
+
+  const ARROW_CLUSTER: KeyboardClusterConfig = {
+    label: "Arrow keys",
+    description:
+      "Left and Right rotate the ship. Up applies thrust while you hold it.",
+    className: "min-w-[176px]",
+    rows: [
+      [{ control: "ArrowUp", label: "↑", caption: "Thrust" }],
+      [
+        { control: "ArrowLeft", label: "←", caption: "Left" },
+        { control: "ArrowRight", label: "→", caption: "Right" },
+      ],
+    ],
+  };
+
+  const WASD_CLUSTER: KeyboardClusterConfig = {
+    label: "WASD",
+    description:
+      "W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%.",
+    className: "min-w-[232px]",
+    rows: [
+      [{ control: "KeyW", label: "W", caption: "x10" }],
+      [
+        { control: "KeyA", label: "A", caption: "-2%" },
+        { control: "KeyS", label: "S", caption: "/10" },
+        { control: "KeyD", label: "D", caption: "+2%" },
+      ],
     ],
   };
 
