@@ -1,8 +1,8 @@
+import { MissionTelemetryPanel } from "./mission-panels";
 import { CameraSelectionPanel } from "./scene-hud/CameraSelectionPanel";
 import { ControlPad } from "./scene-hud/ControlPad";
 import { SettingsPanel } from "./scene-hud/SettingsPanel";
 import { SoundtrackPanel } from "./scene-hud/SoundtrackPanel";
-import { TelemetryOverlay } from "./scene-hud/TelemetryOverlay";
 import type { SceneHudProps } from "./scene-hud/types";
 
 export function SceneHud({
@@ -41,7 +41,7 @@ export function SceneHud({
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
       <div className="flex flex-col items-end gap-3">
-        <TelemetryOverlay
+        <MissionTelemetryPanel
           elapsedMissionTime={elapsedMissionTime}
           currentSpeed={currentSpeed}
           moonRelativeSpeed={moonRelativeSpeed}
