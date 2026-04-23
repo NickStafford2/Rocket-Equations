@@ -90,7 +90,12 @@ export default function App() {
   const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#02060d] text-slate-100">
+    <div className="relative h-screen w-screen overflow-hidden bg-[#02060d] text-slate-100">
+      <div
+        ref={mountRef}
+        tabIndex={0}
+        className="h-full w-full focus:outline-none"
+      />
       <SceneHud
         isOverviewActive={isOverviewActive}
         currentLockTarget={currentLockTarget}
@@ -143,12 +148,6 @@ export default function App() {
         }}
         onMissionControlPress={handleMissionControlPress}
         onMissionControlRelease={handleMissionControlRelease}
-      />
-
-      <div
-        ref={mountRef}
-        tabIndex={0}
-        className="h-full w-full focus:outline-none"
       />
     </div>
   );
