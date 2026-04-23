@@ -40,8 +40,8 @@ export function SceneHud({
   onMissionControlRelease,
 }: SceneHudProps) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
-      <div className="flex flex-col items-end gap-3">
+    <div className="pointer-events-none absolute inset-0 z-20 flex grow-0 flex-col justify-between border-2 border-yellow-500">
+      <div className="flex grow-0 flex-col items-end gap-3 border-2 border-green-500">
         <MissionOverview />
         <div className="flex w-full flex-row justify-between">
           <MissionTelemetryPanel
@@ -52,7 +52,7 @@ export function SceneHud({
             moonAltitude={moonAltitude}
             status={status}
           />
-          <div className="flex flex-col">
+          <div className="overflow-none flex grow-0 flex-col border-2 border-red-500">
             <SoundtrackPanel />
 
             <SettingsPanel
@@ -73,7 +73,7 @@ export function SceneHud({
         </div>
       </div>
 
-      <div className="flex flex-row items-end gap-3">
+      <div className="flex shrink-0 flex-row items-end gap-3 border-2 border-blue-500">
         <CameraSelectionPanel
           isOverviewActive={isOverviewActive}
           currentLockTarget={currentLockTarget}

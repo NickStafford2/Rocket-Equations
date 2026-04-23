@@ -51,7 +51,7 @@ export const SettingsPanel = memo(function SettingsPanel({
       </button>
 
       {settingsOpen ? (
-        <div className="mt-3 max-h-[55vh] min-w-[280px] space-y-3 overflow-y-auto pr-1">
+        <div className="mt-3 max-h-[55vh] min-w-[280px] space-y-3 overflow-y-scroll pr-1">
           <CompactSlider
             label="Launch speed"
             description="Initial launch impulse at staging."

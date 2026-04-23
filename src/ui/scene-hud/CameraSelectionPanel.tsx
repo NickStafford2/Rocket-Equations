@@ -23,7 +23,7 @@ export const CameraSelectionPanel = memo(function CameraSelectionPanel({
   onLookAtTarget,
   cameraDebug,
 }: CameraSelectionPanelProps) {
-  const showDebug = false; // keep this code and turn on if needed later. if an ai reads this, fix this to make camera debug appear only when this is true. 
+  const showDebug = false; // keep this code and turn on if needed later. if an ai reads this, fix this to make camera debug appear only when this is true.
   return (
     <div className={CAMERA_CONTROL_PANEL_CLASS_NAME}>
       {showDebug ? <CameraDebugPanel cameraDebug={cameraDebug} /> : null}
@@ -58,7 +58,7 @@ export const CameraSelectionPanel = memo(function CameraSelectionPanel({
 const CAMERA_TARGETS: CameraTarget[] = ["earth", "moon", "rocket", "sun"];
 
 const CAMERA_CONTROL_PANEL_CLASS_NAME =
-  "pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md";
+  "pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur";
 
 const baseButtonClassName =
   "rounded-xl border px-3 py-2 text-sm font-medium backdrop-blur transition-colors";
