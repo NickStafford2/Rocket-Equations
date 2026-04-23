@@ -40,16 +40,15 @@ export function SceneHud({
 }: SceneHudProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
-      <TelemetryOverlay
-        elapsedMissionTime={elapsedMissionTime}
-        currentSpeed={currentSpeed}
-        moonRelativeSpeed={moonRelativeSpeed}
-        earthAltitude={earthAltitude}
-        moonAltitude={moonAltitude}
-        status={status}
-      />
-
       <div className="flex flex-col items-end gap-3">
+        <TelemetryOverlay
+          elapsedMissionTime={elapsedMissionTime}
+          currentSpeed={currentSpeed}
+          moonRelativeSpeed={moonRelativeSpeed}
+          earthAltitude={earthAltitude}
+          moonAltitude={moonAltitude}
+          status={status}
+        />
         <SoundtrackPanel />
 
         <SettingsPanel
@@ -68,7 +67,7 @@ export function SceneHud({
         />
       </div>
 
-      <div className="flex flex-row gap-3">
+      <div className="flex flex-row items-end gap-3">
         <CameraSelectionPanel
           isOverviewActive={isOverviewActive}
           currentLockTarget={currentLockTarget}
