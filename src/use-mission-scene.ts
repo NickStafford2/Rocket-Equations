@@ -12,7 +12,7 @@ import {
   getMissionPhase,
   normalizeFocusLabelToPreset,
 } from "./mission";
-import type { CameraPreset, CameraTarget } from "./mission";
+import type { CameraTarget } from "./mission";
 import type { EarthMoonSimulation, SimulationTelemetry } from "./sim/simulation";
 import { TRAIL_POINT_CAPACITY } from "./sim/trail";
 import { createThreeScene } from "./three/scene";
@@ -38,38 +38,53 @@ type UseMissionSceneParams = {
   showVectors: boolean;
 };
 
-type FocusTransition = {
-  mode: "overview" | "snap" | "look";
-  preset: CameraPreset;
-  object?: THREE.Object3D;
-  offset?: THREE.Vector3;
-  position?: THREE.Vector3;
-  target?: THREE.Vector3;
+type CameraSelection = {
+  isOverviewActive: boolean;
+  lockTarget: CameraTarget | null;
+  lookTarget: CameraTarget | null;
+};
+
+type OverviewModeState = {
+  active: boolean;
+  position: THREE.Vector3;
+  target: THREE.Vector3;
+  transitioning: boolean;
   status: string;
+};
+
+type LockModeState = {
+  preset: CameraTarget;
+  object: THREE.Object3D;
+  offset: THREE.Vector3;
+  transitioning: boolean;
+  status: string;
+};
+
+type LookModeState = {
+  preset: CameraTarget;
+  object: THREE.Object3D;
+  transitioning: boolean;
+  status: string;
+};
+
+type CameraTrackingState = {
+  overview: OverviewModeState;
+  lock: LockModeState | null;
+  look: LookModeState | null;
 };
 
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 const UI_SYNC_INTERVAL_MS = 100;
 
-function createFocusTransition(
+function createLockModeState(
   camera: THREE.PerspectiveCamera,
   controls: ThreeSceneBundle["controls"],
   targetObject: THREE.Object3D,
-  mode: "snap" | "look",
-): FocusTransition | null {
+): LockModeState | null {
   const focusRadius = Number(targetObject.userData.focusRadius ?? 12);
   const focusLabel = String(targetObject.userData.focusLabel ?? "target");
   const preset = normalizeFocusLabelToPreset(focusLabel);
   if (!preset || preset === "overview") return null;
-
-  if (mode === "look") {
-    return {
-      mode,
-      preset,
-      object: targetObject,
-      status: `Looking at ${focusLabel}.`,
-    };
-  }
 
   const currentOffset = camera.position.clone().sub(controls.target);
   const viewDirection =
@@ -78,36 +93,26 @@ function createFocusTransition(
       : FALLBACK_VIEW_DIRECTION.clone();
 
   return {
-    mode,
     preset,
     object: targetObject,
     offset: viewDirection.multiplyScalar(
       THREE.MathUtils.clamp(focusRadius * 5, 4, 520),
     ),
-    status: `Focused on ${focusLabel}.`,
+    transitioning: true,
+    status: `Locked on ${focusLabel}.`,
   };
 }
 
-function resolveFocusTransitionTarget(
-  transition: FocusTransition,
-  currentCameraPosition: THREE.Vector3,
-): { position: THREE.Vector3; target: THREE.Vector3 } {
-  if (transition.mode === "overview") {
-    return {
-      position: transition.position!.clone(),
-      target: transition.target!.clone(),
-    };
-  }
-
-  const worldPosition = new THREE.Vector3();
-  transition.object!.getWorldPosition(worldPosition);
+function createLookModeState(targetObject: THREE.Object3D): LookModeState | null {
+  const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+  const preset = normalizeFocusLabelToPreset(focusLabel);
+  if (!preset || preset === "overview") return null;
 
   return {
-    position:
-      transition.mode === "snap"
-        ? worldPosition.clone().add(transition.offset!)
-        : currentCameraPosition.clone(),
-    target: worldPosition,
+    preset,
+    object: targetObject,
+    transitioning: true,
+    status: `Looking at ${focusLabel}.`,
   };
 }
 
@@ -142,8 +147,17 @@ export function useMissionScene({
 }: UseMissionSceneParams) {
   const animationRef = useRef<number | null>(null);
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
-  const focusTransitionRef = useRef<FocusTransition | null>(null);
-  const activeFocusRef = useRef<FocusTransition | null>(null);
+  const cameraTrackingRef = useRef<CameraTrackingState>({
+    overview: {
+      active: true,
+      position: new THREE.Vector3(-210, 120, 210),
+      target: new THREE.Vector3(56, 0, 0),
+      transitioning: false,
+      status: "Overview camera restored.",
+    },
+    lock: null,
+    look: null,
+  });
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
   const showTrailRef = useRef(showTrail);
@@ -152,39 +166,75 @@ export function useMissionScene({
   const lastTelemetryTimeRef = useRef<number | null>(null);
   const lastRunningStatusRef = useRef<string | null>(null);
   const previousTrailLengthRef = useRef(0);
-  const [currentCameraPreset, setCurrentCameraPreset] =
-    useState<CameraPreset | null>("overview");
-  const [currentLookTarget, setCurrentLookTarget] =
-    useState<CameraTarget | null>(null);
+  const [cameraSelection, setCameraSelection] = useState<CameraSelection>({
+    isOverviewActive: true,
+    lockTarget: null,
+    lookTarget: null,
+  });
 
-  function applyFocusSelection(
-    targetObject: THREE.Object3D,
-    mode: "snap" | "look",
-  ) {
+  function setCameraSelectionState(selection: CameraSelection) {
+    setCameraSelection(selection);
+  }
+
+  function syncCameraSelectionFromTracking() {
+    const tracking = cameraTrackingRef.current;
+    setCameraSelectionState({
+      isOverviewActive: tracking.overview.active,
+      lockTarget: tracking.lock?.preset ?? null,
+      lookTarget: tracking.look?.preset ?? null,
+    });
+  }
+
+  function clearOverviewMode() {
+    cameraTrackingRef.current.overview = {
+      ...cameraTrackingRef.current.overview,
+      active: false,
+      transitioning: false,
+    };
+  }
+
+  function clearAllCameraTracking(status?: string) {
+    clearOverviewMode();
+    cameraTrackingRef.current.lock = null;
+    cameraTrackingRef.current.look = null;
+    syncCameraSelectionFromTracking();
+    if (status) setStatus(status);
+  }
+
+  function applyLockSelection(targetObject: THREE.Object3D) {
     const bundle = bundleRef.current;
     if (!bundle) return;
 
-    const transition = createFocusTransition(
+    const lockState = createLockModeState(
       bundle.camera,
       bundle.controls,
       targetObject,
-      mode,
     );
-    if (!transition) return;
-
-    activeFocusRef.current = transition;
-    focusTransitionRef.current = transition;
+    if (!lockState) return;
 
     const focusLabel = String(targetObject.userData.focusLabel ?? "target");
-    if (mode === "snap") {
-      setCurrentCameraPreset(transition.preset);
-      setCurrentLookTarget(null);
-      setStatus(`Focusing ${focusLabel}...`);
-      return;
+    clearOverviewMode();
+    cameraTrackingRef.current.lock = lockState;
+    if (!cameraTrackingRef.current.look) {
+      cameraTrackingRef.current.look = {
+        preset: lockState.preset,
+        object: lockState.object,
+        transitioning: true,
+        status: `Looking at ${focusLabel}.`,
+      };
     }
+    syncCameraSelectionFromTracking();
+    setStatus(`Locking on ${focusLabel}...`);
+  }
 
-    setCurrentCameraPreset(null);
-    setCurrentLookTarget(transition.preset as CameraTarget);
+  function applyLookSelection(targetObject: THREE.Object3D) {
+    const lookState = createLookModeState(targetObject);
+    if (!lookState) return;
+
+    const focusLabel = String(targetObject.userData.focusLabel ?? "target");
+    clearOverviewMode();
+    cameraTrackingRef.current.look = lookState;
+    syncCameraSelectionFromTracking();
     setStatus(`Turning toward ${focusLabel}...`);
   }
 
@@ -420,7 +470,7 @@ export function useMissionScene({
       for (const hit of intersections) {
         const focusable = findFocusableObject(hit.object);
         if (focusable) {
-          applyFocusSelection(focusable, "snap");
+          applyLockSelection(focusable);
           return;
         }
       }
@@ -440,15 +490,30 @@ export function useMissionScene({
     }
 
     function onControlsStart() {
-      activeFocusRef.current = null;
-      focusTransitionRef.current = null;
-      setCurrentCameraPreset(null);
-      setCurrentLookTarget(null);
+      const overview = cameraTrackingRef.current.overview;
+      if (!overview.active) return;
+
+      if (overview.transitioning) {
+        clearAllCameraTracking("Overview transition canceled.");
+        return;
+      }
+
+      clearAllCameraTracking("Free camera enabled.");
+    }
+
+    function onControlsChange() {
+      const lockMode = cameraTrackingRef.current.lock;
+      if (!lockMode || lockMode.transitioning) return;
+
+      const trackedPosition = new THREE.Vector3();
+      lockMode.object.getWorldPosition(trackedPosition);
+      lockMode.offset.copy(camera.position.clone().sub(trackedPosition));
     }
 
     window.addEventListener("resize", onResize);
     mount.addEventListener("pointerdown", onScenePointerDown);
     controls.addEventListener("start", onControlsStart);
+    controls.addEventListener("change", onControlsChange);
     renderer.domElement.addEventListener("dblclick", onDoubleClick);
 
     function frame() {
@@ -458,29 +523,68 @@ export function useMissionScene({
 
       syncScene();
 
-      if (activeFocusRef.current) {
-        const desiredFocus = resolveFocusTransitionTarget(
-          activeFocusRef.current,
-          camera.position,
-        );
-        const isTransitioning = focusTransitionRef.current !== null;
-        const transitionAlpha = isTransitioning ? 0.12 : 1;
+      const tracking = cameraTrackingRef.current;
+      const overview = tracking.overview;
+      const lockMode = tracking.lock;
+      const lookMode = tracking.look;
 
-        if (activeFocusRef.current.mode !== "look") {
-          camera.position.lerp(desiredFocus.position, transitionAlpha);
+      const targetObject = lookMode?.object ?? lockMode?.object ?? null;
+      const targetPosition = targetObject
+        ? new THREE.Vector3().setFromMatrixPosition(targetObject.matrixWorld)
+        : null;
+
+      if (overview.active) {
+        const alpha = overview.transitioning ? 0.12 : 1;
+        camera.position.lerp(overview.position, alpha);
+        controls.target.lerp(overview.target, alpha);
+
+        if (
+          overview.transitioning &&
+          camera.position.distanceTo(overview.position) < 0.8 &&
+          controls.target.distanceTo(overview.target) < 0.35
+        ) {
+          setStatus(overview.status);
+          cameraTrackingRef.current.overview = {
+            ...overview,
+            transitioning: false,
+          };
         }
-        controls.target.lerp(desiredFocus.target, transitionAlpha);
+      } else {
+        if (lockMode) {
+          const lockPosition = new THREE.Vector3().setFromMatrixPosition(
+            lockMode.object.matrixWorld,
+          );
+          const desiredPosition = lockPosition.clone().add(lockMode.offset);
+          const alpha = lockMode.transitioning ? 0.12 : 1;
+          camera.position.lerp(desiredPosition, alpha);
 
-        if (isTransitioning) {
-          const cameraSettled =
-            activeFocusRef.current.mode === "look" ||
-            camera.position.distanceTo(desiredFocus.position) < 0.8;
-          const targetSettled =
-            controls.target.distanceTo(desiredFocus.target) < 0.35;
+          if (
+            lockMode.transitioning &&
+            camera.position.distanceTo(desiredPosition) < 0.8
+          ) {
+            setStatus(lockMode.status);
+            cameraTrackingRef.current.lock = {
+              ...lockMode,
+              transitioning: false,
+            };
+          }
+        }
 
-          if (cameraSettled && targetSettled) {
-            setStatus(activeFocusRef.current.status);
-            focusTransitionRef.current = null;
+        if (targetPosition) {
+          const lookIsTransitioning = lookMode?.transitioning ?? false;
+          const targetAlpha = lookIsTransitioning ? 0.12 : 1;
+          controls.target.lerp(targetPosition, targetAlpha);
+
+          if (
+            lookMode &&
+            lookMode.transitioning &&
+            controls.target.distanceTo(targetPosition) < 0.35
+          ) {
+            setStatus(lookMode.status);
+            cameraTrackingRef.current.look = {
+              ...lookMode,
+              transitioning: false,
+            };
           }
         }
       }
@@ -496,13 +600,23 @@ export function useMissionScene({
       window.removeEventListener("resize", onResize);
       mount.removeEventListener("pointerdown", onScenePointerDown);
       controls.removeEventListener("start", onControlsStart);
+      controls.removeEventListener("change", onControlsChange);
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
       if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
       }
       bundleRef.current = null;
-      focusTransitionRef.current = null;
-      activeFocusRef.current = null;
+      cameraTrackingRef.current = {
+        overview: {
+          active: false,
+          position: new THREE.Vector3(-210, 120, 210),
+          target: new THREE.Vector3(56, 0, 0),
+          transitioning: false,
+          status: "Overview camera restored.",
+        },
+        lock: null,
+        look: null,
+      };
       previousTrailLengthRef.current = 0;
       bundle.dispose();
     };
@@ -519,44 +633,68 @@ export function useMissionScene({
     launchAzimuthRef,
   ]);
 
-  function applyCameraPreset(preset: CameraPreset) {
+  function applyOverviewCamera() {
+    cameraTrackingRef.current = {
+      overview: {
+        active: true,
+        position: new THREE.Vector3(-210, 120, 210),
+        target: new THREE.Vector3(56, 0, 0),
+        transitioning: true,
+        status: "Overview camera restored.",
+      },
+      lock: null,
+      look: null,
+    };
+    syncCameraSelectionFromTracking();
+    setStatus("Restoring overview camera...");
+  }
+
+  function applyLockTarget(target: CameraTarget) {
     const bundle = bundleRef.current;
     if (!bundle) return;
 
-    if (preset === "overview") {
-      const transition: FocusTransition = {
-        mode: "overview",
-        preset: "overview",
-        position: new THREE.Vector3(-210, 120, 210),
-        target: new THREE.Vector3(56, 0, 0),
-        status: "Overview camera restored.",
-      };
-      activeFocusRef.current = transition;
-      focusTransitionRef.current = transition;
-      setCurrentCameraPreset("overview");
-      setCurrentLookTarget(null);
-      setStatus("Restoring overview camera...");
+    const currentLock = cameraTrackingRef.current.lock;
+    if (currentLock?.preset === target) {
+      cameraTrackingRef.current.lock = null;
+      if (
+        cameraTrackingRef.current.look?.preset === target &&
+        cameraTrackingRef.current.look.object === currentLock.object
+      ) {
+        cameraTrackingRef.current.look = null;
+      }
+      syncCameraSelectionFromTracking();
+      setStatus("Camera unlocked.");
       return;
     }
 
-    const focusable = findFocusableByPreset(bundle.scene, preset);
+    const focusable = findFocusableByPreset(bundle.scene, target);
     if (!focusable) return;
-    applyFocusSelection(focusable, "snap");
+    applyLockSelection(focusable);
   }
 
   function applyLookAtTarget(target: CameraTarget) {
     const bundle = bundleRef.current;
     if (!bundle) return;
 
+    const currentLook = cameraTrackingRef.current.look;
+    if (currentLook?.preset === target) {
+      cameraTrackingRef.current.look = null;
+      syncCameraSelectionFromTracking();
+      setStatus("Look-at released.");
+      return;
+    }
+
     const focusable = findFocusableByPreset(bundle.scene, target);
     if (!focusable) return;
-    applyFocusSelection(focusable, "look");
+    applyLookSelection(focusable);
   }
 
   return {
-    currentCameraPreset,
-    currentLookTarget,
-    applyCameraPreset,
+    isOverviewActive: cameraSelection.isOverviewActive,
+    currentLockTarget: cameraSelection.lockTarget,
+    currentLookTarget: cameraSelection.lookTarget,
+    applyOverviewCamera,
+    applyLockTarget,
     applyLookAtTarget,
   };
 }

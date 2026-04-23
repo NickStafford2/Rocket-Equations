@@ -1,8 +1,9 @@
-import type { CameraPreset, CameraTarget } from "../mission";
+import type { CameraTarget } from "../mission";
 import { MissionTelemetryPanel } from "./mission-panels";
 
 type SceneHudProps = {
-  currentCameraPreset: CameraPreset | null;
+  isOverviewActive: boolean;
+  currentLockTarget: CameraTarget | null;
   currentLookTarget: CameraTarget | null;
   running: boolean;
   elapsedMissionTime: string;
@@ -11,7 +12,8 @@ type SceneHudProps = {
   earthAltitude: string;
   moonAltitude: string;
   status: string;
-  onCameraPreset: (preset: CameraPreset) => void;
+  onOverview: () => void;
+  onLockTarget: (target: CameraTarget) => void;
   onLookAtTarget: (target: CameraTarget) => void;
   onToggleRunning: () => void;
   onReset: () => void;
@@ -33,7 +35,8 @@ function getButtonClassName(isSelected: boolean): string {
 }
 
 export function SceneHud({
-  currentCameraPreset,
+  isOverviewActive,
+  currentLockTarget,
   currentLookTarget,
   running,
   elapsedMissionTime,
@@ -42,7 +45,8 @@ export function SceneHud({
   earthAltitude,
   moonAltitude,
   status,
-  onCameraPreset,
+  onOverview,
+  onLockTarget,
   onLookAtTarget,
   onToggleRunning,
   onReset,
@@ -64,40 +68,46 @@ export function SceneHud({
         <div className="pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
           <div className="flex flex-col gap-2">
             <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
-              Snap To
+              Camera
             </div>
             <button
               type="button"
-              className={getButtonClassName(currentCameraPreset === "overview")}
-              onClick={() => onCameraPreset("overview")}
+              className={getButtonClassName(isOverviewActive)}
+              onClick={onOverview}
             >
               Overview
             </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
+              Lock On
+            </div>
             <button
               type="button"
-              className={getButtonClassName(currentCameraPreset === "earth")}
-              onClick={() => onCameraPreset("earth")}
+              className={getButtonClassName(currentLockTarget === "earth")}
+              onClick={() => onLockTarget("earth")}
             >
               Earth
             </button>
             <button
               type="button"
-              className={getButtonClassName(currentCameraPreset === "moon")}
-              onClick={() => onCameraPreset("moon")}
+              className={getButtonClassName(currentLockTarget === "moon")}
+              onClick={() => onLockTarget("moon")}
             >
               Moon
             </button>
             <button
               type="button"
-              className={getButtonClassName(currentCameraPreset === "rocket")}
-              onClick={() => onCameraPreset("rocket")}
+              className={getButtonClassName(currentLockTarget === "rocket")}
+              onClick={() => onLockTarget("rocket")}
             >
               Rocket
             </button>
             <button
               type="button"
-              className={getButtonClassName(currentCameraPreset === "sun")}
-              onClick={() => onCameraPreset("sun")}
+              className={getButtonClassName(currentLockTarget === "sun")}
+              onClick={() => onLockTarget("sun")}
             >
               Sun
             </button>

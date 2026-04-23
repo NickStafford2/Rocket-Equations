@@ -48,9 +48,11 @@ export default function App() {
     launchAzimuthRef,
   } = useMissionSimulation();
   const {
-    currentCameraPreset,
+    isOverviewActive,
+    currentLockTarget,
     currentLookTarget,
-    applyCameraPreset,
+    applyOverviewCamera,
+    applyLockTarget,
     applyLookAtTarget,
   } = useMissionScene({
     mountRef,
@@ -113,7 +115,8 @@ export default function App() {
 
           <div className="relative h-fit overflow-hidden rounded-[2.25rem] border border-red-400 bg-[#030914]/78 shadow-[0_40px_100px_rgba(0,0,0,0.45)]">
             <SceneHud
-              currentCameraPreset={currentCameraPreset}
+              isOverviewActive={isOverviewActive}
+              currentLockTarget={currentLockTarget}
               currentLookTarget={currentLookTarget}
               running={running}
               elapsedMissionTime={formatElapsed(telemetry.hours)}
@@ -124,8 +127,12 @@ export default function App() {
               earthAltitude={formatDistance(currentAltitudeEarth)}
               moonAltitude={formatDistance(currentAltitudeMoon)}
               status={status}
-              onCameraPreset={(preset) => {
-                applyCameraPreset(preset);
+              onOverview={() => {
+                applyOverviewCamera();
+                focusScene();
+              }}
+              onLockTarget={(target) => {
+                applyLockTarget(target);
                 focusScene();
               }}
               onLookAtTarget={(target) => {
