@@ -56,12 +56,6 @@ export const ControlPad = memo(function ControlPad({
   return (
     <div className="pointer-events-auto flex flex-wrap items-end justify-center gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 px-4 py-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
       <KeyboardCluster
-        cluster={ARROW_CLUSTER}
-        pressedControls={pressedControls}
-        onPress={onMissionControlPress}
-        onRelease={onMissionControlRelease}
-      />
-      <KeyboardCluster
         cluster={WASD_CLUSTER}
         pressedControls={pressedControls}
         onPress={onMissionControlPress}
@@ -69,6 +63,12 @@ export const ControlPad = memo(function ControlPad({
       />
       <KeyboardCluster
         cluster={missionCluster}
+        pressedControls={pressedControls}
+        onPress={onMissionControlPress}
+        onRelease={onMissionControlRelease}
+      />
+      <KeyboardCluster
+        cluster={ARROW_CLUSTER}
         pressedControls={pressedControls}
         onPress={onMissionControlPress}
         onRelease={onMissionControlRelease}
