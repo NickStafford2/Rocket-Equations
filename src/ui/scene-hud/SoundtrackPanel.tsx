@@ -8,24 +8,22 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
   const soundtrackEmbedSrc = `https://www.youtube.com/embed?listType=playlist&list=${soundtrackPlaylistId}&autoplay=1&loop=1&controls=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
 
   return (
-    <div className="pointer-events-auto flex flex-col items-end rounded-[1.4rem] border">
+    <div className="pointer-events-auto flex flex-col items-end overflow-hidden rounded-lg border-white/50">
       <div className="flex flex-row">
         {soundtrackOpen ? (
-          <div className="flex flex-row">
-            <div className="aspect-video">
-              <iframe
-                className="h-full w-full"
-                src={soundtrackEmbedSrc}
-                title="Mission soundtrack"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            </div>
+          <div className="aspect-video">
+            <iframe
+              className="h-full w-full"
+              src={soundtrackEmbedSrc}
+              title="Mission soundtrack"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
           </div>
         ) : null}
 
-        <div className="flex flex-col">
+        <div className="flex flex-col justify-between">
           <button
             type="button"
             className="flex h-12 w-12 items-center justify-between rounded-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
