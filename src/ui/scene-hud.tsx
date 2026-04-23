@@ -53,8 +53,6 @@ export function SceneHud({
             status={status}
           />
           <div className="flex min-h-0 shrink-0 flex-col overflow-hidden">
-            <SoundtrackPanel />
-
             <SettingsPanel
               launchSpeed={launchSpeed}
               launchAngleDeg={launchAngleDeg}

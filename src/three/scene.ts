@@ -170,7 +170,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
 }
 
 function createOrbitalGrid(): THREE.GridHelper {
-  const grid = new THREE.GridHelper(520, 24, 0x4dd0ff, 0x28455d);
+  const grid = new THREE.GridHelper(520 * 9, 24 * 9, 0x4dd0ff, 0x28455d);
 
   const material = grid.material as THREE.Material | THREE.Material[];
   if (Array.isArray(material)) {
