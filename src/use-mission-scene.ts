@@ -145,6 +145,12 @@ function findFocusableByPreset(
   return focusable;
 }
 
+function getObjectWorldPosition(object: THREE.Object3D): THREE.Vector3 {
+  const worldPosition = new THREE.Vector3();
+  object.getWorldPosition(worldPosition);
+  return worldPosition;
+}
+
 export function useMissionScene({
   mountRef,
   simulation,
@@ -577,6 +583,7 @@ export function useMissionScene({
       }
 
       syncScene();
+      scene.updateMatrixWorld(true);
 
       const tracking = cameraTrackingRef.current;
       const overview = tracking.overview;
@@ -585,7 +592,7 @@ export function useMissionScene({
 
       const targetObject = lookMode?.object ?? lockMode?.object ?? null;
       const targetPosition = targetObject
-        ? new THREE.Vector3().setFromMatrixPosition(targetObject.matrixWorld)
+        ? getObjectWorldPosition(targetObject)
         : null;
 
       if (overview.active) {
@@ -606,9 +613,7 @@ export function useMissionScene({
         }
       } else {
         if (lockMode) {
-          const lockPosition = new THREE.Vector3().setFromMatrixPosition(
-            lockMode.object.matrixWorld,
-          );
+          const lockPosition = getObjectWorldPosition(lockMode.object);
           const desiredPosition = lockPosition.clone().add(lockMode.offset);
           const alpha = lockMode.transitioning ? 0.12 : 1;
           camera.position.lerp(desiredPosition, alpha);
