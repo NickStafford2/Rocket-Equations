@@ -43,30 +43,34 @@ export function SceneHud({
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between">
       <div className="flex flex-col items-end gap-3">
         <MissionOverview />
-        <MissionTelemetryPanel
-          elapsedMissionTime={elapsedMissionTime}
-          currentSpeed={currentSpeed}
-          moonRelativeSpeed={moonRelativeSpeed}
-          earthAltitude={earthAltitude}
-          moonAltitude={moonAltitude}
-          status={status}
-        />
-        <SoundtrackPanel />
+        <div className="flex flex-row justify-between">
+          <MissionTelemetryPanel
+            elapsedMissionTime={elapsedMissionTime}
+            currentSpeed={currentSpeed}
+            moonRelativeSpeed={moonRelativeSpeed}
+            earthAltitude={earthAltitude}
+            moonAltitude={moonAltitude}
+            status={status}
+          />
+          <div className="flex flex-col">
+            <SoundtrackPanel />
 
-        <SettingsPanel
-          launchSpeed={launchSpeed}
-          launchAngleDeg={launchAngleDeg}
-          launchAzimuthDeg={launchAzimuthDeg}
-          dt={dt}
-          showTrail={showTrail}
-          showThrustDirectionArrow={showThrustDirectionArrow}
-          onLaunchSpeedChange={onLaunchSpeedChange}
-          onLaunchAngleChange={onLaunchAngleChange}
-          onLaunchAzimuthChange={onLaunchAzimuthChange}
-          onDtChange={onDtChange}
-          onShowTrailChange={onShowTrailChange}
-          onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
-        />
+            <SettingsPanel
+              launchSpeed={launchSpeed}
+              launchAngleDeg={launchAngleDeg}
+              launchAzimuthDeg={launchAzimuthDeg}
+              dt={dt}
+              showTrail={showTrail}
+              showThrustDirectionArrow={showThrustDirectionArrow}
+              onLaunchSpeedChange={onLaunchSpeedChange}
+              onLaunchAngleChange={onLaunchAngleChange}
+              onLaunchAzimuthChange={onLaunchAzimuthChange}
+              onDtChange={onDtChange}
+              onShowTrailChange={onShowTrailChange}
+              onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-row items-end gap-3">
