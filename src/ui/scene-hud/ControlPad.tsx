@@ -1,13 +1,10 @@
 import { memo } from "react";
 import { KeyboardCluster, type KeyboardClusterConfig } from "./shared";
-import { MissionControls } from "./MissionControls";
 import type { ControlPadProps } from "./types";
 
 export const ControlPad = memo(function ControlPad({
   running,
   pressedControls,
-  onToggleRunning,
-  onReset,
   onMissionControlPress,
   onMissionControlRelease,
 }: ControlPadProps) {
@@ -69,11 +66,6 @@ export const ControlPad = memo(function ControlPad({
         pressedControls={pressedControls}
         onPress={onMissionControlPress}
         onRelease={onMissionControlRelease}
-      />
-      <MissionControls
-        running={running}
-        onToggleRunning={onToggleRunning}
-        onReset={onReset}
       />
       <KeyboardCluster
         cluster={missionCluster}
