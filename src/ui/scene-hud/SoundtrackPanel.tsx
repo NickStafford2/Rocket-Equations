@@ -5,13 +5,20 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
   const [soundtrackEnabled, setSoundtrackEnabled] = useState(false);
   const [soundtrackNonce, setSoundtrackNonce] = useState(0);
   const soundtrackPlaylistId = "PLAikqLA5ubJ5lr05z7kcKE5za7T8n1sG3";
-  const soundtrackEmbedSrc = `https://www.youtube.com/embed?listType=playlist&list=${soundtrackPlaylistId}&autoplay=1&loop=1&controls=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
+  const soundtrackEmbedSrc = `https://www.youtube.com/embed?listType=playlist&list=${soundtrackPlaylistId}&autoplay=${soundtrackEnabled ? 1 : 0}&loop=1&controls=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
+  const showEmbeddedPlayer = soundtrackOpen || soundtrackEnabled;
 
   return (
     <div className="pointer-events-auto flex flex-col items-end overflow-hidden rounded-lg border-white/50">
       <div className="flex flex-row">
-        {soundtrackOpen ? (
-          <div className="aspect-video">
+        {showEmbeddedPlayer ? (
+          <div
+            className={
+              soundtrackOpen
+                ? "aspect-video w-[320px] overflow-hidden rounded-l-xl"
+                : "pointer-events-none h-px w-px overflow-hidden opacity-0"
+            }
+          >
             <iframe
               className="h-full w-full"
               src={soundtrackEmbedSrc}
@@ -21,8 +28,16 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
               allowFullScreen
             />
           </div>
-        ) : null}
-
+        ) : (
+            <!-- PROBLEM I NEVER SEE THIS EVER -->
+          <div>
+            {!soundtrackOpen ? (
+              <span>Ambiance Playing...</span>
+            ) : (
+              <span>Ambiance Paused...</span>
+            )}
+          </div>
+        )}
         <div className="flex flex-col justify-between">
           <button
             type="button"
@@ -30,16 +45,6 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
             onClick={() => setSoundtrackOpen((current) => !current)}
           >
             <span className="w-full">{soundtrackOpen ? "-" : "+"}</span>
-          </button>
-          <button
-            type="button"
-            className="rounded-xl border px-4 py-2.5 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-300/22"
-            onClick={() => {
-              setSoundtrackEnabled(true);
-              setSoundtrackNonce((current) => current + 1);
-            }}
-          >
-            {soundtrackEnabled ? "Restart" : "Play"}
           </button>
         </div>
       </div>
