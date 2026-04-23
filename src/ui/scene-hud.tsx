@@ -45,7 +45,7 @@ export function SceneHud({
 }: SceneHudProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
-      <div className="pointer-events-auto absolute inset-x-5 top-24 overflow-x-auto">
+      <div className="pointer-events-auto absolute inset-x-5 overflow-x-auto">
         <MissionTelemetryPanel
           elapsedMissionTime={elapsedMissionTime}
           currentSpeed={currentSpeed}
