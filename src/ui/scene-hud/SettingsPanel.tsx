@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
-import { CompactCheckbox, CompactSlider, formatTimeStepLabel } from "./shared";
+import { formatDt } from "../../mission";
+import { HoverHelp } from "../hover-help";
 import type { SceneHudProps } from "./types";
 
 type SettingsPanelProps = Pick<
@@ -108,3 +109,87 @@ export const SettingsPanel = memo(function SettingsPanel({
     </div>
   );
 });
+
+type CompactSliderProps = {
+  label: string;
+  description: string;
+  valueLabel: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+};
+
+function CompactSlider({
+  label,
+  description,
+  valueLabel,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: CompactSliderProps) {
+  return (
+    <label className="block rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+      <div className="mb-1.5 flex items-center justify-between gap-3 text-[0.72rem] text-slate-200">
+        <LabelWithHelp label={label} description={description} />
+        <span className="text-cyan-100">{valueLabel}</span>
+      </div>
+      <input
+        className="block w-full accent-cyan-300"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+type CompactCheckboxProps = {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+};
+
+function CompactCheckbox({
+  label,
+  description,
+  checked,
+  onChange,
+}: CompactCheckboxProps) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-slate-200">
+      <LabelWithHelp label={label} description={description} />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+    </label>
+  );
+}
+
+function LabelWithHelp({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) {
+  return (
+    <span className="flex items-center gap-2">
+      <span>{label}</span>
+      <HoverHelp description={description} />
+    </span>
+  );
+}
+
+function formatTimeStepLabel(dt: number) {
+  return `${formatDt(dt)} s`;
+}

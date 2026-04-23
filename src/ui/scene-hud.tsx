@@ -1,4 +1,3 @@
-import { CameraDebugPanel } from "./scene-hud/CameraDebugPanel";
 import { CameraSelectionPanel } from "./scene-hud/CameraSelectionPanel";
 import { ControlPad } from "./scene-hud/ControlPad";
 import { SettingsPanel } from "./scene-hud/SettingsPanel";
