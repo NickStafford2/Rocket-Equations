@@ -1,10 +1,5 @@
 import { useRef } from "react";
-import {
-  EARTH_MOON_DISTANCE,
-  R_EARTH,
-  R_MOON,
-  SOFT_LANDING_SPEED,
-} from "./physics/bodies";
+import { SOFT_LANDING_SPEED } from "./physics/bodies";
 import {
   formatDistance,
   formatElapsed,
@@ -90,10 +85,6 @@ export default function App() {
 
   const currentAltitudeEarth = Math.max(telemetry.altitudeEarth, 0);
   const currentAltitudeMoon = Math.max(telemetry.altitudeMoon, 0);
-  const lunarTransferGap = Math.max(
-    EARTH_MOON_DISTANCE - R_EARTH - R_MOON - currentAltitudeEarth,
-    0,
-  );
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
