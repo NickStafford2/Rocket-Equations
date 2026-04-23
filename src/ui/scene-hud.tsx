@@ -80,7 +80,22 @@ export function SceneHud({
         />
       </div>
 
-      <div className="absolute bottom-5 left-5">
+      <div className="absolute bottom-5 left-5 flex flex-col gap-3">
+        <div className="pointer-events-none min-w-[210px] rounded-2xl border border-white/12 bg-[#07111f]/55 px-3 py-2 text-[0.68rem] tracking-[0.08em] text-slate-200 shadow-[0_18px_44px_rgba(0,0,0,0.28)] backdrop-blur-md">
+          <div className="text-[0.6rem] font-semibold uppercase text-slate-400">
+            Camera
+          </div>
+          <div className="mt-1 font-medium text-cyan-100">{cameraDebug.mode}</div>
+          <div className="mt-1 font-mono text-slate-300">
+            cam {cameraDebug.position.x}, {cameraDebug.position.y},{" "}
+            {cameraDebug.position.z}
+          </div>
+          <div className="mt-1 font-mono text-slate-400">
+            tgt {cameraDebug.target.x}, {cameraDebug.target.y},{" "}
+            {cameraDebug.target.z}
+          </div>
+        </div>
+
         <div className="pointer-events-auto flex items-end gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
           <div className="flex flex-col gap-2">
             <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
@@ -161,23 +176,6 @@ export function SceneHud({
             >
               Sun
             </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute right-5 bottom-5">
-        <div className="pointer-events-none min-w-[210px] rounded-2xl border border-white/12 bg-[#07111f]/55 px-3 py-2 text-[0.68rem] tracking-[0.08em] text-slate-200 shadow-[0_18px_44px_rgba(0,0,0,0.28)] backdrop-blur-md">
-          <div className="text-[0.6rem] font-semibold uppercase text-slate-400">
-            Camera
-          </div>
-          <div className="mt-1 font-medium text-cyan-100">{cameraDebug.mode}</div>
-          <div className="mt-1 font-mono text-slate-300">
-            cam {cameraDebug.position.x}, {cameraDebug.position.y},{" "}
-            {cameraDebug.position.z}
-          </div>
-          <div className="mt-1 font-mono text-slate-400">
-            tgt {cameraDebug.target.x}, {cameraDebug.target.y},{" "}
-            {cameraDebug.target.z}
           </div>
         </div>
       </div>
