@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { formatDt } from "../mission";
 import type { CameraTarget } from "../mission";
+import type { MissionControlKey } from "../use-mission-simulation";
 import { MissionTelemetryPanel } from "./mission-panels";
 
 type CameraDebugProps = {
@@ -35,6 +36,7 @@ type SceneHudProps = {
   dt: number;
   showTrail: boolean;
   showThrustDirectionArrow: boolean;
+  pressedControls: Record<MissionControlKey, boolean>;
   onOverview: () => void;
   onLockTarget: (target: CameraTarget) => void;
   onLookAtTarget: (target: CameraTarget) => void;
@@ -46,6 +48,8 @@ type SceneHudProps = {
   onDtChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;
+  onMissionControlPress: (control: MissionControlKey) => void;
+  onMissionControlRelease: (control: MissionControlKey) => void;
 };
 
 const baseButtonClassName =
@@ -81,6 +85,7 @@ export function SceneHud({
   dt,
   showTrail,
   showThrustDirectionArrow,
+  pressedControls,
   onOverview,
   onLockTarget,
   onLookAtTarget,
@@ -92,6 +97,8 @@ export function SceneHud({
   onDtChange,
   onShowTrailChange,
   onToggleThrustDirectionArrow,
+  onMissionControlPress,
+  onMissionControlRelease,
 }: SceneHudProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [soundtrackOpen, setSoundtrackOpen] = useState(false);
@@ -334,27 +341,120 @@ export function SceneHud({
                 checked={showThrustDirectionArrow}
                 onChange={() => onToggleThrustDirectionArrow()}
               />
+              <StaticControlHint
+                label="Arrow key controls"
+                description="Left and Right rotate the ship. Up applies thrust while you hold it."
+                summary="Steer with Left and Right. Hold Up to burn."
+              />
+              <StaticControlHint
+                label="WASD time controls"
+                description="W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%."
+                summary="W/S change scale. A/D make fine delta t adjustments."
+              />
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="absolute inset-x-5 bottom-5 flex justify-center">
-        <div className="pointer-events-auto flex items-center justify-center gap-2 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
-          <button
-            type="button"
-            className={getButtonClassName(running)}
-            onClick={onToggleRunning}
-          >
-            {running ? "Pause" : "Start"}
-          </button>
-          <button
-            type="button"
-            className={getButtonClassName(false)}
-            onClick={onReset}
-          >
-            Reset
-          </button>
+        <div className="pointer-events-auto flex flex-col items-center gap-3">
+          <div className="flex flex-wrap items-end justify-center gap-3 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 px-4 py-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+            <KeyboardCluster
+              label="Arrow keys"
+              className="min-w-[176px]"
+              topKey={
+                <KeyboardKeyButton
+                  label="↑"
+                  caption="Thrust"
+                  control="ArrowUp"
+                  pressed={pressedControls.ArrowUp}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />
+              }
+              bottomKeys={[
+                <KeyboardKeyButton
+                  key="ArrowLeft"
+                  label="←"
+                  caption="Left"
+                  control="ArrowLeft"
+                  pressed={pressedControls.ArrowLeft}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />,
+                <KeyboardKeyButton
+                  key="ArrowRight"
+                  label="→"
+                  caption="Right"
+                  control="ArrowRight"
+                  pressed={pressedControls.ArrowRight}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />,
+              ]}
+            />
+
+            <KeyboardCluster
+              label="WASD"
+              className="min-w-[232px]"
+              topKey={
+                <KeyboardKeyButton
+                  label="W"
+                  caption="x10"
+                  control="KeyW"
+                  pressed={pressedControls.KeyW}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />
+              }
+              bottomKeys={[
+                <KeyboardKeyButton
+                  key="KeyA"
+                  label="A"
+                  caption="-2%"
+                  control="KeyA"
+                  pressed={pressedControls.KeyA}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />,
+                <KeyboardKeyButton
+                  key="KeyS"
+                  label="S"
+                  caption="/10"
+                  control="KeyS"
+                  pressed={pressedControls.KeyS}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />,
+                <KeyboardKeyButton
+                  key="KeyD"
+                  label="D"
+                  caption="+2%"
+                  control="KeyD"
+                  pressed={pressedControls.KeyD}
+                  onPress={onMissionControlPress}
+                  onRelease={onMissionControlRelease}
+                />,
+              ]}
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-2 rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+            <button
+              type="button"
+              className={getButtonClassName(running)}
+              onClick={onToggleRunning}
+            >
+              {running ? "Pause" : "Start"}
+            </button>
+            <button
+              type="button"
+              className={getButtonClassName(false)}
+              onClick={onReset}
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -423,6 +523,102 @@ function CompactCheckbox({
         onChange={(event) => onChange(event.target.checked)}
       />
     </label>
+  );
+}
+
+type StaticControlHintProps = {
+  label: string;
+  description: string;
+  summary: string;
+};
+
+function StaticControlHint({
+  label,
+  description,
+  summary,
+}: StaticControlHintProps) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+      <div className="text-[0.72rem] text-slate-200">
+        <SettingLabel label={label} description={description} />
+      </div>
+      <div className="mt-1 text-xs leading-5 text-slate-400">{summary}</div>
+    </div>
+  );
+}
+
+type KeyboardClusterProps = {
+  label: string;
+  className?: string;
+  topKey: ReactNode;
+  bottomKeys: ReactNode[];
+};
+
+function KeyboardCluster({
+  label,
+  className,
+  topKey,
+  bottomKeys,
+}: KeyboardClusterProps) {
+  return (
+    <div className={`flex flex-col items-center gap-2 ${className ?? ""}`}>
+      <div className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-slate-400">
+        {label}
+      </div>
+      <div className="flex justify-center">{topKey}</div>
+      <div className="flex items-center justify-center gap-2">{bottomKeys}</div>
+    </div>
+  );
+}
+
+type KeyboardKeyButtonProps = {
+  label: string;
+  caption: string;
+  control: MissionControlKey;
+  pressed: boolean;
+  onPress: (control: MissionControlKey) => void;
+  onRelease: (control: MissionControlKey) => void;
+};
+
+function KeyboardKeyButton({
+  label,
+  caption,
+  control,
+  pressed,
+  onPress,
+  onRelease,
+}: KeyboardKeyButtonProps) {
+  const className = pressed
+    ? "border-white/95 bg-white text-slate-950 shadow-[0_0_0_1px_rgba(255,255,255,0.5)_inset,0_10px_22px_rgba(255,255,255,0.18)]"
+    : "border-white/20 bg-[linear-gradient(180deg,rgba(248,250,252,0.18),rgba(148,163,184,0.08))] text-slate-100 shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_12px_24px_rgba(2,6,23,0.35)] hover:border-white/30 hover:bg-[linear-gradient(180deg,rgba(248,250,252,0.24),rgba(148,163,184,0.12))]";
+
+  return (
+    <button
+      type="button"
+      aria-label={`${label} control`}
+      className={`flex h-14 min-w-14 select-none touch-none flex-col items-center justify-center rounded-[1rem] border px-3 transition-colors ${className}`}
+      onPointerDown={(event) => {
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        onPress(control);
+      }}
+      onPointerUp={(event) => {
+        event.preventDefault();
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        onRelease(control);
+      }}
+      onPointerLeave={() => onRelease(control)}
+      onPointerCancel={() => onRelease(control)}
+    >
+      <span className="text-base font-semibold uppercase tracking-[0.08em]">
+        {label}
+      </span>
+      <span className="mt-0.5 text-[0.58rem] font-medium uppercase tracking-[0.16em] opacity-70">
+        {caption}
+      </span>
+    </button>
   );
 }
 

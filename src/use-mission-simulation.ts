@@ -11,6 +11,27 @@ import type { ManeuverInput } from "./physics/bodies";
 import { EarthMoonSimulation } from "./sim/simulation";
 import { clampDt, formatDt, isInteractiveElement } from "./mission";
 
+export type MissionControlKey =
+  | "ArrowLeft"
+  | "ArrowRight"
+  | "ArrowUp"
+  | "KeyW"
+  | "KeyA"
+  | "KeyS"
+  | "KeyD";
+
+type PressedMissionControls = Record<MissionControlKey, boolean>;
+
+const INITIAL_PRESSED_CONTROLS: PressedMissionControls = {
+  ArrowLeft: false,
+  ArrowRight: false,
+  ArrowUp: false,
+  KeyW: false,
+  KeyA: false,
+  KeyS: false,
+  KeyD: false,
+};
+
 export function useMissionSimulation() {
   const runningRef = useRef(false);
   const launchSpeedRef = useRef(DEFAULT_SPEED);
@@ -49,6 +70,9 @@ export function useMissionSimulation() {
   const [dt, setDtState] = useState(DEFAULT_DT);
   const [showTrail, setShowTrail] = useState(true);
   const [showThrustDirectionArrow, setShowThrustDirectionArrow] = useState(true);
+  const [pressedControls, setPressedControls] = useState<PressedMissionControls>(
+    INITIAL_PRESSED_CONTROLS,
+  );
   const [status, setStatus] = useState(
     "Rocket staged on Earth's surface. Use the arrow keys to fly, Up or Space to thrust, and WASD to change delta t.",
   );
@@ -96,48 +120,77 @@ export function useMissionSimulation() {
       };
     }
 
-    function onKeyDown(event: KeyboardEvent) {
-      if (isInteractiveElement(event.target)) return;
+    function setControlPressed(control: MissionControlKey, pressed: boolean) {
+      setPressedControls((current) =>
+        current[control] === pressed
+          ? current
+          : { ...current, [control]: pressed },
+      );
+    }
 
-      let handled = true;
-      if (event.code === "ArrowLeft") {
+    function pressControl(control: MissionControlKey) {
+      if (control === "ArrowLeft") {
         keyStateRef.current.left = true;
-      } else if (event.code === "ArrowRight") {
+      } else if (control === "ArrowRight") {
         keyStateRef.current.right = true;
-      } else if (event.code === "ArrowUp" || event.code === "Space") {
+      } else if (control === "ArrowUp") {
         keyStateRef.current.thrust = true;
-      } else if (event.code === "KeyW") {
+      } else if (control === "KeyW") {
         setDtState((current) => clampDt(current * 10));
-      } else if (event.code === "KeyS") {
+      } else if (control === "KeyS") {
         setDtState((current) => clampDt(current / 10));
-      } else if (event.code === "KeyA") {
+      } else if (control === "KeyA") {
         setDtState((current) => clampDt(current * 0.98));
-      } else if (event.code === "KeyD") {
+      } else if (control === "KeyD") {
         setDtState((current) => clampDt(current * 1.02));
-      } else {
-        handled = false;
       }
 
-      if (!handled) return;
-      event.preventDefault();
+      setControlPressed(control, true);
       syncManeuverInput();
     }
 
-    function onKeyUp(event: KeyboardEvent) {
-      let handled = true;
-      if (event.code === "ArrowLeft") {
+    function releaseControl(control: MissionControlKey) {
+      if (control === "ArrowLeft") {
         keyStateRef.current.left = false;
-      } else if (event.code === "ArrowRight") {
+      } else if (control === "ArrowRight") {
         keyStateRef.current.right = false;
-      } else if (event.code === "ArrowUp" || event.code === "Space") {
+      } else if (control === "ArrowUp") {
         keyStateRef.current.thrust = false;
-      } else {
-        handled = false;
       }
 
-      if (!handled) return;
-      event.preventDefault();
+      setControlPressed(control, false);
       syncManeuverInput();
+    }
+
+    function toMissionControl(
+      code: string,
+    ): MissionControlKey | null {
+      if (code === "ArrowLeft") return "ArrowLeft";
+      if (code === "ArrowRight") return "ArrowRight";
+      if (code === "ArrowUp" || code === "Space") return "ArrowUp";
+      if (code === "KeyW") return "KeyW";
+      if (code === "KeyA") return "KeyA";
+      if (code === "KeyS") return "KeyS";
+      if (code === "KeyD") return "KeyD";
+      return null;
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (isInteractiveElement(event.target)) return;
+
+      const control = toMissionControl(event.code);
+      if (!control) return;
+
+      event.preventDefault();
+      pressControl(control);
+    }
+
+    function onKeyUp(event: KeyboardEvent) {
+      const control = toMissionControl(event.code);
+      if (!control) return;
+
+      event.preventDefault();
+      releaseControl(control);
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -156,6 +209,7 @@ export function useMissionSimulation() {
   function resetSimulation() {
     maneuverInputRef.current = { thrusting: false, turn: 0 };
     keyStateRef.current = { left: false, right: false, thrust: false };
+    setPressedControls(INITIAL_PRESSED_CONTROLS);
     simulation.setConfig({
       launchSpeed,
       launchAngleDeg,
@@ -188,6 +242,50 @@ export function useMissionSimulation() {
     });
   }
 
+  function pressMissionControl(control: MissionControlKey) {
+    if (control === "ArrowLeft") {
+      keyStateRef.current.left = true;
+    } else if (control === "ArrowRight") {
+      keyStateRef.current.right = true;
+    } else if (control === "ArrowUp") {
+      keyStateRef.current.thrust = true;
+    } else if (control === "KeyW") {
+      setDtState((current) => clampDt(current * 10));
+    } else if (control === "KeyS") {
+      setDtState((current) => clampDt(current / 10));
+    } else if (control === "KeyA") {
+      setDtState((current) => clampDt(current * 0.98));
+    } else if (control === "KeyD") {
+      setDtState((current) => clampDt(current * 1.02));
+    }
+
+    setPressedControls((current) =>
+      current[control] ? current : { ...current, [control]: true },
+    );
+    maneuverInputRef.current = {
+      thrusting: keyStateRef.current.thrust,
+      turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
+    };
+  }
+
+  function releaseMissionControl(control: MissionControlKey) {
+    if (control === "ArrowLeft") {
+      keyStateRef.current.left = false;
+    } else if (control === "ArrowRight") {
+      keyStateRef.current.right = false;
+    } else if (control === "ArrowUp") {
+      keyStateRef.current.thrust = false;
+    }
+
+    setPressedControls((current) =>
+      current[control] ? { ...current, [control]: false } : current,
+    );
+    maneuverInputRef.current = {
+      thrusting: keyStateRef.current.thrust,
+      turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
+    };
+  }
+
   return {
     simulation,
     running,
@@ -212,6 +310,9 @@ export function useMissionSimulation() {
     toggleRunning,
     runningRef,
     maneuverInputRef,
+    pressedControls,
+    pressMissionControl,
+    releaseMissionControl,
     launchSpeedRef,
     launchAngleRef,
     launchAzimuthRef,

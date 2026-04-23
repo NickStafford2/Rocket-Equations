@@ -12,7 +12,10 @@ import {
   formatSpeed,
 } from "./mission";
 import { useMissionScene } from "./use-mission-scene";
-import { useMissionSimulation } from "./use-mission-simulation";
+import {
+  type MissionControlKey,
+  useMissionSimulation,
+} from "./use-mission-simulation";
 import { MissionKeyboardHelp, MissionOverview } from "./ui/mission-panels";
 import { SceneHud } from "./ui/scene-hud";
 
@@ -42,6 +45,9 @@ export default function App() {
     toggleRunning,
     runningRef,
     maneuverInputRef,
+    pressedControls,
+    pressMissionControl,
+    releaseMissionControl,
     launchSpeedRef,
     launchAngleRef,
     launchAzimuthRef,
@@ -71,6 +77,15 @@ export default function App() {
 
   function focusScene() {
     mountRef.current?.focus({ preventScroll: true });
+  }
+
+  function handleMissionControlPress(control: MissionControlKey) {
+    pressMissionControl(control);
+    focusScene();
+  }
+
+  function handleMissionControlRelease(control: MissionControlKey) {
+    releaseMissionControl(control);
   }
 
   const currentAltitudeEarth = Math.max(telemetry.altitudeEarth, 0);
@@ -119,6 +134,7 @@ export default function App() {
               dt={dt}
               showTrail={showTrail}
               showThrustDirectionArrow={showThrustDirectionArrow}
+              pressedControls={pressedControls}
               onOverview={() => {
                 applyOverviewCamera();
                 focusScene();
@@ -148,6 +164,8 @@ export default function App() {
                 setShowThrustDirectionArrow((current) => !current);
                 focusScene();
               }}
+              onMissionControlPress={handleMissionControlPress}
+              onMissionControlRelease={handleMissionControlRelease}
             />
 
             <div
