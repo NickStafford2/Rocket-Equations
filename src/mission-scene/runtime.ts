@@ -72,6 +72,7 @@ export function startMissionSceneRuntime({
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let animationFrameId: number | null = null;
+  let disposed = false;
 
   previousTrailLengthRef.current = 0;
 
@@ -114,7 +115,32 @@ export function startMissionSceneRuntime({
     updateFromControlsChange(cameraRigRef.current, camera);
   }
 
+  function stopFrameLoop() {
+    if (animationFrameId === null) return;
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+
+  function startFrameLoop() {
+    if (disposed || document.visibilityState === "hidden" || animationFrameId !== null) {
+      return;
+    }
+
+    animationFrameId = requestAnimationFrame(frame);
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState === "hidden") {
+      stopFrameLoop();
+      return;
+    }
+
+    startFrameLoop();
+  }
+
   function frame() {
+    animationFrameId = null;
+
     if (runningRef.current) {
       simulation.tick(maneuverInputRef.current);
     }
@@ -151,28 +177,31 @@ export function startMissionSceneRuntime({
     }
 
     render();
-    animationFrameId = requestAnimationFrame(frame);
+    startFrameLoop();
   }
 
   window.addEventListener("resize", onResize);
+  document.addEventListener("visibilitychange", onVisibilityChange);
   mount.addEventListener("pointerdown", onScenePointerDown);
   controls.addEventListener("start", onControlsStart);
   controls.addEventListener("change", onControlsChange);
   renderer.domElement.addEventListener("dblclick", onDoubleClick);
 
-  frame();
+  if (document.visibilityState === "visible") {
+    frame();
+  }
 
   return {
     bundle,
     cleanup: () => {
+      disposed = true;
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       mount.removeEventListener("pointerdown", onScenePointerDown);
       controls.removeEventListener("start", onControlsStart);
       controls.removeEventListener("change", onControlsChange);
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      stopFrameLoop();
       bundle.dispose();
     },
   };
