@@ -36,11 +36,24 @@ const INITIAL_PRESSED_CONTROLS: PressedMissionControls = {
   KeyR: false,
 };
 
+const MISSION_CONTROL_BY_CODE: Partial<Record<string, MissionControlKey>> = {
+  ArrowLeft: "ArrowLeft",
+  ArrowRight: "ArrowRight",
+  ArrowUp: "ArrowUp",
+  Space: "Space",
+  KeyW: "KeyW",
+  KeyA: "KeyA",
+  KeyS: "KeyS",
+  KeyD: "KeyD",
+  KeyR: "KeyR",
+};
+
 export function useMissionSimulation() {
   const runningRef = useRef(false);
   const launchSpeedRef = useRef(DEFAULT_SPEED);
   const launchAngleRef = useRef(DEFAULT_ANGLE_DEG);
   const launchAzimuthRef = useRef(DEFAULT_LAUNCH_AZIMUTH_DEG);
+  const dtRef = useRef(DEFAULT_DT);
   const launchConfigInitializedRef = useRef(false);
   const maneuverInputRef = useRef<ManeuverInput>({
     thrusting: false,
@@ -93,6 +106,10 @@ export function useMissionSimulation() {
   }, [launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
+    dtRef.current = dt;
+  }, [dt]);
+
+  useEffect(() => {
     simulation.setConfig({
       launchSpeed,
       launchAngleDeg,
@@ -117,78 +134,10 @@ export function useMissionSimulation() {
   }, [simulation, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
-    function syncManeuverInput() {
-      maneuverInputRef.current = {
-        thrusting: keyStateRef.current.thrust,
-        turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
-      };
-    }
-
-    function setControlPressed(control: MissionControlKey, pressed: boolean) {
-      setPressedControls((current) =>
-        current[control] === pressed
-          ? current
-          : { ...current, [control]: pressed },
-      );
-    }
-
-    function pressControl(control: MissionControlKey) {
-      if (control === "ArrowLeft") {
-        keyStateRef.current.left = true;
-      } else if (control === "ArrowRight") {
-        keyStateRef.current.right = true;
-      } else if (control === "ArrowUp") {
-        keyStateRef.current.thrust = true;
-      } else if (control === "Space") {
-        toggleRunning();
-      } else if (control === "KeyR") {
-        resetSimulation();
-      } else if (control === "KeyW") {
-        setDtState((current) => clampDt(current * 10));
-      } else if (control === "KeyS") {
-        setDtState((current) => clampDt(current / 10));
-      } else if (control === "KeyA") {
-        setDtState((current) => clampDt(current * 0.98));
-      } else if (control === "KeyD") {
-        setDtState((current) => clampDt(current * 1.02));
-      }
-
-      setControlPressed(control, true);
-      syncManeuverInput();
-    }
-
-    function releaseControl(control: MissionControlKey) {
-      if (control === "ArrowLeft") {
-        keyStateRef.current.left = false;
-      } else if (control === "ArrowRight") {
-        keyStateRef.current.right = false;
-      } else if (control === "ArrowUp") {
-        keyStateRef.current.thrust = false;
-      }
-
-      setControlPressed(control, false);
-      syncManeuverInput();
-    }
-
-    function toMissionControl(
-      code: string,
-    ): MissionControlKey | null {
-      if (code === "ArrowLeft") return "ArrowLeft";
-      if (code === "ArrowRight") return "ArrowRight";
-      if (code === "ArrowUp") return "ArrowUp";
-      if (code === "Space") return "Space";
-      if (code === "KeyW") return "KeyW";
-      if (code === "KeyA") return "KeyA";
-      if (code === "KeyS") return "KeyS";
-      if (code === "KeyD") return "KeyD";
-      if (code === "KeyR") return "KeyR";
-      return null;
-    }
-
     function onKeyDown(event: KeyboardEvent) {
       if (isInteractiveElement(event.target)) return;
 
-      const control = toMissionControl(event.code);
+      const control = MISSION_CONTROL_BY_CODE[event.code] ?? null;
       if (!control) return;
 
       if (event.repeat && (control === "Space" || control === "KeyR")) {
@@ -197,15 +146,15 @@ export function useMissionSimulation() {
       }
 
       event.preventDefault();
-      pressControl(control);
+      pressMissionControl(control);
     }
 
     function onKeyUp(event: KeyboardEvent) {
-      const control = toMissionControl(event.code);
+      const control = MISSION_CONTROL_BY_CODE[event.code] ?? null;
       if (!control) return;
 
       event.preventDefault();
-      releaseControl(control);
+      releaseMissionControl(control);
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -218,7 +167,84 @@ export function useMissionSimulation() {
   }, []);
 
   function setDt(value: number) {
-    setDtState(clampDt(value));
+    const nextDt = clampDt(value);
+    dtRef.current = nextDt;
+    setDtState(nextDt);
+  }
+
+  function syncManeuverInput() {
+    maneuverInputRef.current = {
+      thrusting: keyStateRef.current.thrust,
+      turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
+    };
+  }
+
+  function setControlPressed(control: MissionControlKey, pressed: boolean) {
+    setPressedControls((current) =>
+      current[control] === pressed ? current : { ...current, [control]: pressed },
+    );
+  }
+
+  function adjustDt(multiplier: number) {
+    setDtState((current) => {
+      const nextDt = clampDt(current * multiplier);
+      dtRef.current = nextDt;
+      return nextDt;
+    });
+  }
+
+  function applyControlPress(control: MissionControlKey) {
+    switch (control) {
+      case "ArrowLeft":
+        keyStateRef.current.left = true;
+        break;
+      case "ArrowRight":
+        keyStateRef.current.right = true;
+        break;
+      case "ArrowUp":
+        keyStateRef.current.thrust = true;
+        break;
+      case "Space":
+        toggleRunning();
+        break;
+      case "KeyR":
+        resetSimulation();
+        break;
+      case "KeyW":
+        adjustDt(10);
+        break;
+      case "KeyA":
+        adjustDt(0.98);
+        break;
+      case "KeyS":
+        adjustDt(0.1);
+        break;
+      case "KeyD":
+        adjustDt(1.02);
+        break;
+    }
+
+    setControlPressed(control, true);
+    syncManeuverInput();
+  }
+
+  function applyControlRelease(control: MissionControlKey) {
+    switch (control) {
+      case "ArrowLeft":
+        keyStateRef.current.left = false;
+        break;
+      case "ArrowRight":
+        keyStateRef.current.right = false;
+        break;
+      case "ArrowUp":
+        keyStateRef.current.thrust = false;
+        break;
+      default:
+        break;
+    }
+
+    setControlPressed(control, false);
+    syncManeuverInput();
   }
 
   function resetSimulation() {
@@ -226,10 +252,10 @@ export function useMissionSimulation() {
     keyStateRef.current = { left: false, right: false, thrust: false };
     setPressedControls(INITIAL_PRESSED_CONTROLS);
     simulation.setConfig({
-      launchSpeed,
-      launchAngleDeg,
-      launchAzimuthDeg,
-      dt,
+      launchSpeed: launchSpeedRef.current,
+      launchAngleDeg: launchAngleRef.current,
+      launchAzimuthDeg: launchAzimuthRef.current,
+      dt: dtRef.current,
       thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
       turnRateDeg: DEFAULT_TURN_RATE_DEG,
     });
@@ -250,7 +276,7 @@ export function useMissionSimulation() {
       runningRef.current = nextRunning;
       setStatus(
         nextRunning
-          ? `Running. Use Left and Right to steer, Up to burn, Space to pause, R to restart, and WASD to adjust delta t (${formatDt(dt)} s).`
+          ? `Running. Use Left and Right to steer, Up to burn, Space to pause, R to restart, and WASD to adjust delta t (${formatDt(dtRef.current)} s).`
           : "Paused.",
       );
       return nextRunning;
@@ -258,51 +284,11 @@ export function useMissionSimulation() {
   }
 
   function pressMissionControl(control: MissionControlKey) {
-    if (control === "ArrowLeft") {
-      keyStateRef.current.left = true;
-    } else if (control === "ArrowRight") {
-      keyStateRef.current.right = true;
-    } else if (control === "ArrowUp") {
-      keyStateRef.current.thrust = true;
-    } else if (control === "Space") {
-      toggleRunning();
-    } else if (control === "KeyR") {
-      resetSimulation();
-    } else if (control === "KeyW") {
-      setDtState((current) => clampDt(current * 10));
-    } else if (control === "KeyS") {
-      setDtState((current) => clampDt(current / 10));
-    } else if (control === "KeyA") {
-      setDtState((current) => clampDt(current * 0.98));
-    } else if (control === "KeyD") {
-      setDtState((current) => clampDt(current * 1.02));
-    }
-
-    setPressedControls((current) =>
-      current[control] ? current : { ...current, [control]: true },
-    );
-    maneuverInputRef.current = {
-      thrusting: keyStateRef.current.thrust,
-      turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
-    };
+    applyControlPress(control);
   }
 
   function releaseMissionControl(control: MissionControlKey) {
-    if (control === "ArrowLeft") {
-      keyStateRef.current.left = false;
-    } else if (control === "ArrowRight") {
-      keyStateRef.current.right = false;
-    } else if (control === "ArrowUp") {
-      keyStateRef.current.thrust = false;
-    }
-
-    setPressedControls((current) =>
-      current[control] ? { ...current, [control]: false } : current,
-    );
-    maneuverInputRef.current = {
-      thrusting: keyStateRef.current.thrust,
-      turn: keyStateRef.current.right ? 1 : keyStateRef.current.left ? -1 : 0,
-    };
+    applyControlRelease(control);
   }
 
   return {
