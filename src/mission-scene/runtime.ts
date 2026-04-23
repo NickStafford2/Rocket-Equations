@@ -41,6 +41,7 @@ type StartMissionSceneRuntimeParams = {
 
 type MissionSceneRuntime = {
   bundle: ThreeSceneBundle;
+  requestRender: () => void;
   cleanup: () => void;
 };
 
@@ -73,6 +74,8 @@ export function startMissionSceneRuntime({
   const pointer = new THREE.Vector2();
   let animationFrameId: number | null = null;
   let disposed = false;
+  let controlsInteracting = false;
+  let renderRequested = false;
 
   previousTrailLengthRef.current = 0;
 
@@ -104,15 +107,23 @@ export function startMissionSceneRuntime({
   }
 
   function onControlsStart() {
+    controlsInteracting = true;
     const status = updateFromControlsStart(cameraRigRef.current);
-    if (!status) return;
-
-    onSyncCameraSelection();
-    setStatus(status);
+    if (status) {
+      onSyncCameraSelection();
+      setStatus(status);
+    }
+    requestRender();
   }
 
   function onControlsChange() {
     updateFromControlsChange(cameraRigRef.current, camera);
+    requestRender();
+  }
+
+  function onControlsEnd() {
+    controlsInteracting = false;
+    requestRender();
   }
 
   function stopFrameLoop() {
@@ -129,17 +140,33 @@ export function startMissionSceneRuntime({
     animationFrameId = requestAnimationFrame(frame);
   }
 
+  function shouldKeepRendering() {
+    return (
+      renderRequested ||
+      runningRef.current ||
+      controlsInteracting ||
+      cameraRigRef.current.positionTransitioning ||
+      cameraRigRef.current.targetTransitioning
+    );
+  }
+
+  function requestRender() {
+    renderRequested = true;
+    startFrameLoop();
+  }
+
   function onVisibilityChange() {
     if (document.visibilityState === "hidden") {
       stopFrameLoop();
       return;
     }
 
-    startFrameLoop();
+    requestRender();
   }
 
   function frame() {
     animationFrameId = null;
+    renderRequested = false;
 
     if (runningRef.current) {
       simulation.tick(maneuverInputRef.current);
@@ -177,7 +204,9 @@ export function startMissionSceneRuntime({
     }
 
     render();
-    startFrameLoop();
+    if (shouldKeepRendering()) {
+      startFrameLoop();
+    }
   }
 
   window.addEventListener("resize", onResize);
@@ -185,14 +214,16 @@ export function startMissionSceneRuntime({
   mount.addEventListener("pointerdown", onScenePointerDown);
   controls.addEventListener("start", onControlsStart);
   controls.addEventListener("change", onControlsChange);
+  controls.addEventListener("end", onControlsEnd);
   renderer.domElement.addEventListener("dblclick", onDoubleClick);
 
   if (document.visibilityState === "visible") {
-    frame();
+    requestRender();
   }
 
   return {
     bundle,
+    requestRender,
     cleanup: () => {
       disposed = true;
       window.removeEventListener("resize", onResize);
@@ -200,6 +231,7 @@ export function startMissionSceneRuntime({
       mount.removeEventListener("pointerdown", onScenePointerDown);
       controls.removeEventListener("start", onControlsStart);
       controls.removeEventListener("change", onControlsChange);
+      controls.removeEventListener("end", onControlsEnd);
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
       stopFrameLoop();
       bundle.dispose();

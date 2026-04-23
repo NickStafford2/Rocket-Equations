@@ -28,11 +28,15 @@ import type {
 export function useMissionScene({
   mountRef,
   simulation,
+  running,
   setRunning,
   setStatus,
   setTelemetry,
   runningRef,
   maneuverInputRef,
+  launchSpeed,
+  launchAngleDeg,
+  launchAzimuthDeg,
   launchSpeedRef,
   launchAngleRef,
   launchAzimuthRef,
@@ -40,6 +44,7 @@ export function useMissionScene({
   showThrustDirectionArrow,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
+  const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
   const cameraRigRef = useRef<CameraRigState>(createInitialCameraRig());
   const showTrailRef = useRef(showTrail);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
@@ -61,6 +66,10 @@ export function useMissionScene({
     setCameraSelection(toCameraSelection(syncSelection(cameraRigRef.current)));
   }
 
+  function requestSceneRender() {
+    runtimeRef.current?.requestRender();
+  }
+
   function applyFollowSelection(target: CameraRigTarget) {
     const bundle = bundleRef.current;
     if (!bundle) return;
@@ -68,21 +77,29 @@ export function useMissionScene({
     setFollowTarget(cameraRigRef.current, target, bundle.camera, bundle.controls);
     syncCameraSelectionFromRig();
     setStatus(`Locking on ${getFocusLabel(target.object)}...`);
+    requestSceneRender();
   }
 
   function applyLookSelection(target: CameraRigTarget) {
     setLookTarget(cameraRigRef.current, target);
     syncCameraSelectionFromRig();
     setStatus(`Turning toward ${getFocusLabel(target.object)}...`);
+    requestSceneRender();
   }
 
   useEffect(() => {
     showTrailRef.current = showTrail;
+    requestSceneRender();
   }, [showTrail]);
 
   useEffect(() => {
     showThrustDirectionArrowRef.current = showThrustDirectionArrow;
+    requestSceneRender();
   }, [showThrustDirectionArrow]);
+
+  useEffect(() => {
+    requestSceneRender();
+  }, [running, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -112,10 +129,12 @@ export function useMissionScene({
       onSyncCameraSelection: syncCameraSelectionFromRig,
     });
     bundleRef.current = runtime.bundle;
+    runtimeRef.current = runtime;
 
     return () => {
       runtime.cleanup();
       bundleRef.current = null;
+      runtimeRef.current = null;
       cameraRigRef.current = createInitialCameraRig();
       previousTrailLengthRef.current = 0;
     };
@@ -136,6 +155,7 @@ export function useMissionScene({
     setOverview(cameraRigRef.current);
     syncCameraSelectionFromRig();
     setStatus("Restoring overview camera...");
+    requestSceneRender();
   }
 
   function applyLockTarget(target: CameraTarget) {
@@ -147,6 +167,7 @@ export function useMissionScene({
       clearFollowTarget(cameraRigRef.current);
       syncCameraSelectionFromRig();
       setStatus("Camera unlocked.");
+      requestSceneRender();
       return;
     }
 
@@ -164,6 +185,7 @@ export function useMissionScene({
       clearLookTarget(cameraRigRef.current);
       syncCameraSelectionFromRig();
       setStatus("Look-at released.");
+      requestSceneRender();
       return;
     }
 
@@ -180,5 +202,6 @@ export function useMissionScene({
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
+    requestSceneRender,
   };
 }

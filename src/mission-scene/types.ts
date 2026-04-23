@@ -7,11 +7,15 @@ import type { CameraRigDebugSnapshot } from "../three/camera-rig";
 export type UseMissionSceneParams = {
   mountRef: RefObject<HTMLDivElement | null>;
   simulation: EarthMoonSimulation;
+  running: boolean;
   setRunning: (value: boolean) => void;
   setStatus: (value: string) => void;
   setTelemetry: (value: SimulationTelemetry) => void;
   runningRef: MutableRefObject<boolean>;
   maneuverInputRef: MutableRefObject<ManeuverInput>;
+  launchSpeed: number;
+  launchAngleDeg: number;
+  launchAzimuthDeg: number;
   launchSpeedRef: MutableRefObject<number>;
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;

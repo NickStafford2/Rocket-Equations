@@ -53,14 +53,19 @@ export default function App() {
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
+    requestSceneRender,
   } = useMissionScene({
     mountRef,
     simulation,
+    running,
     setRunning,
     setStatus,
     setTelemetry,
     runningRef,
     maneuverInputRef,
+    launchSpeed,
+    launchAngleDeg,
+    launchAzimuthDeg,
     launchSpeedRef,
     launchAngleRef,
     launchAzimuthRef,
@@ -119,10 +124,12 @@ export default function App() {
         }}
         onToggleRunning={() => {
           toggleRunning();
+          requestSceneRender();
           focusScene();
         }}
         onReset={() => {
           resetSimulation();
+          requestSceneRender();
           focusScene();
         }}
         onLaunchSpeedChange={setLaunchSpeed}
