@@ -1,43 +1,168 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+
+type YoutubePlayerState = "idle" | "playing" | "paused" | "buffering";
+
+type YoutubeNamespace = {
+  Player: new (
+    element: HTMLElement,
+    config: {
+      height?: string;
+      width?: string;
+      videoId?: string;
+      playerVars?: Record<string, number | string>;
+      events?: {
+        onReady?: () => void;
+        onStateChange?: (event: { data: number }) => void;
+      };
+    },
+  ) => YoutubePlayer;
+  PlayerState: {
+    PLAYING: number;
+    PAUSED: number;
+    BUFFERING: number;
+  };
+};
+
+type YoutubePlayer = {
+  destroy: () => void;
+};
+
+declare global {
+  interface Window {
+    YT?: YoutubeNamespace;
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+let youtubeApiPromise: Promise<YoutubeNamespace> | null = null;
+
+function loadYoutubeApi(): Promise<YoutubeNamespace> {
+  if (window.YT?.Player) {
+    return Promise.resolve(window.YT);
+  }
+
+  if (youtubeApiPromise) {
+    return youtubeApiPromise;
+  }
+
+  youtubeApiPromise = new Promise((resolve) => {
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://www.youtube.com/iframe_api"]',
+    );
+
+    const previousReady = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      previousReady?.();
+      if (window.YT) {
+        resolve(window.YT);
+      }
+    };
+
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(script);
+    } else if (window.YT?.Player) {
+      resolve(window.YT);
+    }
+  });
+
+  return youtubeApiPromise;
+}
 
 export const SoundtrackPanel = memo(function SoundtrackPanel() {
   const [soundtrackOpen, setSoundtrackOpen] = useState(false);
-  const [soundtrackEnabled, setSoundtrackEnabled] = useState(false);
-  const [soundtrackNonce, setSoundtrackNonce] = useState(0);
+  const [playerState, setPlayerState] = useState<YoutubePlayerState>("idle");
+  const playerHostRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<YoutubePlayer | null>(null);
   const soundtrackPlaylistId = "PLAikqLA5ubJ5lr05z7kcKE5za7T8n1sG3";
-  const soundtrackEmbedSrc = `https://www.youtube.com/embed?listType=playlist&list=${soundtrackPlaylistId}&autoplay=${soundtrackEnabled ? 1 : 0}&loop=1&controls=1&rel=0&playsinline=1&origin=${encodeURIComponent(window.location.origin)}&nonce=${soundtrackNonce}`;
-  const showEmbeddedPlayer = soundtrackOpen || soundtrackEnabled;
+
+  useEffect(() => {
+    let disposed = false;
+
+    async function setupPlayer() {
+      const host = playerHostRef.current;
+      if (!host || playerRef.current) {
+        return;
+      }
+
+      const YT = await loadYoutubeApi();
+      if (disposed || !playerHostRef.current || playerRef.current) {
+        return;
+      }
+
+      playerRef.current = new YT.Player(playerHostRef.current, {
+        height: "100%",
+        width: "100%",
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          listType: "playlist",
+          list: soundtrackPlaylistId,
+          loop: 1,
+          playlist: soundtrackPlaylistId,
+          playsinline: 1,
+          rel: 0,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: () => setPlayerState("paused"),
+          onStateChange: (event) => {
+            if (event.data === YT.PlayerState.PLAYING) {
+              setPlayerState("playing");
+              return;
+            }
+
+            if (event.data === YT.PlayerState.PAUSED) {
+              setPlayerState("paused");
+              return;
+            }
+
+            if (event.data === YT.PlayerState.BUFFERING) {
+              setPlayerState("buffering");
+            }
+          },
+        },
+      });
+    }
+
+    setupPlayer();
+
+    return () => {
+      disposed = true;
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
+  }, [soundtrackPlaylistId]);
+
+  const soundtrackStatus =
+    playerState === "playing"
+      ? "Ambiance playing"
+      : playerState === "buffering"
+        ? "Ambiance buffering"
+        : playerState === "paused"
+          ? "Ambiance paused"
+          : "Ambiance not started";
 
   return (
     <div className="pointer-events-auto flex flex-col items-end overflow-hidden rounded-lg border-white/50">
-      <div className="flex flex-row">
-        {showEmbeddedPlayer ? (
-          <div
-            className={
-              soundtrackOpen
-                ? "aspect-video w-[320px] overflow-hidden rounded-l-xl"
-                : "pointer-events-none h-px w-px overflow-hidden opacity-0"
-            }
-          >
-            <iframe
-              className="h-full w-full"
-              src={soundtrackEmbedSrc}
-              title="Mission soundtrack"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-            <!-- PROBLEM I NEVER SEE THIS EVER -->
-          <div>
-            {!soundtrackOpen ? (
-              <span>Ambiance Playing...</span>
-            ) : (
-              <span>Ambiance Paused...</span>
-            )}
-          </div>
-        )}
+      <div className="flex flex-row items-start gap-3">
+        <div
+          className={
+            soundtrackOpen
+              ? "aspect-video w-[320px] overflow-hidden rounded-xl"
+              : "pointer-events-none h-px w-px overflow-hidden opacity-0"
+          }
+        >
+          <div ref={playerHostRef} className="h-full w-full" />
+        </div>
+
+        {!soundtrackOpen ? (
+          <span className="self-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs tracking-[0.18em] text-slate-300 uppercase">
+            {soundtrackStatus}
+          </span>
+        ) : null}
+
         <div className="flex flex-col justify-between">
           <button
             type="button"
