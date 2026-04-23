@@ -36,7 +36,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="pointer-events-auto min-w-[210px] rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+    <div className="pointer-events-auto min-w-[210px] max-w-[320px] overflow-hidden rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
       <button
         type="button"
         className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/6 px-3 py-2 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
@@ -51,7 +51,7 @@ export const SettingsPanel = memo(function SettingsPanel({
       </button>
 
       {settingsOpen ? (
-        <div className="mt-3 max-h-[55vh] min-w-[280px] space-y-3 overflow-y-scroll pr-1">
+        <div className="mt-3 max-h-[40vh] min-w-0 space-y-3 overflow-y-auto pr-1">
           <CompactSlider
             label="Launch speed"
             description="Initial launch impulse at staging."
