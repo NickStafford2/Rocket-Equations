@@ -50,18 +50,18 @@ export function SceneHud({
         status={status}
       />
 
-      <div className="absolute top-20 right-5 flex flex-col items-end gap-3">
+      <div className="flex flex-col items-end gap-3">
         <SoundtrackPanel />
       </div>
 
-      <div className="absolute bottom-5 left-5 flex flex-col gap-3">
-        <CameraDebugPanel cameraDebug={cameraDebug} />
+      <div className="flex flex-col gap-3">
         <CameraSelectionPanel
           isOverviewActive={isOverviewActive}
           currentLockTarget={currentLockTarget}
           currentLookTarget={currentLookTarget}
           onOverview={onOverview}
           onLockTarget={onLockTarget}
+          cameraDebug={cameraDebug}
           onLookAtTarget={onLookAtTarget}
         />
         <SettingsPanel
@@ -80,7 +80,7 @@ export function SceneHud({
         />
       </div>
 
-      <div className="absolute inset-x-5 bottom-5 flex justify-center">
+      <div className="inset-x-5 bottom-5 flex justify-center">
         <ControlPad
           running={running}
           pressedControls={pressedControls}

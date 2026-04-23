@@ -11,7 +11,7 @@ export const TelemetryOverlay = memo(function TelemetryOverlay({
   status,
 }: TelemetryOverlayProps) {
   return (
-    <div className="pointer-events-auto absolute inset-x-5 overflow-x-auto">
+    <div className="pointer-events-auto inset-x-5 overflow-x-auto">
       <MissionTelemetryPanel
         elapsedMissionTime={elapsedMissionTime}
         currentSpeed={currentSpeed}

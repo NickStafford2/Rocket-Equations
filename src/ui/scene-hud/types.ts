@@ -98,4 +98,5 @@ export type CameraSelectionPanelProps = Pick<
   | "onOverview"
   | "onLockTarget"
   | "onLookAtTarget"
+  | "cameraDebug"
 >;

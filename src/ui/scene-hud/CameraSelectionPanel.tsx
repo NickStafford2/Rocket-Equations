@@ -5,6 +5,7 @@ import {
   getButtonClassName,
 } from "./shared";
 import type { CameraSelectionPanelProps } from "./types";
+import { CameraDebugPanel } from "./CameraDebugPanel";
 
 export const CameraSelectionPanel = memo(function CameraSelectionPanel({
   isOverviewActive,
@@ -13,9 +14,11 @@ export const CameraSelectionPanel = memo(function CameraSelectionPanel({
   onOverview,
   onLockTarget,
   onLookAtTarget,
+  cameraDebug,
 }: CameraSelectionPanelProps) {
   return (
     <div className={CAMERA_CONTROL_PANEL_CLASS_NAME}>
+      <CameraDebugPanel cameraDebug={cameraDebug} />
       <div className="flex flex-col gap-2">
         <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
           Camera
