@@ -16,7 +16,7 @@ import {
   type MissionControlKey,
   useMissionSimulation,
 } from "./use-mission-simulation";
-import { MissionOverview } from "./ui/mission-panels";
+import { MissionOverview } from "./ui/scene-hud/MissionOverview";
 import { SceneHud } from "./ui/scene-hud";
 
 export default function App() {
@@ -99,7 +99,6 @@ export default function App() {
     <div className="min-h-screen overflow-hidden bg-[#02060d] text-slate-100">
       <div className="relative mx-auto max-w-[1600px] px-4 pb-4 md:px-6 lg:px-8 lg:py-6">
         <MissionOverview
-          lunarTransferGap={formatDistance(lunarTransferGap)}
           landingTargetSpeed={formatRelativeSpeed(SOFT_LANDING_SPEED)}
         />
 
