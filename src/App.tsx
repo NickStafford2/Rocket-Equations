@@ -13,7 +13,6 @@ import {
 } from "./mission";
 import { useMissionScene } from "./use-mission-scene";
 import { useMissionSimulation } from "./use-mission-simulation";
-import { Controls } from "./ui/controls";
 import { MissionKeyboardHelp, MissionOverview } from "./ui/mission-panels";
 import { SceneHud } from "./ui/scene-hud";
 
@@ -96,8 +95,6 @@ export default function App() {
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
           <div className="space-y-5">
-            <Controls />
-
             <MissionKeyboardHelp />
           </div>
 
