@@ -7,7 +7,7 @@ import sunTextureUrl from "../assets/textures/sun.jpg";
 import lensflare0Url from "../assets/textures/lensflare0.png";
 import lensflare2Url from "../assets/textures/lensflare2.png";
 
-export const SUN_POSITION = new THREE.Vector3(-980, 320, -540);
+export const SUN_POSITION = new THREE.Vector3(-980, 0, -540);
 export const SUN_DRAW_RADIUS = 42;
 
 export type ReferenceSunBundle = {
