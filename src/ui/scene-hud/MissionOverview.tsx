@@ -8,9 +8,7 @@ export function MissionOverview() {
       <h1 className="my-2 max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white md:text-5xl">
         To the Moon!
       </h1>
-      <p>
-        Goal: touch down below {landingTargetSpeed} Moon-relative speed. Current
-      </p>
+      <p>Goal: touch down below {landingTargetSpeed} Moon-relative speed.</p>
     </div>
   );
 }
