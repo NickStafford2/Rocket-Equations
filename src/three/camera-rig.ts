@@ -60,10 +60,13 @@ export type CameraRigState = {
   transitionAlpha: number;
   overviewPosition: THREE.Vector3;
   overviewTarget: THREE.Vector3;
-  transitioning: boolean;
+  positionTransitioning: boolean;
+  targetTransitioning: boolean;
   positionEpsilon: number;
   targetEpsilon: number;
-  pendingStatus: string | null;
+  pendingPositionStatus: string | null;
+  pendingTargetStatus: string | null;
+  pendingOverviewStatus: string | null;
 };
 
 export function createCameraRig({
@@ -83,10 +86,13 @@ export function createCameraRig({
     transitionAlpha,
     overviewPosition: overviewPosition.clone(),
     overviewTarget: overviewTarget.clone(),
-    transitioning: false,
+    positionTransitioning: false,
+    targetTransitioning: false,
     positionEpsilon,
     targetEpsilon,
-    pendingStatus: null,
+    pendingPositionStatus: null,
+    pendingTargetStatus: null,
+    pendingOverviewStatus: null,
   };
 }
 
@@ -94,8 +100,11 @@ export function setOverview(rig: CameraRigState) {
   rig.mode = "overview";
   rig.follow = null;
   rig.look = null;
-  rig.transitioning = true;
-  rig.pendingStatus = "Overview camera restored.";
+  rig.positionTransitioning = true;
+  rig.targetTransitioning = true;
+  rig.pendingPositionStatus = null;
+  rig.pendingTargetStatus = null;
+  rig.pendingOverviewStatus = "Overview camera restored.";
   rig.desiredPosition.copy(rig.overviewPosition);
   rig.desiredTarget.copy(rig.overviewTarget);
 }
@@ -109,24 +118,30 @@ export function setFollowTarget(
   rig.mode = "tracking";
   rig.follow = target;
   rig.offset.copy(getInitialFollowOffset(target.object, camera, controls));
-  rig.transitioning = true;
-  rig.pendingStatus = `Locked on ${getTargetLabel(target)}.`;
+  rig.positionTransitioning = true;
+  rig.pendingPositionStatus = `Locked on ${getTargetLabel(target)}.`;
+  rig.pendingOverviewStatus = null;
 }
 
 export function setLookTarget(rig: CameraRigState, target: CameraRigTarget) {
   rig.mode = "tracking";
   rig.look = target;
-  rig.transitioning = true;
-  rig.pendingStatus = `Looking at ${getTargetLabel(target)}.`;
+  rig.targetTransitioning = true;
+  rig.pendingTargetStatus = `Looking at ${getTargetLabel(target)}.`;
+  rig.pendingOverviewStatus = null;
 }
 
 export function clearFollowTarget(rig: CameraRigState) {
   rig.follow = null;
+  rig.positionTransitioning = false;
+  rig.pendingPositionStatus = null;
   syncMode(rig);
 }
 
 export function clearLookTarget(rig: CameraRigState) {
   rig.look = null;
+  rig.targetTransitioning = false;
+  rig.pendingTargetStatus = null;
   syncMode(rig);
 }
 
@@ -134,8 +149,11 @@ export function clearAllTracking(rig: CameraRigState) {
   rig.mode = "free";
   rig.follow = null;
   rig.look = null;
-  rig.transitioning = false;
-  rig.pendingStatus = null;
+  rig.positionTransitioning = false;
+  rig.targetTransitioning = false;
+  rig.pendingPositionStatus = null;
+  rig.pendingTargetStatus = null;
+  rig.pendingOverviewStatus = null;
 }
 
 export function syncSelection(rig: CameraRigState): CameraRigSelection {
@@ -149,7 +167,7 @@ export function syncSelection(rig: CameraRigState): CameraRigSelection {
 export function updateFromControlsStart(rig: CameraRigState): string | null {
   if (rig.mode !== "overview") return null;
 
-  const status = rig.transitioning
+  const status = rig.positionTransitioning || rig.targetTransitioning
     ? "Overview transition canceled."
     : "Free camera enabled.";
   clearAllTracking(rig);
@@ -160,7 +178,7 @@ export function updateFromControlsChange(
   rig: CameraRigState,
   camera: THREE.PerspectiveCamera,
 ) {
-  if (!rig.follow || rig.transitioning) return;
+  if (!rig.follow || rig.positionTransitioning) return;
 
   rig.follow.object.getWorldPosition(FOLLOW_WORLD_POSITION);
   rig.offset.copy(camera.position).sub(FOLLOW_WORLD_POSITION);
@@ -169,7 +187,7 @@ export function updateFromControlsChange(
 export function updateCameraRig(
   rig: CameraRigState,
   { camera, controls, scene }: CameraRigUpdateOptions,
-): string | null {
+): string[] {
   syncMode(rig);
   scene.updateMatrixWorld(true);
 
@@ -202,26 +220,55 @@ export function updateCameraRig(
     rig.desiredTarget.copy(controls.target);
   }
 
-  const alpha = rig.transitioning ? rig.transitionAlpha : 1;
-  camera.position.lerp(rig.desiredPosition, alpha);
-  controls.target.lerp(rig.desiredTarget, alpha);
+  const positionAlpha = rig.positionTransitioning ? rig.transitionAlpha : 1;
+  const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
+  camera.position.lerp(rig.desiredPosition, positionAlpha);
+  controls.target.lerp(rig.desiredTarget, targetAlpha);
   controls.update();
 
-  if (!rig.transitioning) return null;
-
+  const statuses: string[] = [];
   const positionSettled =
     camera.position.distanceTo(rig.desiredPosition) < rig.positionEpsilon;
   const targetSettled =
     controls.target.distanceTo(rig.desiredTarget) < rig.targetEpsilon;
 
-  if (!positionSettled || !targetSettled) {
-    return null;
+  if (rig.mode === "overview") {
+    if (rig.positionTransitioning && positionSettled) {
+      rig.positionTransitioning = false;
+    }
+    if (rig.targetTransitioning && targetSettled) {
+      rig.targetTransitioning = false;
+    }
+
+    if (
+      !rig.positionTransitioning &&
+      !rig.targetTransitioning &&
+      rig.pendingOverviewStatus
+    ) {
+      statuses.push(rig.pendingOverviewStatus);
+      rig.pendingOverviewStatus = null;
+    }
+
+    return statuses;
   }
 
-  rig.transitioning = false;
-  const status = rig.pendingStatus;
-  rig.pendingStatus = null;
-  return status;
+  if (rig.positionTransitioning && positionSettled) {
+    rig.positionTransitioning = false;
+    if (rig.pendingPositionStatus) {
+      statuses.push(rig.pendingPositionStatus);
+      rig.pendingPositionStatus = null;
+    }
+  }
+
+  if (rig.targetTransitioning && targetSettled) {
+    rig.targetTransitioning = false;
+    if (rig.pendingTargetStatus) {
+      statuses.push(rig.pendingTargetStatus);
+      rig.pendingTargetStatus = null;
+    }
+  }
+
+  return statuses;
 }
 
 export function getCameraDebugSnapshot(
@@ -249,11 +296,15 @@ function syncMode(rig: CameraRigState) {
 
   if (!rig.follow && !rig.look) {
     rig.mode = "free";
-    rig.transitioning = false;
-    rig.pendingStatus = null;
+    rig.positionTransitioning = false;
+    rig.targetTransitioning = false;
+    rig.pendingPositionStatus = null;
+    rig.pendingTargetStatus = null;
+    rig.pendingOverviewStatus = null;
     return;
   }
 
+  rig.pendingOverviewStatus = null;
   rig.mode = "tracking";
 }
 

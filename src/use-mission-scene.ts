@@ -12,7 +12,13 @@ import {
 import type { CameraTarget } from "./mission";
 import type { EarthMoonSimulation, SimulationTelemetry } from "./sim/simulation";
 import { TRAIL_POINT_CAPACITY } from "./sim/trail";
-import { DISTANCE_SCALE, metersToScene, ROCKET_DRAW_RADIUS } from "./three/objects";
+import {
+  DISTANCE_SCALE,
+  EARTH_DRAW_RADIUS,
+  metersToScene,
+  MOON_DRAW_RADIUS,
+  ROCKET_DRAW_RADIUS,
+} from "./three/objects";
 import { createThreeScene } from "./three/scene";
 import type { ThreeSceneBundle } from "./three/scene";
 import {
@@ -61,6 +67,8 @@ type CameraDebugState = CameraRigDebugSnapshot;
 const UI_SYNC_INTERVAL_MS = 100;
 const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-210, 120, 210);
 const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(56, 0, 0);
+const CAMERA_DIRECTION = new THREE.Vector3();
+const LABEL_WORLD_POSITION = new THREE.Vector3();
 
 function createInitialCameraRig(): CameraRigState {
   return createCameraRig({
@@ -105,6 +113,39 @@ function findFocusableByPreset(
   });
 
   return focusable;
+}
+
+function updateFarAwayLabel(
+  sprite: THREE.Sprite,
+  anchor: THREE.Object3D,
+  camera: THREE.PerspectiveCamera,
+  viewportHeight: number,
+  bodyRadius: number,
+  showDistance: number,
+  minScale: number,
+  maxScale: number,
+  maxScreenDiameterPx: number,
+) {
+  anchor.getWorldPosition(LABEL_WORLD_POSITION);
+  const cameraDistance = camera.position.distanceTo(LABEL_WORLD_POSITION);
+  camera.getWorldDirection(CAMERA_DIRECTION);
+  const inFrontOfCamera =
+    LABEL_WORLD_POSITION.sub(camera.position).normalize().dot(CAMERA_DIRECTION) >
+    0.1;
+  const projectedDiameterPx =
+    cameraDistance > 1e-6
+      ? (bodyRadius / (cameraDistance * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)))) *
+        viewportHeight
+      : Number.POSITIVE_INFINITY;
+
+  sprite.visible =
+    cameraDistance >= showDistance &&
+    inFrontOfCamera &&
+    projectedDiameterPx <= maxScreenDiameterPx;
+  if (!sprite.visible) return;
+
+  const scale = THREE.MathUtils.clamp(cameraDistance * 0.05, minScale, maxScale);
+  sprite.scale.set(scale, scale * 0.375, 1);
 }
 
 export function useMissionScene({
@@ -343,6 +384,29 @@ export function useMissionScene({
       orientationIndicator.frame.quaternion.copy(camera.quaternion).invert();
       orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
 
+      updateFarAwayLabel(
+        objects.earthLabel,
+        objects.earthGroup,
+        camera,
+        renderer.domElement.clientHeight,
+        EARTH_DRAW_RADIUS,
+        EARTH_DRAW_RADIUS * 18,
+        10,
+        24,
+        150,
+      );
+      updateFarAwayLabel(
+        objects.moonLabel,
+        objects.moon,
+        camera,
+        renderer.domElement.clientHeight,
+        MOON_DRAW_RADIUS,
+        MOON_DRAW_RADIUS * 24,
+        9,
+        20,
+        90,
+      );
+
       if (simState.impact?.target === "earth") {
         runningRef.current = false;
         setRunning(false);
@@ -452,13 +516,13 @@ export function useMissionScene({
       }
 
       syncScene();
-      const cameraStatus = updateCameraRig(cameraRigRef.current, {
+      const cameraStatuses = updateCameraRig(cameraRigRef.current, {
         camera,
         controls,
         scene,
       });
-      if (cameraStatus) {
-        setStatus(cameraStatus);
+      if (cameraStatuses.length > 0) {
+        setStatus(cameraStatuses.join(" "));
       }
 
       render();
