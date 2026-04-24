@@ -1,59 +1,16 @@
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import saturnVModelUrl from "../../assets/SaturnV.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
   rocket.userData.focusLabel = "Rocket";
-
-  const rocketMaterial = new THREE.MeshStandardMaterial({
-    color: 0xe9eef7,
-    roughness: 0.35,
-    metalness: 0.35,
-  });
-  const accentMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff8d5c,
-    roughness: 0.5,
-    metalness: 0.12,
-  });
-  const finMaterial = new THREE.MeshStandardMaterial({
-    color: 0x5dc7ff,
-    roughness: 0.42,
-    metalness: 0.18,
-    emissive: 0x102f4f,
-    emissiveIntensity: 0.45,
-  });
-
-  const bodyRadius = ROCKET_DRAW_RADIUS * 0.42;
-  const bodyLength = ROCKET_DRAW_RADIUS * 5.5;
-  rocket.userData.focusRadius = bodyLength * 0.9;
-
-  const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(bodyRadius, bodyRadius, bodyLength, 18),
-    rocketMaterial,
-  );
-  rocket.add(body);
-
-  const nose = new THREE.Mesh(
-    new THREE.ConeGeometry(bodyRadius * 1.15, ROCKET_DRAW_RADIUS * 1.8, 18),
-    accentMaterial,
-  );
-  nose.position.y = bodyLength / 2 + (ROCKET_DRAW_RADIUS * 1.8) / 2;
-  rocket.add(nose);
-
-  const engine = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      bodyRadius * 0.72,
-      bodyRadius * 0.9,
-      ROCKET_DRAW_RADIUS,
-      18,
-    ),
-    accentMaterial,
-  );
-  engine.position.y = -bodyLength / 2 - ROCKET_DRAW_RADIUS * 0.15;
-  rocket.add(engine);
+  const fallbackBodyLength = ROCKET_DRAW_RADIUS * 5.5;
+  rocket.userData.focusRadius = fallbackBodyLength * 0.9;
 
   const enginePlume = new THREE.Mesh(
-    new THREE.ConeGeometry(bodyRadius * 0.82, ROCKET_DRAW_RADIUS * 2.8, 18),
+    new THREE.ConeGeometry(ROCKET_DRAW_RADIUS * 0.34, ROCKET_DRAW_RADIUS * 2.8, 18),
     new THREE.MeshBasicMaterial({
       color: 0xffc857,
       transparent: true,
@@ -61,26 +18,55 @@ export function createRocketObjects() {
     }),
   );
   enginePlume.rotation.z = Math.PI;
-  enginePlume.position.y = -bodyLength / 2 - ROCKET_DRAW_RADIUS * 1.6;
+  enginePlume.position.y = -fallbackBodyLength / 2 - ROCKET_DRAW_RADIUS * 1.25;
   enginePlume.visible = false;
   rocket.add(enginePlume);
 
-  for (const side of [-1, 1] as const) {
-    const fin = new THREE.Mesh(
-      new THREE.BoxGeometry(
-        ROCKET_DRAW_RADIUS * 0.18,
-        ROCKET_DRAW_RADIUS * 1.2,
-        ROCKET_DRAW_RADIUS * 0.9,
-      ),
-      finMaterial,
-    );
-    fin.position.set(
-      side * bodyRadius * 0.95,
-      -bodyLength / 2 + ROCKET_DRAW_RADIUS * 0.25,
-      0,
-    );
-    rocket.add(fin);
-  }
+  const modelRoot = new THREE.Group();
+  rocket.add(modelRoot);
+
+  const loader = new GLTFLoader();
+  loader.load(
+    saturnVModelUrl,
+    (gltf) => {
+      const saturnV = gltf.scene;
+      saturnV.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (!mesh.isMesh) {
+          return;
+        }
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      });
+
+      modelRoot.clear();
+      modelRoot.add(saturnV);
+
+      const preScaleBox = new THREE.Box3().setFromObject(modelRoot);
+      const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
+      const sourceHeight = Math.max(preScaleSize.y, preScaleSize.x, preScaleSize.z, 1e-6);
+      const targetHeight = ROCKET_DRAW_RADIUS * 8.6;
+      const scale = targetHeight / sourceHeight;
+      modelRoot.scale.setScalar(scale);
+
+      const scaledBox = new THREE.Box3().setFromObject(modelRoot);
+      const scaledSize = scaledBox.getSize(new THREE.Vector3());
+      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+      modelRoot.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
+
+      rocket.userData.focusRadius = Math.max(
+        scaledSize.y * 0.45,
+        scaledSize.x * 0.6,
+        ROCKET_DRAW_RADIUS * 2.5,
+      );
+      enginePlume.position.y = -ROCKET_DRAW_RADIUS * 1.1;
+    },
+    undefined,
+    (error) => {
+      console.error("Failed to load Saturn V model.", error);
+    },
+  );
 
   const thrustDirectionArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
