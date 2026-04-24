@@ -8,6 +8,9 @@ import {
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
 const VECTOR_ARROW_LENGTH = 1.45;
 const VECTOR_VALUE_LABEL_POSITION = new THREE.Vector3(0, -1.28, 0);
+const INDICATOR_MIN_SCALE: Partial<Record<RocketModelVariant, number>> = {
+  "apollo-lunar-module": 0.22,
+};
 
 type IndicatorSceneBundle = {
   scene: THREE.Scene;
@@ -50,7 +53,12 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   frame.add(rocket);
 
   function setRocketModelVariant(variant: RocketModelVariant) {
-    rocketScaleRoot.scale.setScalar(getRocketTargetScaleRatio(variant));
+    rocketScaleRoot.scale.setScalar(
+      Math.max(
+        getRocketTargetScaleRatio(variant),
+        INDICATOR_MIN_SCALE[variant] ?? 0,
+      ),
+    );
     rocketVisual.setVariant(variant);
   }
 
