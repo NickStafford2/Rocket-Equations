@@ -145,37 +145,39 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
           : "Ambiance not started";
 
   return (
-    <div className="pointer-events-auto flex flex-col items-end overflow-hidden rounded-lg border-white/50">
-      <div className="flex flex-row items-start">
-        <div
-          className={
-            soundtrackOpen
-              ? "aspect-video w-[320px] overflow-hidden rounded-l-xl"
-              : "pointer-events-none h-px w-px overflow-hidden opacity-0"
-          }
-        >
-          <div ref={playerHostRef} className="h-full w-full" />
-        </div>
+    <div className="pointer-events-auto flex h-fit w-fit flex-row items-stretch overflow-hidden rounded-xl bg-black">
+      <div
+        className={
+          soundtrackOpen
+            ? "aspect-video w-[320px] overflow-hidden rounded-l-xl"
+            : "pointer-events-none h-px w-px overflow-hidden opacity-0"
+        }
+      >
+        <div ref={playerHostRef} className="h-full w-full" />
+      </div>
 
-        <button
-          type="button"
-          className={
-            soundtrackOpen
-              ? "flex h-full flex-row items-center justify-between rounded-r-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
-              : "h-full rounded-xl border border-white/15 bg-white/6 p-2 align-middle text-sm font-medium transition-colors hover:bg-white/10"
-          }
-          onClick={() => setSoundtrackOpen((current) => !current)}
-        >
+      <button
+        type="button"
+        className={
+          soundtrackOpen
+            ? "w-[40px] self-stretch rounded-r-xl bg-red-500 align-middle text-sm font-medium transition-colors hover:bg-white/10"
+            : "w-[360px] self-stretch rounded-xl bg-blue-500 align-middle text-sm font-medium transition-colors hover:bg-white/10"
+        }
+        onClick={() => setSoundtrackOpen((current) => !current)}
+      >
+        <div className="flex h-full flex-row items-center justify-between bg-amber-100">
           {!soundtrackOpen ? (
-            <span className="tracking-[0.18em] text-slate-300 uppercase">
+            <span className="w-full bg-green-500 p-2 tracking-[0.18em] text-slate-300 uppercase">
               {soundtrackStatus}
             </span>
           ) : null}
-          <span className="min-h-12 min-w-12">
-            {soundtrackOpen ? "-" : "+"}
-          </span>
-        </button>
-      </div>
+          <div className="flex h-full w-[40px] min-w-[40px] justify-center bg-yellow-500 align-middle">
+            <span className="bg-amber-500 pt-2 text-lg">
+              {soundtrackOpen ? "-" : "+"}
+            </span>
+          </div>
+        </div>
+      </button>
     </div>
   );
 });
