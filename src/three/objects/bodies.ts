@@ -55,9 +55,7 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   moon.userData.focusLabel = "Moon";
   moon.userData.focusRadius = MOON_DRAW_RADIUS;
 
-  const moonLabel = createBodyLabelSprite("Moon", {
-    borderColor: null,
-  });
+  const moonLabel = createBodyLabelSprite("Moon");
   moonLabel.position.set(0, MOON_DRAW_RADIUS * 3.25, 0);
   moonLabel.visible = false;
   moon.add(moonLabel);

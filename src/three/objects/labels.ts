@@ -6,7 +6,7 @@ type BodyLabelStyle = {
 
 export function createBodyLabelSprite(
   text: string,
-  { borderColor = "rgba(77, 208, 255, 0.7)" }: BodyLabelStyle = {},
+  { borderColor = null }: BodyLabelStyle = {},
 ): THREE.Sprite {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -18,19 +18,19 @@ export function createBodyLabelSprite(
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "rgba(7, 17, 31, 0.72)";
-  roundRect(context, 4, 8, canvas.width - 8, canvas.height - 16, 18);
+  context.fillStyle = "rgba(7, 17, 31, 0.58)";
+  roundRect(context, 6, 10, canvas.width - 12, canvas.height - 20, 10);
   context.fill();
   if (borderColor) {
     context.strokeStyle = borderColor;
-    context.lineWidth = 3;
+    context.lineWidth = 2;
     context.stroke();
   }
 
-  context.font = "300 100px sans-serif";
+  context.font = "500 72px sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillStyle = "rgba(232, 245, 255, 0.96)";
+  context.fillStyle = "rgba(232, 245, 255, 0.88)";
   context.fillText(text, canvas.width / 2, canvas.height / 2 + 1);
 
   const texture = new THREE.CanvasTexture(canvas);
