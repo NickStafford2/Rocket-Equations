@@ -159,23 +159,44 @@ function createIndicatorValueLabel(initialText: string): {
   sprite.scale.set(SPRITE_WIDTH, SPRITE_HEIGHT, 1);
 
   function setText(text: string) {
+    // --- Constants for layout ---
+    const PADDING_X = CANVAS_WIDTH * 0.03; // 3% horizontal padding
+    const PADDING_Y = CANVAS_HEIGHT * 0.25; // original vertical padding
+    const BORDER_RADIUS = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.125;
+    const STROKE_WIDTH = 6;
+    const TEXT_FONT_SIZE = Math.floor(CANVAS_HEIGHT * 0.25);
+    const TEXT_Y_OFFSET = 22;
+    const LABEL_Y_SHIFT = 0; // move everything down
+
     // Clear canvas
     labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Draw background
     labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
-    roundRect(labelContext, 30, 80, CANVAS_WIDTH - 60, CANVAS_HEIGHT - 160, 32);
+    roundRect(
+      labelContext,
+      PADDING_X,
+      PADDING_Y - TEXT_Y_OFFSET / 3 + LABEL_Y_SHIFT, // background moves down
+      CANVAS_WIDTH - 2 * PADDING_X,
+      CANVAS_HEIGHT - 2 * PADDING_Y + TEXT_Y_OFFSET,
+      BORDER_RADIUS,
+    );
     labelContext.fill();
+
     labelContext.strokeStyle = "rgba(255, 255, 255, 0.18)";
-    labelContext.lineWidth = 6;
+    labelContext.lineWidth = STROKE_WIDTH;
     labelContext.stroke();
 
     // Draw text
-    labelContext.font = "bold 64px monospace"; // large font
+    labelContext.font = `bold ${TEXT_FONT_SIZE}px monospace`;
     labelContext.textAlign = "center";
     labelContext.textBaseline = "middle";
     labelContext.fillStyle = "rgba(255, 255, 255, 0.96)";
-    labelContext.fillText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 2);
+    labelContext.fillText(
+      text,
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2 + TEXT_Y_OFFSET + LABEL_Y_SHIFT,
+    );
 
     texture.needsUpdate = true;
   }
