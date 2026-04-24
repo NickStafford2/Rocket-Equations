@@ -3,7 +3,6 @@ import { CameraSelectionPanel } from "./scene-hud/CameraSelectionPanel";
 import { ControlPad } from "./scene-hud/ControlPad";
 import { MissionOverview } from "./scene-hud/MissionOverview";
 import { SettingsPanel } from "./scene-hud/SettingsPanel";
-import { SoundtrackPanel } from "./scene-hud/SoundtrackPanel";
 import type { SceneHudProps } from "./scene-hud/types";
 
 export function SceneHud({
