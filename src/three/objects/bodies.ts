@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { EARTH_MOON_DISTANCE } from "../../physics/bodies";
 import earthTextureUrl from "../../assets/textures/earth.jpg";
 import moonTextureUrl from "../../assets/Nasa Moon/moon_color.png";
-import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean.png";
+import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean2.png";
 import {
   DISTANCE_SCALE,
   EARTH_DRAW_RADIUS,

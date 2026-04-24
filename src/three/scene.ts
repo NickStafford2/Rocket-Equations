@@ -68,8 +68,8 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
-  const ambientLight = new THREE.AmbientLight(0x1e2633, 0.16);
-  scene.add(ambientLight);
+  // const ambientLight = new THREE.AmbientLight(0x1e2633, 0.16);
+  // scene.add(ambientLight);
 
   const objects = createSceneObjects(scene);
   const orientationIndicator = createOrientationIndicator();
@@ -81,8 +81,8 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   scene.add(sunBundle.sun);
   scene.add(sunBundle.sunLight);
   scene.add(sunBundle.sunLight.target);
-  scene.add(sunBundle.fillLight);
-  scene.add(sunBundle.fillLight.target);
+  // scene.add(sunBundle.fillLight);
+  // scene.add(sunBundle.fillLight.target);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;

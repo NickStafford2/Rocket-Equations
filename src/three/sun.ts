@@ -13,7 +13,7 @@ export const SUN_DRAW_RADIUS = 42;
 export type ReferenceSunBundle = {
   sun: THREE.Mesh;
   sunLight: THREE.DirectionalLight;
-  fillLight: THREE.DirectionalLight;
+  // fillLight: THREE.DirectionalLight;
 };
 
 export function createReferenceSun(): ReferenceSunBundle {
@@ -39,9 +39,9 @@ export function createReferenceSun(): ReferenceSunBundle {
   sunLight.position.copy(SUN_POSITION);
   sunLight.target.position.set(0, 0, 0);
 
-  const fillLight = new THREE.DirectionalLight(0x6ba9ff, 0.65);
-  fillLight.position.set(260, 140, -220);
-  fillLight.target.position.set(0, 0, 0);
+  // const fillLight = new THREE.DirectionalLight(0x6ba9ff, 0.65);
+  // fillLight.position.set(260, 140, -220);
+  // fillLight.target.position.set(0, 0, 0);
 
   const lensflare = new Lensflare();
   const textureFlare0 = textureLoader.load(lensflare0Url);
@@ -53,16 +53,26 @@ export function createReferenceSun(): ReferenceSunBundle {
     new LensflareElement(textureFlare2, 180, 0.2, new THREE.Color(1, 1, 0.65)),
   );
   lensflare.addElement(
-    new LensflareElement(textureFlare2, 96, 0.42, new THREE.Color(0.82, 0.84, 1)),
+    new LensflareElement(
+      textureFlare2,
+      96,
+      0.42,
+      new THREE.Color(0.82, 0.84, 1),
+    ),
   );
   lensflare.addElement(
-    new LensflareElement(textureFlare2, 52, 0.66, new THREE.Color(1, 0.82, 0.58)),
+    new LensflareElement(
+      textureFlare2,
+      52,
+      0.66,
+      new THREE.Color(1, 0.82, 0.58),
+    ),
   );
   sun.add(lensflare);
 
   return {
     sun,
     sunLight,
-    fillLight,
+    // fillLight,
   };
 }
