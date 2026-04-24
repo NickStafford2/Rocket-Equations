@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import saturnVModelUrl from "../../assets/SaturnV.glb?url";
+import saturnVModelUrl from "../../assets/Space Shuttle.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
+
+const SATURN_V_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
@@ -10,7 +12,11 @@ export function createRocketObjects() {
   rocket.userData.focusRadius = fallbackBodyLength * 0.9;
 
   const enginePlume = new THREE.Mesh(
-    new THREE.ConeGeometry(ROCKET_DRAW_RADIUS * 0.34, ROCKET_DRAW_RADIUS * 2.8, 18),
+    new THREE.ConeGeometry(
+      ROCKET_DRAW_RADIUS * 0.34,
+      ROCKET_DRAW_RADIUS * 2.8,
+      18,
+    ),
     new THREE.MeshBasicMaterial({
       color: 0xffc857,
       transparent: true,
@@ -45,22 +51,29 @@ export function createRocketObjects() {
 
       const preScaleBox = new THREE.Box3().setFromObject(modelRoot);
       const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
-      const sourceHeight = Math.max(preScaleSize.y, preScaleSize.x, preScaleSize.z, 1e-6);
-      const targetHeight = ROCKET_DRAW_RADIUS * 8.6;
-      const scale = targetHeight / sourceHeight;
+      const sourceHeight = Math.max(
+        preScaleSize.y,
+        preScaleSize.x,
+        preScaleSize.z,
+        1e-6,
+      );
+      const scale = SATURN_V_TARGET_HEIGHT / sourceHeight;
       modelRoot.scale.setScalar(scale);
 
       const scaledBox = new THREE.Box3().setFromObject(modelRoot);
       const scaledSize = scaledBox.getSize(new THREE.Vector3());
       const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      modelRoot.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
+      modelRoot.position.set(-scaledCenter.x, -scaledCenter.y, -scaledCenter.z);
 
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
         ROCKET_DRAW_RADIUS * 2.5,
       );
-      enginePlume.position.y = -ROCKET_DRAW_RADIUS * 1.1;
+      enginePlume.position.y = -Math.max(
+        ROCKET_DRAW_RADIUS * 1.1,
+        scaledSize.y * 0.28,
+      );
     },
     undefined,
     (error) => {

@@ -332,8 +332,8 @@ function getInitialFollowOffset(
 
   const currentOffset = camera.position.clone().sub(FOLLOW_WORLD_POSITION);
   const focusRadius = Number(object.userData.focusRadius ?? 12);
-  const minDistance = THREE.MathUtils.clamp(focusRadius * 2.5, 4, 520);
-  const maxDistance = THREE.MathUtils.clamp(focusRadius * 12, 8, 700);
+  const minDistance = THREE.MathUtils.clamp(focusRadius * 2.5, 0.18, 520);
+  const maxDistance = THREE.MathUtils.clamp(focusRadius * 12, 1.25, 700);
 
   if (currentOffset.lengthSq() > 1e-6) {
     const clampedDistance = THREE.MathUtils.clamp(
@@ -348,10 +348,10 @@ function getInitialFollowOffset(
   if (viewDirection.lengthSq() > 1e-6) {
     return viewDirection
       .normalize()
-      .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 4, 520));
+      .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 0.4, 520));
   }
 
   return FALLBACK_VIEW_DIRECTION
     .clone()
-    .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 4, 520));
+    .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 0.4, 520));
 }

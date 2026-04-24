@@ -50,6 +50,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   system.add(earthGroup);
   system.add(moon);
   system.add(rocket);
+  system.add(thrustDirectionArrow);
   system.add(launchLocationArrow);
   system.add(launchRing);
   system.add(launchTangentArrow);
