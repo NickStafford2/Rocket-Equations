@@ -7,6 +7,11 @@ import {
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
 const VECTOR_ARROW_LENGTH = 1.45;
 const VECTOR_VALUE_LABEL_POSITION = new THREE.Vector3(0, -1.28, 0);
+const INDICATOR_VARIANT_SCALE: Record<RocketModelVariant, number> = {
+  "saturn-v": 1,
+  "apollo-soyuz": 1.7,
+  "apollo-lunar-module": 2.6,
+};
 
 type IndicatorSceneBundle = {
   scene: THREE.Scene;
@@ -37,20 +42,30 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   const { scene, camera, frame } = createIndicatorScene();
 
   const rocket = new THREE.Group();
+  const rocketScaleRoot = new THREE.Group();
   const rocketVisual = createRocketVisual(INDICATOR_ROCKET_HEIGHT, {
+    useConfiguredTargetSize: false,
     onScaled: ({ center }) => {
       rocketVisual.root.position.y = 600 * center.y;
     },
   });
-  rocket.add(rocketVisual.root);
+  rocketScaleRoot.add(rocketVisual.root);
+  rocket.add(rocketScaleRoot);
   frame.add(rocket);
+
+  function setRocketModelVariant(variant: RocketModelVariant) {
+    rocketScaleRoot.scale.setScalar(INDICATOR_VARIANT_SCALE[variant] ?? 1);
+    rocketVisual.setVariant(variant);
+  }
+
+  setRocketModelVariant("saturn-v");
 
   return {
     scene,
     camera,
     frame,
     rocket,
-    setRocketModelVariant: rocketVisual.setVariant,
+    setRocketModelVariant,
     sizePx: 132,
   };
 }

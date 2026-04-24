@@ -49,9 +49,11 @@ export function createRocketVisual(
   defaultTargetSize: number,
   {
     initialVariant = "saturn-v",
+    useConfiguredTargetSize = true,
     onScaled,
   }: {
     initialVariant?: RocketModelVariant;
+    useConfiguredTargetSize?: boolean;
     onScaled?: (payload: {
       size: THREE.Vector3;
       center: THREE.Vector3;
@@ -88,8 +90,9 @@ export function createRocketVisual(
           preScaleSize.z,
           1e-6,
         );
-        const targetSize =
-          MODEL_CONFIGS[variant].targetSize ?? defaultTargetSize;
+        const targetSize = useConfiguredTargetSize
+          ? (MODEL_CONFIGS[variant].targetSize ?? defaultTargetSize)
+          : defaultTargetSize;
         const scale = targetSize / sourceSize;
         scaleRoot.scale.setScalar(scale);
 
