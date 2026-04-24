@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { EARTH_MOON_DISTANCE } from "../../physics/bodies";
 import earthTextureUrl from "../../assets/textures/earth.jpg";
 import moonTextureUrl from "../../assets/Nasa Moon/moon_color.png";
+import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean.png";
 import {
   DISTANCE_SCALE,
   EARTH_DRAW_RADIUS,
@@ -39,14 +40,20 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   earthLabel.visible = false;
   earthGroup.add(earthLabel);
 
+  const moonNormal = loader.load(moonNormalUrl);
+  moonNormal.colorSpace = THREE.NoColorSpace;
+  moonNormal.generateMipmaps = false;
+  moonNormal.minFilter = THREE.LinearFilter;
+  moonNormal.magFilter = THREE.LinearFilter;
+
   const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(MOON_DRAW_RADIUS, 48, 48),
+    new THREE.SphereGeometry(MOON_DRAW_RADIUS, 256, 256),
     new THREE.MeshStandardMaterial({
       map: moonTexture,
-      color: new THREE.Color(0xc8c8c8),
-      roughness: 0.85,
-      metalness: 0.05,
-      emissive: new THREE.Color(0, 0, 0),
+      normalMap: moonNormal,
+      normalScale: new THREE.Vector2(0.6, 0.6),
+      roughness: 1.0,
+      metalness: 0.0,
     }),
   );
   moon.castShadow = true;
