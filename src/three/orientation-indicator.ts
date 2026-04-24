@@ -126,18 +126,21 @@ function createIndicatorValueLabel(initialText: string): {
   sprite: THREE.Sprite;
   setText: (text: string) => void;
 } {
+  // **Increase canvas resolution**
   const canvas = document.createElement("canvas");
-  canvas.width = 320;
-  canvas.height = 96;
+  const CANVAS_WIDTH = 1024; // bigger for sharp text
+  const CANVAS_HEIGHT = 256;
+  canvas.width = CANVAS_WIDTH;
+  canvas.height = CANVAS_HEIGHT;
 
   const context = canvas.getContext("2d");
-  if (!context) {
-    throw new Error("2D canvas context unavailable for indicator label.");
-  }
+  if (!context) throw new Error("2D canvas context unavailable.");
   const labelContext = context;
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter; // avoids blur when scaled down
+  texture.magFilter = THREE.LinearFilter;
 
   const material = new THREE.SpriteMaterial({
     map: texture,
@@ -149,22 +152,30 @@ function createIndicatorValueLabel(initialText: string): {
 
   const sprite = new THREE.Sprite(material);
   sprite.renderOrder = 10;
-  sprite.scale.set(1.45, 0.42, 1);
+
+  // **Scale sprite down in 3D space**
+  const SPRITE_WIDTH = 1.45;
+  const SPRITE_HEIGHT = 0.42;
+  sprite.scale.set(SPRITE_WIDTH, SPRITE_HEIGHT, 1);
 
   function setText(text: string) {
-    labelContext.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas
+    labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Draw background
     labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
-    roundRect(labelContext, 10, 10, canvas.width - 20, canvas.height - 20, 12);
+    roundRect(labelContext, 30, 80, CANVAS_WIDTH - 60, CANVAS_HEIGHT - 160, 32);
     labelContext.fill();
     labelContext.strokeStyle = "rgba(255, 255, 255, 0.18)";
-    labelContext.lineWidth = 2;
+    labelContext.lineWidth = 6;
     labelContext.stroke();
 
-    labelContext.font = "300 14px monospace";
+    // Draw text
+    labelContext.font = "bold 64px monospace"; // large font
     labelContext.textAlign = "center";
     labelContext.textBaseline = "middle";
     labelContext.fillStyle = "rgba(255, 255, 255, 0.96)";
-    labelContext.fillText(text, canvas.width / 2, canvas.height / 2 + 1);
+    labelContext.fillText(text, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 2);
 
     texture.needsUpdate = true;
   }
