@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { EARTH_MOON_DISTANCE } from "../../physics/bodies";
 import earthTextureUrl from "../../assets/textures/earth.jpg";
-import moonTextureUrl from "../../assets/textures/mercury.jpg";
+import moonTextureUrl from "../../assets/Nasa Moon/moon_color.png";
 import {
   DISTANCE_SCALE,
   EARTH_DRAW_RADIUS,
