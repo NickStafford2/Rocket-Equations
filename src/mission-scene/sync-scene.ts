@@ -39,6 +39,7 @@ type SyncMissionSceneParams = {
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
   showTrailRef: MutableRefObject<boolean>;
+  showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
@@ -71,6 +72,7 @@ export function syncMissionScene({
   launchAngleRef,
   launchAzimuthRef,
   showTrailRef,
+  showPredictionRef,
   showThrustDirectionArrowRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
@@ -101,6 +103,13 @@ export function syncMissionScene({
     simulation,
     showTrail: showTrailRef.current,
     previousTrailLengthRef,
+  });
+  syncPredictionDisplay({
+    bundle,
+    simulation,
+    frame,
+    running: runningRef.current,
+    showPrediction: showPredictionRef.current,
   });
   syncOrientationIndicator(bundle);
   syncFarAwayLabels(bundle);
@@ -158,7 +167,7 @@ function createFrameState({
     launchFrame,
     previewState,
     aimArrowLength: THREE.MathUtils.lerp(12, 30, normalizedLaunchSpeed),
-    stagedLaunchPreviewVisible: !running,
+    stagedLaunchPreviewVisible: !running && simState.t === 0 && !simState.impact,
   };
 }
 
@@ -272,6 +281,61 @@ function syncTrailDisplay({
   trailPositions.needsUpdate = true;
   bundle.objects.trailLine.geometry.setDrawRange(0, trailLength);
   previousTrailLengthRef.current = trailLength;
+}
+
+function syncPredictionDisplay({
+  bundle,
+  simulation,
+  frame,
+  running,
+  showPrediction,
+}: {
+  bundle: ThreeSceneBundle;
+  simulation: EarthMoonSimulation;
+  frame: FrameState;
+  running: boolean;
+  showPrediction: boolean;
+}) {
+  bundle.objects.predictionLine.visible = showPrediction;
+
+  if (!showPrediction) {
+    return;
+  }
+
+  const sourceState = frame.stagedLaunchPreviewVisible
+    ? {
+        t: 0,
+        position: frame.previewState.position,
+        velocity: frame.previewState.velocity,
+      }
+    : {
+        t: frame.simState.t,
+        position: frame.simState.rocket.position,
+        velocity: frame.simState.rocket.velocity,
+      }
+
+  const predictionUpdated = simulation.refreshPrediction(
+    frame.now,
+    sourceState,
+    running,
+  )
+  const predictionLength = simulation.getPredictionLength();
+
+  if (
+    !predictionUpdated &&
+    bundle.objects.predictionLine.geometry.drawRange.count === predictionLength
+  ) {
+    return;
+  }
+
+  const predictionPositions = bundle.objects.predictionLine.geometry.getAttribute(
+    "position",
+  ) as THREE.BufferAttribute;
+  const positionArray = predictionPositions.array as Float32Array;
+
+  simulation.copyPredictionPositionsTo(positionArray, DISTANCE_SCALE);
+  predictionPositions.needsUpdate = true;
+  bundle.objects.predictionLine.geometry.setDrawRange(0, predictionLength);
 }
 
 function syncOrientationIndicator(bundle: ThreeSceneBundle) {

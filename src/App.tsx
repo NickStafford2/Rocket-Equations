@@ -28,6 +28,8 @@ export default function App() {
     setDt,
     showTrail,
     setShowTrail,
+    showPrediction,
+    setShowPrediction,
     showThrustDirectionArrow,
     setShowThrustDirectionArrow,
     status,
@@ -70,6 +72,7 @@ export default function App() {
     launchAngleRef,
     launchAzimuthRef,
     showTrail,
+    showPrediction,
     showThrustDirectionArrow,
   });
 
@@ -113,6 +116,7 @@ export default function App() {
         launchAzimuthDeg={launchAzimuthDeg}
         dt={dt}
         showTrail={showTrail}
+        showPrediction={showPrediction}
         showThrustDirectionArrow={showThrustDirectionArrow}
         pressedControls={pressedControls}
         onOverview={() => {
@@ -142,6 +146,7 @@ export default function App() {
         onLaunchAzimuthChange={setLaunchAzimuthDeg}
         onDtChange={setDt}
         onShowTrailChange={setShowTrail}
+        onShowPredictionChange={setShowPrediction}
         onToggleThrustDirectionArrow={() => {
           setShowThrustDirectionArrow((current) => !current);
           focusScene();

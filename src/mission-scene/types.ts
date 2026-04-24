@@ -20,6 +20,7 @@ export type UseMissionSceneParams = {
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
   showTrail: boolean;
+  showPrediction: boolean;
   showThrustDirectionArrow: boolean;
 };
 

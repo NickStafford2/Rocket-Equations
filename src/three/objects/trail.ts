@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { PREDICTION_POINT_CAPACITY } from "../../sim/prediction";
 import { TRAIL_POINT_CAPACITY } from "../../sim/trail";
 
 export function createTrailLine() {
@@ -25,4 +26,30 @@ export function createTrailLine() {
   trailLine.renderOrder = 2;
 
   return trailLine;
+}
+
+export function createPredictionLine() {
+  const predictionGeometry = new THREE.BufferGeometry();
+  predictionGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(
+      new Float32Array(PREDICTION_POINT_CAPACITY * 3),
+      3,
+    ).setUsage(THREE.DynamicDrawUsage),
+  );
+  predictionGeometry.setDrawRange(0, 0);
+
+  const predictionLine = new THREE.Line(
+    predictionGeometry,
+    new THREE.LineBasicMaterial({
+      color: 0x7dd3fc,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    }),
+  );
+  predictionLine.frustumCulled = false;
+  predictionLine.renderOrder = 1;
+
+  return predictionLine;
 }

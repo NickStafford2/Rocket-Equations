@@ -32,6 +32,7 @@ export type SceneHudProps = {
   launchAzimuthDeg: number;
   dt: number;
   showTrail: boolean;
+  showPrediction: boolean;
   showThrustDirectionArrow: boolean;
   pressedControls: Record<MissionControlKey, boolean>;
   onOverview: () => void;
@@ -44,6 +45,7 @@ export type SceneHudProps = {
   onLaunchAzimuthChange: (value: number) => void;
   onDtChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
+  onShowPredictionChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;
   onMissionControlPress: (control: MissionControlKey) => void;
   onMissionControlRelease: (control: MissionControlKey) => void;

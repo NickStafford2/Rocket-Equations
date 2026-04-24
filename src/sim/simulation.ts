@@ -15,6 +15,12 @@ import {
 import type { ManeuverInput } from '../physics/bodies'
 import type { SimulationState } from '../physics/bodies'
 import { altitudeAboveEarth, altitudeAboveMoon, stepSimulation } from '../physics/integrator'
+import {
+  PREDICTION_POINT_CAPACITY,
+  PREDICTION_REFRESH_INTERVAL_MS,
+  type TrajectoryPredictionState,
+  predictTrajectory,
+} from './prediction'
 import { TRAIL_POINT_CAPACITY } from './trail'
 
 export type SimulationConfig = {
@@ -46,6 +52,13 @@ export class EarthMoonSimulation {
   )
   private trailStart = 0
   private trailCount = 0
+  private prediction = Array.from(
+    { length: PREDICTION_POINT_CAPACITY },
+    () => new THREE.Vector3(),
+  )
+  private predictionCount = 0
+  private predictionLastUpdatedAt = Number.NEGATIVE_INFINITY
+  private predictionKey = ''
   private peakAltitudeEarth = 0
   private closestMoonApproach = Infinity
 
@@ -123,6 +136,10 @@ export class EarthMoonSimulation {
     return this.trailCount
   }
 
+  getPredictionLength(): number {
+    return this.predictionCount
+  }
+
   copyTrailPositionsTo(
     target: Float32Array,
     scale: number,
@@ -140,6 +157,57 @@ export class EarthMoonSimulation {
     }
 
     return this.trailCount
+  }
+
+  refreshPrediction(
+    nowMs: number,
+    sourceState: TrajectoryPredictionState,
+    running: boolean,
+  ): boolean {
+    const nextKey = this.serializePredictionState(sourceState)
+    const sourceChanged = nextKey !== this.predictionKey
+    const elapsedSinceLastPrediction =
+      nowMs - this.predictionLastUpdatedAt
+
+    if (running && elapsedSinceLastPrediction < PREDICTION_REFRESH_INTERVAL_MS) {
+      return false
+    }
+
+    if (
+      !running &&
+      !sourceChanged &&
+      elapsedSinceLastPrediction < PREDICTION_REFRESH_INTERVAL_MS
+    ) {
+      return false
+    }
+
+    const nextPrediction = predictTrajectory(sourceState)
+    this.predictionCount = Math.min(
+      nextPrediction.length,
+      PREDICTION_POINT_CAPACITY,
+    )
+
+    for (let index = 0; index < this.predictionCount; index += 1) {
+      this.prediction[index].copy(nextPrediction[index])
+    }
+
+    this.predictionKey = nextKey
+    this.predictionLastUpdatedAt = nowMs
+
+    return true
+  }
+
+  copyPredictionPositionsTo(target: Float32Array, scale: number): number {
+    for (let index = 0; index < this.predictionCount; index += 1) {
+      const point = this.prediction[index]
+      const offset = index * 3
+
+      target[offset] = point.x * scale
+      target[offset + 1] = point.y * scale
+      target[offset + 2] = point.z * scale
+    }
+
+    return this.predictionCount
   }
 
   getTelemetry(): SimulationTelemetry {
@@ -190,5 +258,17 @@ export class EarthMoonSimulation {
 
     this.trail[this.trailStart].copy(position)
     this.trailStart = (this.trailStart + 1) % TRAIL_POINT_CAPACITY
+  }
+
+  private serializePredictionState(state: TrajectoryPredictionState): string {
+    return [
+      state.t,
+      state.position.x,
+      state.position.y,
+      state.position.z,
+      state.velocity.x,
+      state.velocity.y,
+      state.velocity.z,
+    ].join('|')
   }
 }

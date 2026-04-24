@@ -11,6 +11,8 @@ export const R_MOON = 1.7374e6;
 export const EARTH_MOON_DISTANCE = 384_400_000.0;
 export const MOON_ORBIT_PERIOD = 27.321661 * 24 * 3600;
 export const MOON_ANGULAR_SPEED = (2 * Math.PI) / MOON_ORBIT_PERIOD;
+export const MOON_SOI_RADIUS =
+  EARTH_MOON_DISTANCE * Math.pow(M_MOON / M_EARTH, 2 / 5);
 
 export const DEFAULT_ALTITUDE = 0.0;
 export const DEFAULT_SPEED = 11_550.0;

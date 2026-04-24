@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { DISTANCE_SCALE, EARTH_DRAW_RADIUS, MOON_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 import { createBodyObjects } from "./bodies";
 import { createRocketObjects } from "./rocket";
-import { createTrailLine } from "./trail";
+import { createPredictionLine, createTrailLine } from "./trail";
 
 export {
   DISTANCE_SCALE,
@@ -27,6 +27,7 @@ export type SceneObjects = {
   launchAimArrow: THREE.ArrowHelper;
   moonOrbit: THREE.Line;
   trailLine: THREE.Line;
+  predictionLine: THREE.Line;
 };
 
 export function createSceneObjects(scene: THREE.Scene): SceneObjects {
@@ -46,6 +47,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchAimArrow,
   } = createRocketObjects();
   const trailLine = createTrailLine();
+  const predictionLine = createPredictionLine();
 
   system.add(earthGroup);
   system.add(moon);
@@ -57,6 +59,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   system.add(launchAimArrow);
   system.add(moonOrbit);
   system.add(trailLine);
+  system.add(predictionLine);
 
   return {
     system,
@@ -74,6 +77,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchAimArrow,
     moonOrbit,
     trailLine,
+    predictionLine,
   };
 }
 

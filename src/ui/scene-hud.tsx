@@ -22,6 +22,7 @@ export function SceneHud({
   launchAzimuthDeg,
   dt,
   showTrail,
+  showPrediction,
   showThrustDirectionArrow,
   pressedControls,
   onOverview,
@@ -34,6 +35,7 @@ export function SceneHud({
   onLaunchAzimuthChange,
   onDtChange,
   onShowTrailChange,
+  onShowPredictionChange,
   onToggleThrustDirectionArrow,
   onMissionControlPress,
   onMissionControlRelease,
@@ -58,12 +60,14 @@ export function SceneHud({
               launchAzimuthDeg={launchAzimuthDeg}
               dt={dt}
               showTrail={showTrail}
+              showPrediction={showPrediction}
               showThrustDirectionArrow={showThrustDirectionArrow}
               onLaunchSpeedChange={onLaunchSpeedChange}
               onLaunchAngleChange={onLaunchAngleChange}
               onLaunchAzimuthChange={onLaunchAzimuthChange}
               onDtChange={onDtChange}
               onShowTrailChange={onShowTrailChange}
+              onShowPredictionChange={onShowPredictionChange}
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
             />
           </div>

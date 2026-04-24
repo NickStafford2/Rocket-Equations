@@ -50,6 +50,7 @@ export function useMissionSimulation() {
   );
   const [dt, setDtState] = useState(DEFAULT_DT);
   const [showTrail, setShowTrail] = useState(true);
+  const [showPrediction, setShowPrediction] = useState(true);
   const [showThrustDirectionArrow, setShowThrustDirectionArrow] = useState(true);
   const [status, setStatus] = useState(INITIAL_MISSION_STATUS);
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
@@ -132,6 +133,8 @@ export function useMissionSimulation() {
     setDt,
     showTrail,
     setShowTrail,
+    showPrediction,
+    setShowPrediction,
     showThrustDirectionArrow,
     setShowThrustDirectionArrow,
     status,

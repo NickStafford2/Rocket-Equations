@@ -10,12 +10,14 @@ type SettingsPanelProps = Pick<
   | "launchAzimuthDeg"
   | "dt"
   | "showTrail"
+  | "showPrediction"
   | "showThrustDirectionArrow"
   | "onLaunchSpeedChange"
   | "onLaunchAngleChange"
   | "onLaunchAzimuthChange"
   | "onDtChange"
   | "onShowTrailChange"
+  | "onShowPredictionChange"
   | "onToggleThrustDirectionArrow"
 >;
 
@@ -25,12 +27,14 @@ export const SettingsPanel = memo(function SettingsPanel({
   launchAzimuthDeg,
   dt,
   showTrail,
+  showPrediction,
   showThrustDirectionArrow,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
   onDtChange,
   onShowTrailChange,
+  onShowPredictionChange,
   onToggleThrustDirectionArrow,
 }: SettingsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -97,6 +101,12 @@ export const SettingsPanel = memo(function SettingsPanel({
             description="Keeps the rocket path visible."
             checked={showTrail}
             onChange={onShowTrailChange}
+          />
+          <CompactCheckbox
+            label="Show prediction"
+            description="Displays the projected coasting path using Earth and Moon patched conics."
+            checked={showPrediction}
+            onChange={onShowPredictionChange}
           />
           <CompactCheckbox
             label="Show thrust arrow"

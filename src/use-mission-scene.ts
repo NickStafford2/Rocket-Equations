@@ -41,12 +41,14 @@ export function useMissionScene({
   launchAngleRef,
   launchAzimuthRef,
   showTrail,
+  showPrediction,
   showThrustDirectionArrow,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
   const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
   const cameraRigRef = useRef<CameraRigState>(createInitialCameraRig());
   const showTrailRef = useRef(showTrail);
+  const showPredictionRef = useRef(showPrediction);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
   const lastUiSyncAtRef = useRef(0);
   const lastCameraDebugSyncAtRef = useRef(0);
@@ -93,6 +95,11 @@ export function useMissionScene({
   }, [showTrail]);
 
   useEffect(() => {
+    showPredictionRef.current = showPrediction;
+    requestSceneRender();
+  }, [showPrediction]);
+
+  useEffect(() => {
     showThrustDirectionArrowRef.current = showThrustDirectionArrow;
     requestSceneRender();
   }, [showThrustDirectionArrow]);
@@ -115,6 +122,7 @@ export function useMissionScene({
       launchAngleRef,
       launchAzimuthRef,
       showTrailRef,
+      showPredictionRef,
       showThrustDirectionArrowRef,
       previousTrailLengthRef,
       lastUiSyncAtRef,
