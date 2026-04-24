@@ -44,7 +44,7 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   earthGroup.add(earthLabel);
 
   const { satelliteSystem } = createSatelliteSystem();
-  earthRotatingFrame.add(satelliteSystem);
+  earthGroup.add(satelliteSystem);
 
   const moonNormal = loader.load(moonNormalUrl);
   moonNormal.colorSpace = THREE.NoColorSpace;

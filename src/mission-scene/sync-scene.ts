@@ -20,6 +20,7 @@ import {
   MOON_DRAW_RADIUS,
   ROCKET_DRAW_RADIUS,
 } from "../three/objects";
+import { syncSatelliteSystem } from "../three/objects/satellites";
 import type { ThreeSceneBundle } from "../three/scene";
 import { getCameraDebugSnapshot, type CameraRigState } from "../three/camera-rig";
 import type { CameraDebugState } from "./types";
@@ -179,6 +180,7 @@ function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
 
   objects.earthRotatingFrame.rotation.y = EARTH_ANGULAR_SPEED * frame.simState.t;
+  syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
   objects.moon.position.copy(metersToScene(frame.telemetry.moonPosition));
   objects.rocket.position.copy(metersToScene(frame.simState.rocket.position));
 }
