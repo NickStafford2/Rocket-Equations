@@ -158,31 +158,38 @@ function createIndicatorValueLabel(initialText: string): {
   const SPRITE_HEIGHT = 0.42;
   sprite.scale.set(SPRITE_WIDTH, SPRITE_HEIGHT, 1);
 
-  function setText(text: string) {
-    // --- Constants for layout ---
-    const PADDING_X = CANVAS_WIDTH * 0.03; // 3% horizontal padding
-    const PADDING_Y = CANVAS_HEIGHT * 0.25; // original vertical padding
-    const BORDER_RADIUS = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.125;
+  function setText(text: string, labelYShift: number = 0) {
+    // --- Constants ---
+    const PADDING_X = 30; // horizontal padding
+    const PADDING_Y = 80; // top padding
+    const BORDER_RADIUS = 32;
     const STROKE_WIDTH = 6;
-    const TEXT_FONT_SIZE = Math.floor(CANVAS_HEIGHT * 0.25);
-    const TEXT_Y_OFFSET = 22;
-    const LABEL_Y_SHIFT = 0; // move everything down
+    const TEXT_FONT_SIZE = 64; // px
+    const TEXT_Y_OFFSET = 22; // vertical text offset inside label
+
+    // Compute canvas height dynamically to avoid clipping
+    const requiredHeight =
+      PADDING_Y + (CANVAS_HEIGHT - 2 * PADDING_Y) + TEXT_Y_OFFSET + labelYShift;
+    if (CANVAS_HEIGHT < requiredHeight) {
+      canvas.height = requiredHeight;
+    }
 
     // Clear canvas
-    labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    labelContext.clearRect(0, 0, CANVAS_WIDTH, canvas.height);
 
-    // Draw background
+    // Draw background rectangle
     labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
     roundRect(
       labelContext,
       PADDING_X,
-      PADDING_Y - TEXT_Y_OFFSET / 3 + LABEL_Y_SHIFT, // background moves down
+      PADDING_Y + labelYShift, // shift background down
       CANVAS_WIDTH - 2 * PADDING_X,
-      CANVAS_HEIGHT - 2 * PADDING_Y + TEXT_Y_OFFSET,
+      CANVAS_HEIGHT - 2 * PADDING_Y,
       BORDER_RADIUS,
     );
     labelContext.fill();
 
+    // Draw border
     labelContext.strokeStyle = "rgba(255, 255, 255, 0.18)";
     labelContext.lineWidth = STROKE_WIDTH;
     labelContext.stroke();
@@ -195,9 +202,10 @@ function createIndicatorValueLabel(initialText: string): {
     labelContext.fillText(
       text,
       CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + TEXT_Y_OFFSET + LABEL_Y_SHIFT,
+      CANVAS_HEIGHT / 2 + TEXT_Y_OFFSET + labelYShift,
     );
 
+    // Update texture
     texture.needsUpdate = true;
   }
 
