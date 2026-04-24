@@ -1,9 +1,10 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import saturnVModelUrl from "../../assets/Space Shuttle.glb?url";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import protonModelUrl from "../../assets/Proton Rocket/Proton.obj?url";
+import protonTextureUrl from "../../assets/Proton Rocket/Proton.jpg?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
-const SATURN_V_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
+const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
@@ -31,23 +32,34 @@ export function createRocketObjects() {
   const modelRoot = new THREE.Group();
   rocket.add(modelRoot);
 
-  const loader = new GLTFLoader();
+  const textureLoader = new THREE.TextureLoader();
+  const protonTexture = textureLoader.load(protonTextureUrl);
+  protonTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const protonMaterial = new THREE.MeshStandardMaterial({
+    map: protonTexture,
+    color: 0xffffff,
+    roughness: 0.6,
+    metalness: 0.15,
+  });
+
+  const loader = new OBJLoader();
   loader.load(
-    saturnVModelUrl,
-    (gltf) => {
-      const saturnV = gltf.scene;
-      saturnV.traverse((object) => {
+    protonModelUrl,
+    (proton) => {
+      proton.traverse((object) => {
         const mesh = object as THREE.Mesh;
         if (!mesh.isMesh) {
           return;
         }
 
+        mesh.material = protonMaterial;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
       });
 
       modelRoot.clear();
-      modelRoot.add(saturnV);
+      modelRoot.add(proton);
 
       const preScaleBox = new THREE.Box3().setFromObject(modelRoot);
       const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
@@ -57,7 +69,7 @@ export function createRocketObjects() {
         preScaleSize.z,
         1e-6,
       );
-      const scale = SATURN_V_TARGET_HEIGHT / sourceHeight;
+      const scale = PROTON_TARGET_HEIGHT / sourceHeight;
       modelRoot.scale.setScalar(scale);
 
       const scaledBox = new THREE.Box3().setFromObject(modelRoot);
@@ -77,7 +89,7 @@ export function createRocketObjects() {
     },
     undefined,
     (error) => {
-      console.error("Failed to load Saturn V model.", error);
+      console.error("Failed to load Proton rocket model.", error);
     },
   );
 
