@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module2.glb?url";
 import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz5.glb?url";
-import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V.glb?url";
+import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V2.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
 export type RocketModelVariant =
