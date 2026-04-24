@@ -145,7 +145,7 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
           : "Ambiance not started";
 
   return (
-    <div className="pointer-events-auto flex h-fit w-fit flex-row items-stretch overflow-hidden rounded-xl bg-black">
+    <div className="pointer-events-auto flex h-fit w-fit flex-row items-stretch overflow-hidden rounded-xl bg-gray-900">
       <div
         className={
           soundtrackOpen
@@ -160,21 +160,19 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
         type="button"
         className={
           soundtrackOpen
-            ? "w-[40px] self-stretch rounded-r-xl bg-red-500 align-middle text-sm font-medium transition-colors hover:bg-white/10"
-            : "w-[360px] self-stretch rounded-xl bg-blue-500 align-middle text-sm font-medium transition-colors hover:bg-white/10"
+            ? "w-[40px] self-stretch rounded-r-xl align-middle text-sm font-medium transition-colors hover:bg-white/10"
+            : "w-[360px] self-stretch rounded-xl align-middle text-sm font-medium transition-colors hover:bg-white/10"
         }
         onClick={() => setSoundtrackOpen((current) => !current)}
       >
-        <div className="flex h-full flex-row items-center justify-between bg-amber-100">
+        <div className="flex h-full cursor-pointer flex-row items-center justify-between">
           {!soundtrackOpen ? (
-            <span className="w-full bg-green-500 p-2 tracking-[0.18em] text-slate-300 uppercase">
+            <span className="w-full p-2 tracking-[0.18em] text-slate-300 uppercase">
               {soundtrackStatus}
             </span>
           ) : null}
-          <div className="flex h-full w-[40px] min-w-[40px] justify-center bg-yellow-500 align-middle">
-            <span className="bg-amber-500 pt-2 text-lg">
-              {soundtrackOpen ? "-" : "+"}
-            </span>
+          <div className="flex h-full w-[40px] min-w-[40px] justify-center align-middle">
+            <span className="pt-1 text-lg">{soundtrackOpen ? "-" : "+"}</span>
           </div>
         </div>
       </button>
