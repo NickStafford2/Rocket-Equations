@@ -6,6 +6,7 @@ import {
   ROCKET_DRAW_RADIUS,
 } from "./constants";
 import { createBodyObjects } from "./bodies";
+import type { RocketModelVariant } from "./rocket";
 import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 
@@ -32,6 +33,7 @@ export type SceneObjects = {
   launchRing: THREE.Mesh;
   launchTangentArrow: THREE.ArrowHelper;
   launchAimArrow: THREE.ArrowHelper;
+  setRocketModelVariant: (variant: RocketModelVariant) => void;
   moonOrbit: THREE.Line;
   trailLine: THREE.Line;
   predictionLine: THREE.Line;
@@ -60,6 +62,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchRing,
     launchTangentArrow,
     launchAimArrow,
+    setRocketModelVariant,
   } = createRocketObjects();
   const trailLine = createTrailLine();
   const predictionLine = createPredictionLine();
@@ -92,6 +95,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchRing,
     launchTangentArrow,
     launchAimArrow,
+    setRocketModelVariant,
     moonOrbit,
     trailLine,
     predictionLine,

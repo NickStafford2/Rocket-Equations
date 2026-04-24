@@ -1,61 +1,119 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import protonModelUrl from "../../assets/Space_Rocket_SaturnV/SaturnV5.glb?url";
+import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module.glb?url";
+import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz5.glb?url";
+import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
-const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
+export type RocketModelVariant =
+  | "saturn-v"
+  | "apollo-soyuz"
+  | "apollo-lunar-module";
+
+type RocketVisualController = {
+  root: THREE.Group;
+  setVariant: (variant: RocketModelVariant) => void;
+  getVariant: () => RocketModelVariant;
+};
+
+const SATURN_V_TARGET_SIZE = ROCKET_DRAW_RADIUS * 8.6;
 const SHOW_DEBUG_CYLINDER = false;
 const MODEL_SIZE = new THREE.Vector3();
+const MODEL_CONFIGS: Record<
+  RocketModelVariant,
+  {
+    url: string;
+    name: string;
+    targetSize: number;
+  }
+> = {
+  "saturn-v": {
+    url: saturnVModelUrl,
+    name: "Saturn V",
+    targetSize: SATURN_V_TARGET_SIZE,
+  },
+  "apollo-soyuz": {
+    url: apolloSoyuzUrl,
+    name: "Apollo Soyuz",
+    targetSize: (SATURN_V_TARGET_SIZE * 0.22) / 100,
+  },
+  "apollo-lunar-module": {
+    url: apolloLunarModuleUrl,
+    name: "Apollo Lunar Module",
+    targetSize: SATURN_V_TARGET_SIZE * 8000,
+  },
+};
+const MODEL_CACHE = new Map<RocketModelVariant, Promise<THREE.Group>>();
 
 export function createRocketVisual(
-  targetHeight: number,
+  defaultTargetSize: number,
   {
+    initialVariant = "saturn-v",
     onScaled,
   }: {
-    onScaled?: (payload: { size: THREE.Vector3; center: THREE.Vector3 }) => void;
+    initialVariant?: RocketModelVariant;
+    onScaled?: (payload: {
+      size: THREE.Vector3;
+      center: THREE.Vector3;
+    }) => void;
   } = {},
-): THREE.Group {
+): RocketVisualController {
   const scaleRoot = new THREE.Group();
-  const loader = new GLTFLoader();
+  let activeVariant = initialVariant;
+  let loadRequestId = 0;
 
-  loader.load(
-    protonModelUrl,
-    (gltf) => {
-      const proton = gltf.scene;
+  function setVariant(variant: RocketModelVariant) {
+    if (variant === activeVariant && scaleRoot.children.length > 0) {
+      return;
+    }
 
-      proton.traverse((object) => {
-        const mesh = object as THREE.Mesh;
-        if (!mesh.isMesh) {
+    activeVariant = variant;
+    const requestId = ++loadRequestId;
+
+    void loadRocketModel(variant)
+      .then((model) => {
+        if (requestId !== loadRequestId) {
           return;
         }
 
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        scaleRoot.clear();
+        scaleRoot.add(model);
+
+        scaleRoot.updateMatrixWorld(true);
+        const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
+        const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
+        const sourceSize = Math.max(
+          preScaleSize.x,
+          preScaleSize.y,
+          preScaleSize.z,
+          1e-6,
+        );
+        const targetSize =
+          MODEL_CONFIGS[variant].targetSize ?? defaultTargetSize;
+        const scale = targetSize / sourceSize;
+        scaleRoot.scale.setScalar(scale);
+
+        scaleRoot.updateMatrixWorld(true);
+        const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
+        const scaledSize = scaledBox.getSize(new THREE.Vector3());
+        const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+        onScaled?.({ size: scaledSize, center: scaledCenter });
+      })
+      .catch((error) => {
+        console.error(
+          `Failed to load ${MODEL_CONFIGS[variant].name} rocket model.`,
+          error,
+        );
       });
+  }
 
-      scaleRoot.clear();
-      scaleRoot.add(proton);
+  setVariant(initialVariant);
 
-      scaleRoot.updateMatrixWorld(true);
-      const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
-      const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
-      const sourceHeight = Math.max(preScaleSize.y, 1e-6);
-      const scale = targetHeight / sourceHeight;
-      scaleRoot.scale.setScalar(scale);
-
-      scaleRoot.updateMatrixWorld(true);
-      const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
-      const scaledSize = scaledBox.getSize(new THREE.Vector3());
-      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      onScaled?.({ size: scaledSize, center: scaledCenter });
-    },
-    undefined,
-    (error) => {
-      console.error("Failed to load Proton rocket model.", error);
-    },
-  );
-
-  return scaleRoot;
+  return {
+    root: scaleRoot,
+    setVariant,
+    getVariant: () => activeVariant,
+  };
 }
 
 export function createRocketObjects() {
@@ -85,7 +143,7 @@ export function createRocketObjects() {
     rocket.add(createDebugRocketBody(fallbackBodyLength));
   }
 
-  const scaleRoot = createRocketVisual(PROTON_TARGET_HEIGHT, {
+  const rocketVisual = createRocketVisual(SATURN_V_TARGET_SIZE, {
     onScaled: ({ size: scaledSize }) => {
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
@@ -98,7 +156,7 @@ export function createRocketObjects() {
       );
     },
   });
-  rocket.add(scaleRoot);
+  rocket.add(rocketVisual.root);
 
   const thrustDirectionArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
@@ -159,7 +217,42 @@ export function createRocketObjects() {
     launchRing,
     launchTangentArrow,
     launchAimArrow,
+    setRocketModelVariant: rocketVisual.setVariant,
   };
+}
+
+function loadRocketModel(variant: RocketModelVariant): Promise<THREE.Group> {
+  const cachedModel = MODEL_CACHE.get(variant);
+  if (cachedModel) {
+    return cachedModel.then((model) => model.clone(true));
+  }
+
+  const loader = new GLTFLoader();
+  const pendingModel = new Promise<THREE.Group>((resolve, reject) => {
+    loader.load(
+      MODEL_CONFIGS[variant].url,
+      (gltf) => {
+        const model = gltf.scene;
+
+        model.traverse((object) => {
+          const mesh = object as THREE.Mesh;
+          if (!mesh.isMesh) {
+            return;
+          }
+
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        });
+
+        resolve(model);
+      },
+      undefined,
+      reject,
+    );
+  });
+
+  MODEL_CACHE.set(variant, pendingModel);
+  return pendingModel.then((model) => model.clone(true));
 }
 
 function createDebugRocketBody(bodyLength: number): THREE.Group {

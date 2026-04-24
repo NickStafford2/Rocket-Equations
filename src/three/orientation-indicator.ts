@@ -1,5 +1,8 @@
 import * as THREE from "three";
-import { createRocketVisual } from "./objects/rocket";
+import {
+  createRocketVisual,
+  type RocketModelVariant,
+} from "./objects/rocket";
 
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
 const VECTOR_ARROW_LENGTH = 1.45;
@@ -16,6 +19,7 @@ export type OrientationIndicatorBundle = {
   camera: THREE.PerspectiveCamera;
   frame: THREE.Group;
   rocket: THREE.Group;
+  setRocketModelVariant: (variant: RocketModelVariant) => void;
   sizePx: number;
 };
 
@@ -35,10 +39,10 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   const rocket = new THREE.Group();
   const rocketVisual = createRocketVisual(INDICATOR_ROCKET_HEIGHT, {
     onScaled: ({ center }) => {
-      rocketVisual.position.y = 600 * center.y;
+      rocketVisual.root.position.y = 600 * center.y;
     },
   });
-  rocket.add(rocketVisual);
+  rocket.add(rocketVisual.root);
   frame.add(rocket);
 
   return {
@@ -46,6 +50,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
     camera,
     frame,
     rocket,
+    setRocketModelVariant: rocketVisual.setVariant,
     sizePx: 132,
   };
 }

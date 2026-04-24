@@ -97,7 +97,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   controls.zoomSpeed = 0.9;
   controls.panSpeed = 0.75;
   controls.screenSpacePanning = false;
-  controls.minDistance = 0.08;
+  controls.minDistance = 0.01;
   controls.maxDistance = 1400;
   controls.minPolarAngle = 0.08;
   controls.maxPolarAngle = Math.PI - 0.08;

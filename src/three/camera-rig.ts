@@ -49,6 +49,9 @@ const DEFAULT_TARGET_EPSILON = 0.35;
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 const FOLLOW_WORLD_POSITION = new THREE.Vector3();
 const LOOK_WORLD_POSITION = new THREE.Vector3();
+const FOLLOW_MIN_DISTANCE_MULTIPLIER = 0.75;
+const FOLLOW_MAX_DISTANCE_MULTIPLIER = 8;
+const FOLLOW_DEFAULT_DISTANCE_MULTIPLIER = 1.6;
 
 export type CameraRigState = {
   mode: CameraRigMode;
@@ -332,8 +335,16 @@ function getInitialFollowOffset(
 
   const currentOffset = camera.position.clone().sub(FOLLOW_WORLD_POSITION);
   const focusRadius = Number(object.userData.focusRadius ?? 12);
-  const minDistance = THREE.MathUtils.clamp(focusRadius * 2.5, 0.18, 520);
-  const maxDistance = THREE.MathUtils.clamp(focusRadius * 12, 1.25, 700);
+  const minDistance = THREE.MathUtils.clamp(
+    focusRadius * FOLLOW_MIN_DISTANCE_MULTIPLIER,
+    0.05,
+    520,
+  );
+  const maxDistance = THREE.MathUtils.clamp(
+    focusRadius * FOLLOW_MAX_DISTANCE_MULTIPLIER,
+    0.8,
+    700,
+  );
 
   if (currentOffset.lengthSq() > 1e-6) {
     const clampedDistance = THREE.MathUtils.clamp(
@@ -348,10 +359,22 @@ function getInitialFollowOffset(
   if (viewDirection.lengthSq() > 1e-6) {
     return viewDirection
       .normalize()
-      .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 0.4, 520));
+      .multiplyScalar(
+        THREE.MathUtils.clamp(
+          focusRadius * FOLLOW_DEFAULT_DISTANCE_MULTIPLIER,
+          0.2,
+          520,
+        ),
+      );
   }
 
   return FALLBACK_VIEW_DIRECTION
     .clone()
-    .multiplyScalar(THREE.MathUtils.clamp(focusRadius * 5, 0.4, 520));
+    .multiplyScalar(
+      THREE.MathUtils.clamp(
+        focusRadius * FOLLOW_DEFAULT_DISTANCE_MULTIPLIER,
+        0.2,
+        520,
+      ),
+    );
 }
