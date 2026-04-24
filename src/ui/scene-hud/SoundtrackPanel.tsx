@@ -145,7 +145,7 @@ export const SoundtrackPanel = memo(function SoundtrackPanel() {
           : "Ambiance not started";
 
   return (
-    <div className="pointer-events-auto flex h-fit w-fit flex-row items-stretch overflow-hidden rounded-xl bg-gray-900">
+    <div className="pointer-events-auto flex h-fit w-fit flex-row items-stretch overflow-hidden rounded-xl border-1 border-gray-500 bg-gray-950">
       <div
         className={
           soundtrackOpen
