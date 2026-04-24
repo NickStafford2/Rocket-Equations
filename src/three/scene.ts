@@ -42,7 +42,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const camera = new THREE.PerspectiveCamera(
     55,
     container.clientWidth / Math.max(container.clientHeight, 1),
-    0.02,
+    0.002,
     10000,
   );
   camera.up.set(0, 1, 0);

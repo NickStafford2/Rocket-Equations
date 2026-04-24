@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module.glb?url";
+import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module2.glb?url";
 import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz5.glb?url";
 import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
@@ -35,12 +35,12 @@ const MODEL_CONFIGS: Record<
   "apollo-soyuz": {
     url: apolloSoyuzUrl,
     name: "Apollo Soyuz",
-    targetSize: (SATURN_V_TARGET_SIZE * 0.22) / 100,
+    targetSize: (SATURN_V_TARGET_SIZE * 0.22) / 1000,
   },
   "apollo-lunar-module": {
     url: apolloLunarModuleUrl,
     name: "Apollo Lunar Module",
-    targetSize: SATURN_V_TARGET_SIZE * 8000,
+    targetSize: SATURN_V_TARGET_SIZE * 0.05,
   },
 };
 const MODEL_CACHE = new Map<RocketModelVariant, Promise<THREE.Group>>();
