@@ -7,6 +7,57 @@ const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
 const SHOW_DEBUG_CYLINDER = false;
 const MODEL_SIZE = new THREE.Vector3();
 
+export function createRocketVisual(
+  targetHeight: number,
+  {
+    onScaled,
+  }: {
+    onScaled?: (payload: { size: THREE.Vector3; center: THREE.Vector3 }) => void;
+  } = {},
+): THREE.Group {
+  const scaleRoot = new THREE.Group();
+  const loader = new GLTFLoader();
+
+  loader.load(
+    protonModelUrl,
+    (gltf) => {
+      const proton = gltf.scene;
+
+      proton.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (!mesh.isMesh) {
+          return;
+        }
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      });
+
+      scaleRoot.clear();
+      scaleRoot.add(proton);
+
+      scaleRoot.updateMatrixWorld(true);
+      const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
+      const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
+      const sourceHeight = Math.max(preScaleSize.y, 1e-6);
+      const scale = targetHeight / sourceHeight;
+      scaleRoot.scale.setScalar(scale);
+
+      scaleRoot.updateMatrixWorld(true);
+      const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
+      const scaledSize = scaledBox.getSize(new THREE.Vector3());
+      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+      onScaled?.({ size: scaledSize, center: scaledCenter });
+    },
+    undefined,
+    (error) => {
+      console.error("Failed to load Proton rocket model.", error);
+    },
+  );
+
+  return scaleRoot;
+}
+
 export function createRocketObjects() {
   const rocket = new THREE.Group();
   rocket.userData.focusLabel = "Rocket";
@@ -34,38 +85,8 @@ export function createRocketObjects() {
     rocket.add(createDebugRocketBody(fallbackBodyLength));
   }
 
-  const scaleRoot = new THREE.Group();
-  rocket.add(scaleRoot);
-  const loader = new GLTFLoader();
-  loader.load(
-    protonModelUrl,
-    (gltf) => {
-      const proton = gltf.scene;
-
-      proton.traverse((object) => {
-        const mesh = object as THREE.Mesh;
-        if (!mesh.isMesh) {
-          return;
-        }
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-      });
-
-      scaleRoot.clear();
-      scaleRoot.add(proton);
-
-      scaleRoot.updateMatrixWorld(true);
-      const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
-      const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
-      const sourceHeight = Math.max(preScaleSize.y, 1e-6);
-      const scale = PROTON_TARGET_HEIGHT / sourceHeight;
-      scaleRoot.scale.setScalar(scale);
-
-      scaleRoot.updateMatrixWorld(true);
-      const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
-      const scaledSize = scaledBox.getSize(new THREE.Vector3());
-
+  const scaleRoot = createRocketVisual(PROTON_TARGET_HEIGHT, {
+    onScaled: ({ size: scaledSize }) => {
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
@@ -76,11 +97,8 @@ export function createRocketObjects() {
         scaledSize.y * 0.56,
       );
     },
-    undefined,
-    (error) => {
-      console.error("Failed to load Proton rocket model.", error);
-    },
-  );
+  });
+  rocket.add(scaleRoot);
 
   const thrustDirectionArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),

@@ -31,7 +31,7 @@ export function MissionTelemetryPanel({
         </div>
         <div className="text-2xl text-slate-100">{status}</div>
       </div>
-      <div className="mt-4 w-fit backdrop-blur-md">
+      <div className="mt-4 w-fit bg-gray-900">
         {items.map(([label, value]) => (
           <div key={label} className="flex flex-row justify-between gap-4">
             <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-400 uppercase">
