@@ -1,12 +1,11 @@
 import * as THREE from "three";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
-import protonModelUrl from "../../assets/Proton Rocket/Proton.obj?url";
-import protonTextureUrl from "../../assets/Proton Rocket/Proton.jpg?url";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import protonModelUrl from "../../assets/ProtonRocket5.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
 const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
-const MODEL_CENTROID = new THREE.Vector3();
-const MODEL_VERTEX = new THREE.Vector3();
+const SHOW_DEBUG_CYLINDER = false;
+const MODEL_SIZE = new THREE.Vector3();
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
@@ -31,61 +30,37 @@ export function createRocketObjects() {
   enginePlume.visible = false;
   rocket.add(enginePlume);
 
+  if (SHOW_DEBUG_CYLINDER) {
+    rocket.add(createDebugRocketBody(fallbackBodyLength));
+  }
+
   const scaleRoot = new THREE.Group();
-  const pivotRoot = new THREE.Group();
-  const orientationRoot = new THREE.Group();
   rocket.add(scaleRoot);
-  scaleRoot.add(pivotRoot);
-  pivotRoot.add(orientationRoot);
-
-  const textureLoader = new THREE.TextureLoader();
-  const protonTexture = textureLoader.load(protonTextureUrl);
-  protonTexture.colorSpace = THREE.SRGBColorSpace;
-
-  const protonMaterial = new THREE.MeshStandardMaterial({
-    map: protonTexture,
-    color: 0xffffff,
-    roughness: 0.6,
-    metalness: 0.15,
-  });
-
-  const loader = new OBJLoader();
+  const loader = new GLTFLoader();
   loader.load(
     protonModelUrl,
-    (proton) => {
+    (gltf) => {
+      const proton = gltf.scene;
+
       proton.traverse((object) => {
         const mesh = object as THREE.Mesh;
         if (!mesh.isMesh) {
           return;
         }
 
-        mesh.material = protonMaterial;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
       });
 
-      orientationRoot.clear();
-      orientationRoot.add(proton);
-      orientationRoot.rotation.set(0, 0, 0);
+      scaleRoot.clear();
+      scaleRoot.add(proton);
 
-      orientationRoot.updateMatrixWorld(true);
-      const preScaleBox = new THREE.Box3().setFromObject(orientationRoot);
-      const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
-      const modelCentroid = computeModelCentroid(orientationRoot);
-      const sourceHeight = Math.max(
-        preScaleSize.y,
-        preScaleSize.x,
-        preScaleSize.z,
-        1e-6,
-      );
+      scaleRoot.updateMatrixWorld(true);
+      const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
+      const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
+      const sourceHeight = Math.max(preScaleSize.y, 1e-6);
       const scale = PROTON_TARGET_HEIGHT / sourceHeight;
       scaleRoot.scale.setScalar(scale);
-
-      pivotRoot.position.set(
-        -modelCentroid.x,
-        -modelCentroid.y,
-        -modelCentroid.z,
-      );
 
       scaleRoot.updateMatrixWorld(true);
       const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
@@ -169,35 +144,64 @@ export function createRocketObjects() {
   };
 }
 
-function computeModelCentroid(root: THREE.Object3D): THREE.Vector3 {
-  MODEL_CENTROID.set(0, 0, 0);
-  let vertexCount = 0;
+function createDebugRocketBody(bodyLength: number): THREE.Group {
+  const radius = ROCKET_DRAW_RADIUS * 0.62;
+  const noseLength = bodyLength * 0.24;
+  const stageBandHeight = bodyLength * 0.08;
+  const group = new THREE.Group();
 
-  root.updateMatrixWorld(true);
-  root.traverse((object) => {
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, bodyLength, 24, 1),
+    new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0,
+      roughness: 0.72,
+      metalness: 0.12,
+      transparent: true,
+      opacity: 0.9,
+    }),
+  );
+  group.add(body);
+
+  const nose = new THREE.Mesh(
+    new THREE.ConeGeometry(radius * 0.98, noseLength, 24, 1),
+    new THREE.MeshStandardMaterial({
+      color: 0xfb7185,
+      roughness: 0.5,
+      metalness: 0.08,
+      transparent: true,
+      opacity: 0.95,
+    }),
+  );
+  nose.position.y = bodyLength / 2 + noseLength / 2;
+  group.add(nose);
+
+  const stageBand = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      radius * 1.01,
+      radius * 1.01,
+      stageBandHeight,
+      24,
+    ),
+    new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.42,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.92,
+    }),
+  );
+  stageBand.position.y = -bodyLength * 0.18;
+  group.add(stageBand);
+
+  group.traverse((object) => {
     const mesh = object as THREE.Mesh;
     if (!mesh.isMesh) {
       return;
     }
 
-    const geometry = mesh.geometry as THREE.BufferGeometry | undefined;
-    const position = geometry?.getAttribute("position");
-    if (!position) {
-      return;
-    }
-
-    for (let index = 0; index < position.count; index += 1) {
-      MODEL_VERTEX.fromBufferAttribute(position, index);
-      MODEL_VERTEX.applyMatrix4(mesh.matrixWorld);
-      MODEL_CENTROID.add(MODEL_VERTEX);
-    }
-
-    vertexCount += position.count;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
   });
 
-  if (vertexCount === 0) {
-    return MODEL_CENTROID;
-  }
-
-  return MODEL_CENTROID.multiplyScalar(1 / vertexCount);
+  return group;
 }
