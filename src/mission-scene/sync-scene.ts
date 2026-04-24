@@ -28,6 +28,7 @@ import type { CameraDebugState } from "./types";
 
 const UI_SYNC_INTERVAL_MS = 100;
 const CAMERA_DIRECTION = new THREE.Vector3();
+const INDICATOR_MOON_VELOCITY = new THREE.Vector3();
 const INDICATOR_RELATIVE_VELOCITY = new THREE.Vector3();
 const LABEL_WORLD_POSITION = new THREE.Vector3();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
@@ -355,9 +356,15 @@ function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
   orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
 
   relativeVelocityIndicator.frame.quaternion.copy(camera.quaternion).invert();
+  INDICATOR_MOON_VELOCITY.copy(moonVelocityMeters(frame.simState.t));
   INDICATOR_RELATIVE_VELOCITY
-    .copy(moonVelocityMeters(frame.simState.t))
+    .copy(INDICATOR_MOON_VELOCITY)
     .sub(frame.simState.rocket.velocity);
+  relativeVelocityIndicator.setValueLabel(
+    formatSignedVelocityDelta(
+      INDICATOR_MOON_VELOCITY.length() - frame.simState.rocket.velocity.length(),
+    ),
+  );
 
   if (INDICATOR_RELATIVE_VELOCITY.lengthSq() <= 1e-6) {
     relativeVelocityIndicator.arrow.visible = false;
@@ -373,6 +380,11 @@ function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
     -relativeVelocityIndicator.arrowLength * 0.5,
   );
   relativeVelocityIndicator.arrow.setDirection(INDICATOR_RELATIVE_VELOCITY);
+}
+
+function formatSignedVelocityDelta(valueMetersPerSecond: number): string {
+  const sign = valueMetersPerSecond < 0 ? "-" : "";
+  return `${sign}${(Math.abs(valueMetersPerSecond) / 1000).toFixed(2)} km/s`;
 }
 
 function syncFarAwayLabels(bundle: ThreeSceneBundle) {

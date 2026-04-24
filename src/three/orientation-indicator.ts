@@ -3,6 +3,7 @@ import { createRocketVisual } from "./objects/rocket";
 
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
 const VECTOR_ARROW_LENGTH = 1.45;
+const VECTOR_VALUE_LABEL_POSITION = new THREE.Vector3(0, -1.28, 0);
 
 type IndicatorSceneBundle = {
   scene: THREE.Scene;
@@ -24,6 +25,7 @@ export type VectorIndicatorBundle = {
   frame: THREE.Group;
   arrow: THREE.ArrowHelper;
   arrowLength: number;
+  setValueLabel: (text: string) => void;
   sizePx: number;
 };
 
@@ -61,12 +63,18 @@ export function createVectorIndicator(): VectorIndicatorBundle {
   );
   frame.add(arrow);
 
+  const { sprite: valueLabel, setText: setValueLabel } =
+    createIndicatorValueLabel("0.00 km/s");
+  valueLabel.position.copy(VECTOR_VALUE_LABEL_POSITION);
+  scene.add(valueLabel);
+
   return {
     scene,
     camera,
     frame,
     arrow,
     arrowLength: VECTOR_ARROW_LENGTH,
+    setValueLabel,
     sizePx: 132,
   };
 }
@@ -112,4 +120,85 @@ function createIndicatorScene(): IndicatorSceneBundle {
     camera,
     frame,
   };
+}
+
+function createIndicatorValueLabel(initialText: string): {
+  sprite: THREE.Sprite;
+  setText: (text: string) => void;
+} {
+  const canvas = document.createElement("canvas");
+  canvas.width = 320;
+  canvas.height = 96;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("2D canvas context unavailable for indicator label.");
+  }
+  const labelContext = context;
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    sizeAttenuation: false,
+  });
+
+  const sprite = new THREE.Sprite(material);
+  sprite.renderOrder = 10;
+  sprite.scale.set(1.45, 0.42, 1);
+
+  function setText(text: string) {
+    labelContext.clearRect(0, 0, canvas.width, canvas.height);
+    labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
+    roundRect(labelContext, 10, 10, canvas.width - 20, canvas.height - 20, 12);
+    labelContext.fill();
+    labelContext.strokeStyle = "rgba(255, 255, 255, 0.18)";
+    labelContext.lineWidth = 2;
+    labelContext.stroke();
+
+    labelContext.font = "300 14px monospace";
+    labelContext.textAlign = "center";
+    labelContext.textBaseline = "middle";
+    labelContext.fillStyle = "rgba(255, 255, 255, 0.96)";
+    labelContext.fillText(text, canvas.width / 2, canvas.height / 2 + 1);
+
+    texture.needsUpdate = true;
+  }
+
+  setText(initialText);
+
+  return {
+    sprite,
+    setText,
+  };
+}
+
+function roundRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height,
+  );
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
 }
