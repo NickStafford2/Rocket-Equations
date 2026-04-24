@@ -14,8 +14,10 @@ export {
 export type SceneObjects = {
   system: THREE.Group;
   earthGroup: THREE.Group;
+  earthRotatingFrame: THREE.Group;
   earth: THREE.Mesh;
   earthLabel: THREE.Sprite;
+  satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
   moonLabel: THREE.Sprite;
   rocket: THREE.Group;
@@ -35,7 +37,16 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   scene.add(system);
 
   const loader = new THREE.TextureLoader();
-  const { earthGroup, earth, earthLabel, moon, moonLabel, moonOrbit } =
+  const {
+    earthGroup,
+    earthRotatingFrame,
+    earth,
+    earthLabel,
+    satelliteSystem,
+    moon,
+    moonLabel,
+    moonOrbit,
+  } =
     createBodyObjects(loader);
   const {
     rocket,
@@ -64,8 +75,10 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   return {
     system,
     earthGroup,
+    earthRotatingFrame,
     earth,
     earthLabel,
+    satelliteSystem,
     moon,
     moonLabel,
     rocket,

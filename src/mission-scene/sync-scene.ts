@@ -1,6 +1,10 @@
 import type { MutableRefObject } from "react";
 import * as THREE from "three";
-import { getLaunchFrame, makeInitialRocketState } from "../physics/bodies";
+import {
+  EARTH_ANGULAR_SPEED,
+  getLaunchFrame,
+  makeInitialRocketState,
+} from "../physics/bodies";
 import type { ManeuverInput } from "../physics/bodies";
 import {
   describeMoonLanding,
@@ -174,6 +178,7 @@ function createFrameState({
 function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
 
+  objects.earthRotatingFrame.rotation.y = EARTH_ANGULAR_SPEED * frame.simState.t;
   objects.moon.position.copy(metersToScene(frame.telemetry.moonPosition));
   objects.rocket.position.copy(metersToScene(frame.simState.rocket.position));
 }

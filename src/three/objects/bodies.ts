@@ -9,6 +9,7 @@ import {
   MOON_DRAW_RADIUS,
 } from "./constants";
 import { createBodyLabelSprite } from "./labels";
+import { createSatelliteSystem } from "./satellites";
 
 export function createBodyObjects(loader: THREE.TextureLoader) {
   const earthTexture = loader.load(earthTextureUrl);
@@ -19,6 +20,8 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   const earthGroup = new THREE.Group();
   earthGroup.userData.focusLabel = "Earth";
   earthGroup.userData.focusRadius = EARTH_DRAW_RADIUS;
+  const earthRotatingFrame = new THREE.Group();
+  earthGroup.add(earthRotatingFrame);
 
   const earth = new THREE.Mesh(
     new THREE.SphereGeometry(EARTH_DRAW_RADIUS, 64, 64),
@@ -33,12 +36,15 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   earth.castShadow = true;
   earth.receiveShadow = true;
   earth.rotation.y = Math.PI * 1.15;
-  earthGroup.add(earth);
+  earthRotatingFrame.add(earth);
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_DRAW_RADIUS * 2.35, 0);
   earthLabel.visible = false;
   earthGroup.add(earthLabel);
+
+  const { satelliteSystem } = createSatelliteSystem();
+  earthRotatingFrame.add(satelliteSystem);
 
   const moonNormal = loader.load(moonNormalUrl);
   moonNormal.colorSpace = THREE.NoColorSpace;
@@ -90,8 +96,10 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
 
   return {
     earthGroup,
+    earthRotatingFrame,
     earth,
     earthLabel,
+    satelliteSystem,
     moon,
     moonLabel,
     moonOrbit,
