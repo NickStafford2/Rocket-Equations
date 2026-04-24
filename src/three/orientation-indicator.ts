@@ -1,17 +1,13 @@
 import * as THREE from "three";
 import {
   createRocketVisual,
+  getRocketTargetScaleRatio,
   type RocketModelVariant,
 } from "./objects/rocket";
 
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
 const VECTOR_ARROW_LENGTH = 1.45;
 const VECTOR_VALUE_LABEL_POSITION = new THREE.Vector3(0, -1.28, 0);
-const INDICATOR_VARIANT_SCALE: Record<RocketModelVariant, number> = {
-  "saturn-v": 1,
-  "apollo-soyuz": 1.7,
-  "apollo-lunar-module": 2.6,
-};
 
 type IndicatorSceneBundle = {
   scene: THREE.Scene;
@@ -46,7 +42,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   const rocketVisual = createRocketVisual(INDICATOR_ROCKET_HEIGHT, {
     useConfiguredTargetSize: false,
     onScaled: ({ center }) => {
-      rocketVisual.root.position.y = 600 * center.y;
+      rocketVisual.root.position.copy(center).multiplyScalar(-1);
     },
   });
   rocketScaleRoot.add(rocketVisual.root);
@@ -54,7 +50,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   frame.add(rocket);
 
   function setRocketModelVariant(variant: RocketModelVariant) {
-    rocketScaleRoot.scale.setScalar(INDICATOR_VARIANT_SCALE[variant] ?? 1);
+    rocketScaleRoot.scale.setScalar(getRocketTargetScaleRatio(variant));
     rocketVisual.setVariant(variant);
   }
 

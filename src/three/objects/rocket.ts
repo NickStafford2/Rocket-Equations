@@ -10,6 +10,18 @@ export type RocketModelVariant =
   | "apollo-soyuz"
   | "apollo-lunar-module";
 
+export function getRocketTargetSize(variant: RocketModelVariant): number {
+  return MODEL_CONFIGS[variant].targetSize;
+}
+
+export function getRocketTargetScaleRatio(
+  variant: RocketModelVariant,
+  referenceVariant: RocketModelVariant = "saturn-v",
+): number {
+  const referenceSize = Math.max(getRocketTargetSize(referenceVariant), 1e-6);
+  return getRocketTargetSize(variant) / referenceSize;
+}
+
 type RocketVisualController = {
   root: THREE.Group;
   setVariant: (variant: RocketModelVariant) => void;
