@@ -2,6 +2,14 @@ import * as THREE from "three";
 import { createRocketVisual } from "./objects/rocket";
 
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
+const VECTOR_ARROW_ORIGIN = new THREE.Vector3(0, -0.72, 0);
+const VECTOR_ARROW_LENGTH = 1.45;
+
+type IndicatorSceneBundle = {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  frame: THREE.Group;
+};
 
 export type OrientationIndicatorBundle = {
   scene: THREE.Scene;
@@ -11,7 +19,58 @@ export type OrientationIndicatorBundle = {
   sizePx: number;
 };
 
+export type VectorIndicatorBundle = {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  frame: THREE.Group;
+  arrow: THREE.ArrowHelper;
+  sizePx: number;
+};
+
 export function createOrientationIndicator(): OrientationIndicatorBundle {
+  const { scene, camera, frame } = createIndicatorScene();
+
+  const rocket = new THREE.Group();
+  const rocketVisual = createRocketVisual(INDICATOR_ROCKET_HEIGHT, {
+    onScaled: ({ center }) => {
+      rocketVisual.position.y = 600 * center.y;
+    },
+  });
+  rocket.add(rocketVisual);
+  frame.add(rocket);
+
+  return {
+    scene,
+    camera,
+    frame,
+    rocket,
+    sizePx: 132,
+  };
+}
+
+export function createVectorIndicator(): VectorIndicatorBundle {
+  const { scene, camera, frame } = createIndicatorScene();
+
+  const arrow = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 1, 0),
+    VECTOR_ARROW_ORIGIN.clone(),
+    VECTOR_ARROW_LENGTH,
+    0xffffff,
+    0.34,
+    0.2,
+  );
+  frame.add(arrow);
+
+  return {
+    scene,
+    camera,
+    frame,
+    arrow,
+    sizePx: 132,
+  };
+}
+
+function createIndicatorScene(): IndicatorSceneBundle {
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
@@ -47,20 +106,9 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   orbitRing.rotation.x = Math.PI / 2;
   frame.add(orbitRing);
 
-  const rocket = new THREE.Group();
-  const rocketVisual = createRocketVisual(INDICATOR_ROCKET_HEIGHT, {
-    onScaled: ({ center }) => {
-      rocketVisual.position.y = 600 * center.y;
-    },
-  });
-  rocket.add(rocketVisual);
-  frame.add(rocket);
-
   return {
     scene,
     camera,
     frame,
-    rocket,
-    sizePx: 132,
   };
 }

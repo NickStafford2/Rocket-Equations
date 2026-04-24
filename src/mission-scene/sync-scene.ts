@@ -4,6 +4,7 @@ import {
   EARTH_ANGULAR_SPEED,
   getLaunchFrame,
   makeInitialRocketState,
+  moonVelocityMeters,
 } from "../physics/bodies";
 import type { ManeuverInput } from "../physics/bodies";
 import {
@@ -27,6 +28,7 @@ import type { CameraDebugState } from "./types";
 
 const UI_SYNC_INTERVAL_MS = 100;
 const CAMERA_DIRECTION = new THREE.Vector3();
+const INDICATOR_RELATIVE_VELOCITY = new THREE.Vector3();
 const LABEL_WORLD_POSITION = new THREE.Vector3();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const WORLD_FORWARD = new THREE.Vector3(0, 0, 1);
@@ -116,7 +118,7 @@ export function syncMissionScene({
     running: runningRef.current,
     showPrediction: showPredictionRef.current,
   });
-  syncOrientationIndicator(bundle);
+  syncOrientationIndicator(bundle, frame);
   syncFarAwayLabels(bundle);
   syncMissionUi({
     frame,
@@ -345,11 +347,27 @@ function syncPredictionDisplay({
   bundle.objects.predictionLine.geometry.setDrawRange(0, predictionLength);
 }
 
-function syncOrientationIndicator(bundle: ThreeSceneBundle) {
-  const { camera, objects, orientationIndicator } = bundle;
+function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
+  const { camera, objects, orientationIndicator, relativeVelocityIndicator } =
+    bundle;
 
   orientationIndicator.frame.quaternion.copy(camera.quaternion).invert();
   orientationIndicator.rocket.quaternion.copy(objects.rocket.quaternion);
+
+  relativeVelocityIndicator.frame.quaternion.copy(camera.quaternion).invert();
+  INDICATOR_RELATIVE_VELOCITY
+    .copy(moonVelocityMeters(frame.simState.t))
+    .sub(frame.simState.rocket.velocity);
+
+  if (INDICATOR_RELATIVE_VELOCITY.lengthSq() <= 1e-6) {
+    relativeVelocityIndicator.arrow.visible = false;
+    return;
+  }
+
+  relativeVelocityIndicator.arrow.visible = true;
+  relativeVelocityIndicator.arrow.setDirection(
+    INDICATOR_RELATIVE_VELOCITY.normalize(),
+  );
 }
 
 function syncFarAwayLabels(bundle: ThreeSceneBundle) {
