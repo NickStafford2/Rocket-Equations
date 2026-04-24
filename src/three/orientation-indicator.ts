@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { createRocketVisual } from "./objects/rocket";
 
 const INDICATOR_ROCKET_HEIGHT = 1.7 / 4;
-const VECTOR_ARROW_ORIGIN = new THREE.Vector3(0, -0.72, 0);
 const VECTOR_ARROW_LENGTH = 1.45;
 
 type IndicatorSceneBundle = {
@@ -24,6 +23,7 @@ export type VectorIndicatorBundle = {
   camera: THREE.PerspectiveCamera;
   frame: THREE.Group;
   arrow: THREE.ArrowHelper;
+  arrowLength: number;
   sizePx: number;
 };
 
@@ -53,7 +53,7 @@ export function createVectorIndicator(): VectorIndicatorBundle {
 
   const arrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
-    VECTOR_ARROW_ORIGIN.clone(),
+    new THREE.Vector3(),
     VECTOR_ARROW_LENGTH,
     0xffffff,
     0.34,
@@ -66,6 +66,7 @@ export function createVectorIndicator(): VectorIndicatorBundle {
     camera,
     frame,
     arrow,
+    arrowLength: VECTOR_ARROW_LENGTH,
     sizePx: 132,
   };
 }

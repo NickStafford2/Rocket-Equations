@@ -364,10 +364,15 @@ function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
     return;
   }
 
+  INDICATOR_RELATIVE_VELOCITY.normalize();
   relativeVelocityIndicator.arrow.visible = true;
-  relativeVelocityIndicator.arrow.setDirection(
-    INDICATOR_RELATIVE_VELOCITY.normalize(),
+  relativeVelocityIndicator.arrow.position.copy(
+    INDICATOR_RELATIVE_VELOCITY,
   );
+  relativeVelocityIndicator.arrow.position.multiplyScalar(
+    -relativeVelocityIndicator.arrowLength * 0.5,
+  );
+  relativeVelocityIndicator.arrow.setDirection(INDICATOR_RELATIVE_VELOCITY);
 }
 
 function syncFarAwayLabels(bundle: ThreeSceneBundle) {
