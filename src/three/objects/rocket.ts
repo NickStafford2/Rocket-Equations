@@ -29,8 +29,12 @@ export function createRocketObjects() {
   enginePlume.visible = false;
   rocket.add(enginePlume);
 
-  const modelRoot = new THREE.Group();
-  rocket.add(modelRoot);
+  const scaleRoot = new THREE.Group();
+  const pivotRoot = new THREE.Group();
+  const orientationRoot = new THREE.Group();
+  rocket.add(scaleRoot);
+  scaleRoot.add(pivotRoot);
+  pivotRoot.add(orientationRoot);
 
   const textureLoader = new THREE.TextureLoader();
   const protonTexture = textureLoader.load(protonTextureUrl);
@@ -58,10 +62,12 @@ export function createRocketObjects() {
         mesh.receiveShadow = true;
       });
 
-      modelRoot.clear();
-      modelRoot.add(proton);
+      orientationRoot.clear();
+      orientationRoot.add(proton);
+      orientationRoot.rotation.set(0, 0, 0);
 
-      const preScaleBox = new THREE.Box3().setFromObject(modelRoot);
+      orientationRoot.updateMatrixWorld(true);
+      const preScaleBox = new THREE.Box3().setFromObject(orientationRoot);
       const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
       const sourceHeight = Math.max(
         preScaleSize.y,
@@ -70,12 +76,14 @@ export function createRocketObjects() {
         1e-6,
       );
       const scale = PROTON_TARGET_HEIGHT / sourceHeight;
-      modelRoot.scale.setScalar(scale);
+      scaleRoot.scale.setScalar(scale);
 
-      const scaledBox = new THREE.Box3().setFromObject(modelRoot);
+      const unscaledCenter = preScaleBox.getCenter(new THREE.Vector3());
+      pivotRoot.position.set(-unscaledCenter.x, -unscaledCenter.y, -unscaledCenter.z);
+
+      scaleRoot.updateMatrixWorld(true);
+      const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
       const scaledSize = scaledBox.getSize(new THREE.Vector3());
-      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      modelRoot.position.set(-scaledCenter.x, -scaledCenter.y, -scaledCenter.z);
 
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
@@ -84,7 +92,7 @@ export function createRocketObjects() {
       );
       enginePlume.position.y = -Math.max(
         ROCKET_DRAW_RADIUS * 1.1,
-        scaledSize.y * 0.28,
+        scaledSize.y * 0.56,
       );
     },
     undefined,
