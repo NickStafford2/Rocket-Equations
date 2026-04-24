@@ -5,6 +5,8 @@ import protonTextureUrl from "../../assets/Proton Rocket/Proton.jpg?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
 const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
+const MODEL_CENTROID = new THREE.Vector3();
+const MODEL_VERTEX = new THREE.Vector3();
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
@@ -69,6 +71,7 @@ export function createRocketObjects() {
       orientationRoot.updateMatrixWorld(true);
       const preScaleBox = new THREE.Box3().setFromObject(orientationRoot);
       const preScaleSize = preScaleBox.getSize(new THREE.Vector3());
+      const modelCentroid = computeModelCentroid(orientationRoot);
       const sourceHeight = Math.max(
         preScaleSize.y,
         preScaleSize.x,
@@ -78,8 +81,11 @@ export function createRocketObjects() {
       const scale = PROTON_TARGET_HEIGHT / sourceHeight;
       scaleRoot.scale.setScalar(scale);
 
-      const unscaledCenter = preScaleBox.getCenter(new THREE.Vector3());
-      pivotRoot.position.set(-unscaledCenter.x, -unscaledCenter.y, -unscaledCenter.z);
+      pivotRoot.position.set(
+        -modelCentroid.x,
+        -modelCentroid.y,
+        -modelCentroid.z,
+      );
 
       scaleRoot.updateMatrixWorld(true);
       const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
@@ -161,4 +167,37 @@ export function createRocketObjects() {
     launchTangentArrow,
     launchAimArrow,
   };
+}
+
+function computeModelCentroid(root: THREE.Object3D): THREE.Vector3 {
+  MODEL_CENTROID.set(0, 0, 0);
+  let vertexCount = 0;
+
+  root.updateMatrixWorld(true);
+  root.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) {
+      return;
+    }
+
+    const geometry = mesh.geometry as THREE.BufferGeometry | undefined;
+    const position = geometry?.getAttribute("position");
+    if (!position) {
+      return;
+    }
+
+    for (let index = 0; index < position.count; index += 1) {
+      MODEL_VERTEX.fromBufferAttribute(position, index);
+      MODEL_VERTEX.applyMatrix4(mesh.matrixWorld);
+      MODEL_CENTROID.add(MODEL_VERTEX);
+    }
+
+    vertexCount += position.count;
+  });
+
+  if (vertexCount === 0) {
+    return MODEL_CENTROID;
+  }
+
+  return MODEL_CENTROID.multiplyScalar(1 / vertexCount);
 }
