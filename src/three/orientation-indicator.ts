@@ -171,7 +171,7 @@ function createIndicatorValueLabel(initialText: string): {
     const rectX = PADDING_X;
     const rectY = PADDING_Y + LABEL_Y_SHIFT;
     const rectWidth = CANVAS_WIDTH - 2 * PADDING_X;
-    const rectHeight = CANVAS_HEIGHT - 2 * PADDING_Y;
+    const rectHeight = CANVAS_HEIGHT - 2 * PADDING_Y - LABEL_Y_SHIFT; // adjust height
 
     // Clear canvas
     labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
