@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import protonModelUrl from "../../assets/ProtonRocket5.glb?url";
+import protonModelUrl from "../../assets/Space_Rocket_SaturnV/SaturnV2.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 
 const PROTON_TARGET_HEIGHT = ROCKET_DRAW_RADIUS * 8.6;
