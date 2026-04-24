@@ -158,35 +158,27 @@ function createIndicatorValueLabel(initialText: string): {
   const SPRITE_HEIGHT = 0.42;
   sprite.scale.set(SPRITE_WIDTH, SPRITE_HEIGHT, 1);
 
-  function setText(text: string, labelYShift: number = 0) {
+  function setText(text: string) {
     // --- Constants ---
-    const PADDING_X = 30; // horizontal padding
-    const PADDING_Y = 80; // top padding
+    const PADDING_X = 30;
+    const PADDING_Y = 80;
     const BORDER_RADIUS = 32;
     const STROKE_WIDTH = 6;
-    const TEXT_FONT_SIZE = 64; // px
-    const TEXT_Y_OFFSET = 22; // vertical text offset inside label
+    const TEXT_FONT_SIZE = 64;
+    const LABEL_Y_SHIFT = 20;
 
-    // Compute canvas height dynamically to avoid clipping
-    const requiredHeight =
-      PADDING_Y + (CANVAS_HEIGHT - 2 * PADDING_Y) + TEXT_Y_OFFSET + labelYShift;
-    if (CANVAS_HEIGHT < requiredHeight) {
-      canvas.height = requiredHeight;
-    }
+    // Compute rectangle position
+    const rectX = PADDING_X;
+    const rectY = PADDING_Y + LABEL_Y_SHIFT;
+    const rectWidth = CANVAS_WIDTH - 2 * PADDING_X;
+    const rectHeight = CANVAS_HEIGHT - 2 * PADDING_Y;
 
     // Clear canvas
-    labelContext.clearRect(0, 0, CANVAS_WIDTH, canvas.height);
+    labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Draw background rectangle
     labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
-    roundRect(
-      labelContext,
-      PADDING_X,
-      PADDING_Y + labelYShift, // shift background down
-      CANVAS_WIDTH - 2 * PADDING_X,
-      CANVAS_HEIGHT - 2 * PADDING_Y,
-      BORDER_RADIUS,
-    );
+    roundRect(labelContext, rectX, rectY, rectWidth, rectHeight, BORDER_RADIUS);
     labelContext.fill();
 
     // Draw border
@@ -194,16 +186,12 @@ function createIndicatorValueLabel(initialText: string): {
     labelContext.lineWidth = STROKE_WIDTH;
     labelContext.stroke();
 
-    // Draw text
+    // Draw text centered inside the rectangle
     labelContext.font = `bold ${TEXT_FONT_SIZE}px monospace`;
     labelContext.textAlign = "center";
     labelContext.textBaseline = "middle";
     labelContext.fillStyle = "rgba(255, 255, 255, 0.96)";
-    labelContext.fillText(
-      text,
-      CANVAS_WIDTH / 2,
-      CANVAS_HEIGHT / 2 + TEXT_Y_OFFSET + labelYShift,
-    );
+    labelContext.fillText(text, rectX + rectWidth / 2, rectY + rectHeight / 2);
 
     // Update texture
     texture.needsUpdate = true;
