@@ -10,16 +10,16 @@ export type RocketModelVariant =
   | "apollo-soyuz"
   | "apollo-lunar-module";
 
-export function getRocketTargetSize(variant: RocketModelVariant): number {
-  return MODEL_CONFIGS[variant].targetSize;
+export interface RocketModelDefinition {
+  name: string;
+  url: string;
+  heightMeters: number;
 }
 
-export function getRocketTargetScaleRatio(
-  variant: RocketModelVariant,
-  referenceVariant: RocketModelVariant = "saturn-v",
-): number {
-  const referenceSize = Math.max(getRocketTargetSize(referenceVariant), 1e-6);
-  return getRocketTargetSize(variant) / referenceSize;
+export interface RocketVisualLoadedPayload {
+  bounds: THREE.Box3;
+  center: THREE.Vector3;
+  size: THREE.Vector3;
 }
 
 type RocketVisualController = {
@@ -28,48 +28,45 @@ type RocketVisualController = {
   getVariant: () => RocketModelVariant;
 };
 
+const SATURN_V_HEIGHT_METERS = 111;
 const SATURN_V_TARGET_SIZE = ROCKET_DRAW_RADIUS * 8.6;
 const SHOW_DEBUG_CYLINDER = false;
-const MODEL_SIZE = new THREE.Vector3();
-const MODEL_CONFIGS: Record<
+
+export const ROCKET_SCENE_SCALE = SATURN_V_TARGET_SIZE / SATURN_V_HEIGHT_METERS;
+
+export const ROCKET_MODEL_DEFINITIONS: Record<
   RocketModelVariant,
-  {
-    url: string;
-    name: string;
-    targetSize: number;
-  }
+  RocketModelDefinition
 > = {
   "saturn-v": {
     url: saturnVModelUrl,
     name: "Saturn V",
-    targetSize: SATURN_V_TARGET_SIZE,
+    heightMeters: SATURN_V_HEIGHT_METERS,
   },
   "apollo-soyuz": {
     url: apolloSoyuzUrl,
     name: "Apollo Soyuz",
-    targetSize: (SATURN_V_TARGET_SIZE * 0.22) / 1000,
+    heightMeters: 50,
   },
   "apollo-lunar-module": {
     url: apolloLunarModuleUrl,
     name: "Apollo Lunar Module",
-    targetSize: SATURN_V_TARGET_SIZE * 0.05,
+    heightMeters: 9,
   },
 };
 const MODEL_CACHE = new Map<RocketModelVariant, Promise<THREE.Group>>();
 
 export function createRocketVisual(
-  defaultTargetSize: number,
   {
     initialVariant = "saturn-v",
-    useConfiguredTargetSize = true,
-    onScaled,
+    sceneScale = ROCKET_SCENE_SCALE,
+    fitHeight,
+    onLoaded,
   }: {
     initialVariant?: RocketModelVariant;
-    useConfiguredTargetSize?: boolean;
-    onScaled?: (payload: {
-      size: THREE.Vector3;
-      center: THREE.Vector3;
-    }) => void;
+    sceneScale?: number;
+    fitHeight?: number;
+    onLoaded?: (payload: RocketVisualLoadedPayload) => void;
   } = {},
 ): RocketVisualController {
   const scaleRoot = new THREE.Group();
@@ -91,32 +88,34 @@ export function createRocketVisual(
         }
 
         scaleRoot.clear();
+        scaleRoot.position.set(0, 0, 0);
+        scaleRoot.scale.setScalar(1);
         scaleRoot.add(model);
 
         scaleRoot.updateMatrixWorld(true);
-        const preScaleBox = new THREE.Box3().setFromObject(scaleRoot);
-        const preScaleSize = preScaleBox.getSize(MODEL_SIZE);
-        const sourceSize = Math.max(
-          preScaleSize.x,
-          preScaleSize.y,
-          preScaleSize.z,
-          1e-6,
-        );
-        const targetSize = useConfiguredTargetSize
-          ? (MODEL_CONFIGS[variant].targetSize ?? defaultTargetSize)
-          : defaultTargetSize;
-        const scale = targetSize / sourceSize;
+        const scale =
+          fitHeight && fitHeight > 0
+            ? fitHeight /
+              Math.max(
+                ROCKET_MODEL_DEFINITIONS[variant].heightMeters,
+                1e-6,
+              )
+            : sceneScale;
         scaleRoot.scale.setScalar(scale);
 
         scaleRoot.updateMatrixWorld(true);
         const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
         const scaledSize = scaledBox.getSize(new THREE.Vector3());
         const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-        onScaled?.({ size: scaledSize, center: scaledCenter });
+        onLoaded?.({
+          bounds: scaledBox,
+          center: scaledCenter,
+          size: scaledSize,
+        });
       })
       .catch((error) => {
         console.error(
-          `Failed to load ${MODEL_CONFIGS[variant].name} rocket model.`,
+          `Failed to load ${ROCKET_MODEL_DEFINITIONS[variant].name} rocket model.`,
           error,
         );
       });
@@ -158,17 +157,15 @@ export function createRocketObjects() {
     rocket.add(createDebugRocketBody(fallbackBodyLength));
   }
 
-  const rocketVisual = createRocketVisual(SATURN_V_TARGET_SIZE, {
-    onScaled: ({ size: scaledSize }) => {
+  const rocketVisual = createRocketVisual({
+    onLoaded: ({ bounds, size: scaledSize }) => {
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
         ROCKET_DRAW_RADIUS * 2.5,
       );
-      enginePlume.position.y = -Math.max(
-        ROCKET_DRAW_RADIUS * 1.1,
-        scaledSize.y * 0.56,
-      );
+      enginePlume.position.y =
+        bounds.min.y - ROCKET_DRAW_RADIUS * 1.2;
     },
   });
   rocket.add(rocketVisual.root);
@@ -245,7 +242,7 @@ function loadRocketModel(variant: RocketModelVariant): Promise<THREE.Group> {
   const loader = new GLTFLoader();
   const pendingModel = new Promise<THREE.Group>((resolve, reject) => {
     loader.load(
-      MODEL_CONFIGS[variant].url,
+      ROCKET_MODEL_DEFINITIONS[variant].url,
       (gltf) => {
         const model = gltf.scene;
 
