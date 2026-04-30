@@ -16,13 +16,13 @@ export const EARTH_ANGULAR_SPEED = (2 * Math.PI) / EARTH_ROTATION_PERIOD;
 export const MOON_SOI_RADIUS =
   EARTH_MOON_DISTANCE * Math.pow(M_MOON / M_EARTH, 2 / 5);
 
-export const DEFAULT_ALTITUDE = 0.0;
-export const DEFAULT_SPEED = 11_550.0;
-export const DEFAULT_ANGLE_DEG = 90.0;
-export const DEFAULT_LAUNCH_AZIMUTH_DEG = 49.0;
+export const ROCKET_DEFAULT_EARTH_ALTITUDE = 0.0;
+export const ROCKET_DEFAULT_SPEED = 11_075.0;
+export const ROCKET_DEFAULT_ANGLE_DEG = 90.0;
+export const ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG = 47.0;
 export const DEFAULT_DT = 10.0;
 export const MAX_SIMULATION_STEP = 2.0;
-export const DEFAULT_THRUST_ACCELERATION = 4.0;
+export const DEFAULT_THRUST_ACCELERATION = 1.0;
 export const DEFAULT_TURN_RATE_DEG = 0.25;
 export const SOFT_LANDING_SPEED = 25.0;
 
@@ -82,8 +82,8 @@ export function moonVelocityMeters(t: number): THREE.Vector3 {
 export function makeInitialRocketState(
   speed: number,
   angleDeg: number,
-  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
-  altitude: number = DEFAULT_ALTITUDE,
+  launchAzimuthDeg: number = ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+  altitude: number = ROCKET_DEFAULT_EARTH_ALTITUDE,
 ): BodyState {
   const { position, radialHat, tangentHat } = getLaunchFrame(
     altitude,
@@ -106,8 +106,8 @@ export function makeInitialRocketState(
 }
 
 export function getLaunchFrame(
-  altitude: number = DEFAULT_ALTITUDE,
-  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
+  altitude: number = ROCKET_DEFAULT_EARTH_ALTITUDE,
+  launchAzimuthDeg: number = ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
 ): LaunchFrame {
   const azimuthRad = THREE.MathUtils.degToRad(launchAzimuthDeg);
   const position = new THREE.Vector3(
@@ -130,10 +130,10 @@ export function getLaunchFrame(
 }
 
 export function makeInitialSimulationState(
-  speed: number = DEFAULT_SPEED,
-  angleDeg: number = DEFAULT_ANGLE_DEG,
-  launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
-  altitude: number = DEFAULT_ALTITUDE,
+  speed: number = ROCKET_DEFAULT_SPEED,
+  angleDeg: number = ROCKET_DEFAULT_ANGLE_DEG,
+  launchAzimuthDeg: number = ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+  altitude: number = ROCKET_DEFAULT_EARTH_ALTITUDE,
 ): SimulationState {
   return {
     t: 0,

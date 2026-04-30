@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import {
-  DEFAULT_ANGLE_DEG,
+  ROCKET_DEFAULT_ANGLE_DEG,
   DEFAULT_DT,
-  DEFAULT_LAUNCH_AZIMUTH_DEG,
-  DEFAULT_SPEED,
+  ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+  ROCKET_DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
   MAX_SIMULATION_STEP,
   R_EARTH,
@@ -71,9 +71,9 @@ export class EarthMoonSimulation {
 
   constructor(
     config: SimulationConfig = {
-      launchSpeed: DEFAULT_SPEED,
-      launchAngleDeg: DEFAULT_ANGLE_DEG,
-      launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
+      launchSpeed: ROCKET_DEFAULT_SPEED,
+      launchAngleDeg: ROCKET_DEFAULT_ANGLE_DEG,
+      launchAzimuthDeg: ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
       launchAltitudeMeters:
         ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"].surfaceContactOffsetMeters,
       dt: DEFAULT_DT,
