@@ -1,20 +1,13 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module3.glb?url";
-import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz6.glb?url";
-import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V3.glb?url";
 import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
+import {
+  ROCKET_MODEL_DEFINITIONS,
+  ROCKET_SCENE_SCALE,
+  type RocketModelVariant,
+} from "./rocket-models";
 
-export type RocketModelVariant =
-  | "saturn-v"
-  | "apollo-soyuz"
-  | "apollo-lunar-module";
-
-export interface RocketModelDefinition {
-  name: string;
-  url: string;
-  heightMeters: number;
-}
+export type { RocketModelDefinition, RocketModelVariant } from "./rocket-models";
 
 export interface RocketVisualLoadedPayload {
   bounds: THREE.Box3;
@@ -28,32 +21,7 @@ type RocketVisualController = {
   getVariant: () => RocketModelVariant;
 };
 
-const SATURN_V_HEIGHT_METERS = 111;
-const SATURN_V_TARGET_SIZE = ROCKET_DRAW_RADIUS * 8.6;
 const SHOW_DEBUG_CYLINDER = false;
-
-export const ROCKET_SCENE_SCALE = SATURN_V_TARGET_SIZE / SATURN_V_HEIGHT_METERS;
-
-export const ROCKET_MODEL_DEFINITIONS: Record<
-  RocketModelVariant,
-  RocketModelDefinition
-> = {
-  "saturn-v": {
-    url: saturnVModelUrl,
-    name: "Saturn V",
-    heightMeters: SATURN_V_HEIGHT_METERS,
-  },
-  "apollo-soyuz": {
-    url: apolloSoyuzUrl,
-    name: "Apollo Soyuz",
-    heightMeters: 50,
-  },
-  "apollo-lunar-module": {
-    url: apolloLunarModuleUrl,
-    name: "Apollo Lunar Module",
-    heightMeters: 9,
-  },
-};
 const MODEL_CACHE = new Map<RocketModelVariant, Promise<THREE.Group>>();
 
 export function createRocketVisual(
