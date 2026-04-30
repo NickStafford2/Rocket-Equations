@@ -218,7 +218,9 @@ function syncRocketVisuals(
   objects.enginePlume.visible = frame.stagedLaunchPreviewVisible ? false : thrusting;
 
   if (objects.enginePlume.visible) {
-    const plumeScale = 0.9 + Math.abs(Math.sin(frame.simState.t * 0.08)) * 0.45;
+    const baseScale = Number(objects.enginePlume.userData.baseScale ?? 1);
+    const plumeScale =
+      (0.9 + Math.abs(Math.sin(frame.simState.t * 0.08)) * 0.45) * baseScale;
     objects.enginePlume.scale.setScalar(plumeScale);
   }
 

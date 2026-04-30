@@ -4,12 +4,14 @@ import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 import {
   ROCKET_MODEL_DEFINITIONS,
   ROCKET_SCENE_SCALE,
+  type RocketModelDefinition,
   type RocketModelVariant,
 } from "./rocket-models";
 
 export type { RocketModelDefinition, RocketModelVariant } from "./rocket-models";
 
 export interface RocketVisualLoadedPayload {
+  definition: RocketModelDefinition;
   bounds: THREE.Box3;
   center: THREE.Vector3;
   size: THREE.Vector3;
@@ -76,6 +78,7 @@ export function createRocketVisual(
         const scaledSize = scaledBox.getSize(new THREE.Vector3());
         const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
         onLoaded?.({
+          definition: ROCKET_MODEL_DEFINITIONS[variant],
           bounds: scaledBox,
           center: scaledCenter,
           size: scaledSize,
@@ -118,6 +121,7 @@ export function createRocketObjects() {
   );
   enginePlume.rotation.z = Math.PI;
   enginePlume.position.y = -fallbackBodyLength / 2 - ROCKET_DRAW_RADIUS * 1.25;
+  enginePlume.userData.baseScale = 1;
   enginePlume.visible = false;
   rocket.add(enginePlume);
 
@@ -126,14 +130,18 @@ export function createRocketObjects() {
   }
 
   const rocketVisual = createRocketVisual({
-    onLoaded: ({ bounds, size: scaledSize }) => {
+    onLoaded: ({ definition, size: scaledSize }) => {
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
         ROCKET_DRAW_RADIUS * 2.5,
       );
-      enginePlume.position.y =
-        bounds.min.y - ROCKET_DRAW_RADIUS * 1.2;
+      enginePlume.position.set(
+        definition.plumeOffsetMeters.x * ROCKET_SCENE_SCALE,
+        definition.plumeOffsetMeters.y * ROCKET_SCENE_SCALE,
+        definition.plumeOffsetMeters.z * ROCKET_SCENE_SCALE,
+      );
+      enginePlume.userData.baseScale = definition.plumeScale;
     },
   });
   rocket.add(rocketVisual.root);

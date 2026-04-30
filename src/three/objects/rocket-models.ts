@@ -12,6 +12,12 @@ export interface RocketModelDefinition {
   name: string;
   url: string;
   heightMeters: number;
+  plumeOffsetMeters: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  plumeScale: number;
 }
 
 const SATURN_V_HEIGHT_METERS = 111;
@@ -27,15 +33,33 @@ export const ROCKET_MODEL_DEFINITIONS: Record<
     url: saturnVModelUrl,
     name: "Saturn V",
     heightMeters: SATURN_V_HEIGHT_METERS,
+    plumeOffsetMeters: {
+      x: 0,
+      y: -62,
+      z: 0,
+    },
+    plumeScale: 1,
   },
   "apollo-soyuz": {
     url: apolloSoyuzUrl,
     name: "Apollo Soyuz",
     heightMeters: 50,
+    plumeOffsetMeters: {
+      x: 0,
+      y: -30,
+      z: 0,
+    },
+    plumeScale: 0.78,
   },
   "apollo-lunar-module": {
     url: apolloLunarModuleUrl,
     name: "Apollo Lunar Module",
     heightMeters: 9,
+    plumeOffsetMeters: {
+      x: 0,
+      y: -4.2,
+      z: 0,
+    },
+    plumeScale: 0.32,
   },
 };
