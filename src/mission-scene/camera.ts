@@ -9,8 +9,8 @@ import {
 } from "../three/camera-rig";
 import type { CameraDebugState, CameraSelection } from "./types";
 
-export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-210, 120, 210);
-export const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(56, 0, 0);
+export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-840, 480, 840);
+export const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(224, 0, 0);
 
 export function createInitialCameraRig(): CameraRigState {
   return createCameraRig({

@@ -46,7 +46,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     10000,
   );
   camera.up.set(0, 1, 0);
-  camera.position.set(-210, 120, 210);
+  camera.position.set(-840, 480, 840);
   camera.lookAt(0, 0, 0);
 
   const renderer = new THREE.WebGLRenderer({
@@ -98,10 +98,10 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   controls.panSpeed = 0.75;
   controls.screenSpacePanning = false;
   controls.minDistance = 0.01;
-  controls.maxDistance = 1400;
+  controls.maxDistance = 5600;
   controls.minPolarAngle = 0.08;
   controls.maxPolarAngle = Math.PI - 0.08;
-  controls.target.set(56, 0, 0);
+  controls.target.set(224, 0, 0);
   controls.update();
 
   function resize(width: number, height: number) {

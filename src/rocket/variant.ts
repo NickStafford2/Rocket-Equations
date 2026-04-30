@@ -3,7 +3,7 @@ import { R_EARTH, R_MOON } from "../physics/bodies";
 import type { RocketModelVariant } from "./definitions";
 
 const APOLLO_SOYUZ_PROGRESS = 1 / 3;
-const LUNAR_MODULE_APPROACH_ALTITUDE_METERS = R_MOON * 2;
+const LUNAR_MODULE_APPROACH_ALTITUDE_METERS = R_MOON * 1.5;
 
 export function getRocketModelVariantForState(
   rocketPosition: THREE.Vector3,
@@ -19,7 +19,10 @@ export function getRocketModelVariantForState(
   }
 
   const altitudeEarth = Math.max(rocketPosition.length() - R_EARTH, 0);
-  const totalTransitDistance = Math.max(moonPosition.length() - R_EARTH - R_MOON, 1);
+  const totalTransitDistance = Math.max(
+    moonPosition.length() - R_EARTH - R_MOON,
+    1,
+  );
   const progressToMoon = THREE.MathUtils.clamp(
     altitudeEarth / totalTransitDistance,
     0,
