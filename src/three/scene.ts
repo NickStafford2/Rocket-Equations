@@ -73,8 +73,8 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
-  // const ambientLight = new THREE.AmbientLight(0x1e2633, 0.16);
-  // scene.add(ambientLight);
+  const ambientLight = new THREE.AmbientLight(0x1e2633, 2.8);
+  scene.add(ambientLight);
 
   const objects = createSceneObjects(scene);
   const orientationIndicator = createOrientationIndicator();
