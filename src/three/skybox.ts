@@ -8,7 +8,7 @@ export function createReferenceSkybox(): THREE.Group {
   const skyTexture = loader.load(skyTextureUrl)
 
   const starfield = new THREE.Mesh(
-    new THREE.SphereGeometry(3200, 64, 64),
+    new THREE.SphereGeometry(12800, 64, 64),
     new THREE.MeshBasicMaterial({
       map: starTexture,
       side: THREE.BackSide,
@@ -19,7 +19,7 @@ export function createReferenceSkybox(): THREE.Group {
   )
 
   const skyfield = new THREE.Mesh(
-    new THREE.SphereGeometry(3000, 64, 64),
+    new THREE.SphereGeometry(12000, 64, 64),
     new THREE.MeshBasicMaterial({
       map: skyTexture,
       side: THREE.BackSide,
