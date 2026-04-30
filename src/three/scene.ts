@@ -11,7 +11,7 @@ import type {
   OrientationIndicatorBundle,
   VectorIndicatorBundle,
 } from "./orientation-indicator";
-import { createReferenceSkybox } from "./skybox";
+import { loadReferenceBackground } from "./skybox";
 import { createReferenceSun } from "./sun";
 
 const BLOOM_STRENGTH = 0.38;
@@ -36,7 +36,7 @@ export type ThreeSceneBundle = {
 
 export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000814);
+  scene.background = loadReferenceBackground();
   scene.fog = new THREE.Fog(0x000814, 180, 2500);
 
   const camera = new THREE.PerspectiveCamera(
@@ -81,7 +81,6 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const relativeVelocityIndicator = createVectorIndicator();
   objects.system.add(createOrbitalGrid());
   objects.system.add(createAxisHelper());
-  scene.add(createReferenceSkybox());
 
   const sunBundle = createReferenceSun();
   scene.add(sunBundle.sun);
