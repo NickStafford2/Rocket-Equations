@@ -5,8 +5,6 @@ import {
   getLaunchFrame,
   makeInitialRocketState,
   moonVelocityMeters,
-  R_EARTH,
-  R_MOON,
 } from "../physics/bodies";
 import type { ManeuverInput } from "../physics/bodies";
 import {
@@ -24,14 +22,13 @@ import {
   ROCKET_DRAW_RADIUS,
 } from "../three/objects";
 import type { RocketModelVariant } from "../three/objects/rocket";
+import { getRocketModelVariantForState } from "../rocket/variant";
 import { syncSatelliteSystem } from "../three/objects/satellites";
 import type { ThreeSceneBundle } from "../three/scene";
 import { getCameraDebugSnapshot, type CameraRigState } from "../three/camera-rig";
 import type { CameraDebugState } from "./types";
 
 const UI_SYNC_INTERVAL_MS = 100;
-const APOLLO_SOYUZ_PROGRESS = 1 / 3;
-const LUNAR_MODULE_APPROACH_ALTITUDE_METERS = R_MOON * 2;
 const CAMERA_DIRECTION = new THREE.Vector3();
 const INDICATOR_MOON_VELOCITY = new THREE.Vector3();
 const INDICATOR_RELATIVE_VELOCITY = new THREE.Vector3();
@@ -253,28 +250,10 @@ function syncRocketVisuals(
 }
 
 function getRocketModelVariant(frame: FrameState): RocketModelVariant {
-  if (
-    Math.max(frame.telemetry.altitudeMoon, 0) <=
-    LUNAR_MODULE_APPROACH_ALTITUDE_METERS
-  ) {
-    return "apollo-lunar-module";
-  }
-
-  const totalTransitDistance = Math.max(
-    frame.telemetry.moonPosition.length() - R_EARTH - R_MOON,
-    1,
+  return getRocketModelVariantForState(
+    frame.simState.rocket.position,
+    frame.telemetry.moonPosition,
   );
-  const progressToMoon = THREE.MathUtils.clamp(
-    Math.max(frame.telemetry.altitudeEarth, 0) / totalTransitDistance,
-    0,
-    1,
-  );
-
-  if (progressToMoon >= APOLLO_SOYUZ_PROGRESS) {
-    return "apollo-soyuz";
-  }
-
-  return "saturn-v";
 }
 
 function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {

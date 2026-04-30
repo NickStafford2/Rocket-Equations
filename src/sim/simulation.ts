@@ -15,6 +15,8 @@ import {
 import type { ManeuverInput } from '../physics/bodies'
 import type { SimulationState } from '../physics/bodies'
 import { altitudeAboveEarth, altitudeAboveMoon, stepSimulation } from '../physics/integrator'
+import { ROCKET_MODEL_SPECS } from '../rocket/definitions'
+import { getRocketModelVariantForState } from '../rocket/variant'
 import {
   PREDICTION_POINT_CAPACITY,
   PREDICTION_REFRESH_INTERVAL_MS,
@@ -27,6 +29,7 @@ export type SimulationConfig = {
   launchSpeed: number
   launchAngleDeg: number
   launchAzimuthDeg: number
+  launchAltitudeMeters: number
   dt: number
   thrustAcceleration: number
   turnRateDeg: number
@@ -67,6 +70,7 @@ export class EarthMoonSimulation {
       launchSpeed: DEFAULT_SPEED,
       launchAngleDeg: DEFAULT_ANGLE_DEG,
       launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
+      launchAltitudeMeters: ROCKET_MODEL_SPECS["saturn-v"].contactOffsetMeters,
       dt: DEFAULT_DT,
       thrustAcceleration: 4,
       turnRateDeg: 1.25,
@@ -77,6 +81,7 @@ export class EarthMoonSimulation {
       config.launchSpeed,
       config.launchAngleDeg,
       config.launchAzimuthDeg,
+      config.launchAltitudeMeters,
     )
     this.initializeTrail()
     this.updateFlightExtrema()
@@ -91,6 +96,7 @@ export class EarthMoonSimulation {
       this.config.launchSpeed,
       this.config.launchAngleDeg,
       this.config.launchAzimuthDeg,
+      this.config.launchAltitudeMeters,
     )
     this.initializeTrail()
     this.peakAltitudeEarth = 0
@@ -103,12 +109,20 @@ export class EarthMoonSimulation {
     const stepDt = this.config.dt / steps
 
     for (let index = 0; index < steps; index += 1) {
+      const moonPosition = moonPositionMeters(this.state.t)
+      const rocketModelVariant = getRocketModelVariantForState(
+        this.state.rocket.position,
+        moonPosition,
+      )
+      const contactOffsetMeters =
+        ROCKET_MODEL_SPECS[rocketModelVariant].contactOffsetMeters
       this.state = stepSimulation(
         this.state,
         stepDt,
         input,
         this.config.thrustAcceleration,
         this.config.turnRateDeg,
+        contactOffsetMeters,
       )
       this.appendTrailPoint(this.state.rocket.position)
       this.updateFlightExtrema()
@@ -212,12 +226,18 @@ export class EarthMoonSimulation {
 
   getTelemetry(): SimulationTelemetry {
     const moonPos = moonPositionMeters(this.state.t)
+    const rocketModelVariant = getRocketModelVariantForState(
+      this.state.rocket.position,
+      moonPos,
+    )
+    const contactOffsetMeters =
+      ROCKET_MODEL_SPECS[rocketModelVariant].contactOffsetMeters
     return {
       hours: this.state.t / 3600,
       speed: this.state.rocket.velocity.length(),
       relativeMoonSpeed: this.state.rocket.velocity.clone().sub(moonVelocityMeters(this.state.t)).length(),
-      altitudeEarth: altitudeAboveEarth(this.state.rocket.position, R_EARTH),
-      altitudeMoon: altitudeAboveMoon(this.state.rocket.position, moonPos, R_MOON),
+      altitudeEarth: altitudeAboveEarth(this.state.rocket.position, R_EARTH) - contactOffsetMeters,
+      altitudeMoon: altitudeAboveMoon(this.state.rocket.position, moonPos, R_MOON) - contactOffsetMeters,
       peakAltitudeEarth: this.peakAltitudeEarth,
       closestMoonApproach: this.closestMoonApproach,
       moonPosition: moonPos,
@@ -230,12 +250,18 @@ export class EarthMoonSimulation {
 
   private updateFlightExtrema(): void {
     const moonPos = moonPositionMeters(this.state.t)
+    const rocketModelVariant = getRocketModelVariantForState(
+      this.state.rocket.position,
+      moonPos,
+    )
+    const contactOffsetMeters =
+      ROCKET_MODEL_SPECS[rocketModelVariant].contactOffsetMeters
     const altitudeEarth = Math.max(
-      altitudeAboveEarth(this.state.rocket.position, R_EARTH),
+      altitudeAboveEarth(this.state.rocket.position, R_EARTH) - contactOffsetMeters,
       0,
     )
     const altitudeMoon = Math.max(
-      altitudeAboveMoon(this.state.rocket.position, moonPos, R_MOON),
+      altitudeAboveMoon(this.state.rocket.position, moonPos, R_MOON) - contactOffsetMeters,
       0,
     )
 

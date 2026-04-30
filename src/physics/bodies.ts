@@ -133,10 +133,11 @@ export function makeInitialSimulationState(
   speed: number = DEFAULT_SPEED,
   angleDeg: number = DEFAULT_ANGLE_DEG,
   launchAzimuthDeg: number = DEFAULT_LAUNCH_AZIMUTH_DEG,
+  altitude: number = DEFAULT_ALTITUDE,
 ): SimulationState {
   return {
     t: 0,
-    rocket: makeInitialRocketState(speed, angleDeg, launchAzimuthDeg),
+    rocket: makeInitialRocketState(speed, angleDeg, launchAzimuthDeg, altitude),
     impact: null,
   };
 }
