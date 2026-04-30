@@ -38,6 +38,9 @@ const INDICATOR_RELATIVE_VELOCITY = new THREE.Vector3();
 const LABEL_WORLD_POSITION = new THREE.Vector3();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const WORLD_FORWARD = new THREE.Vector3(0, 0, 1);
+const ROCKET_WORLD_RIGHT = new THREE.Vector3();
+const ROCKET_WORLD_UP = new THREE.Vector3();
+const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
 
 type SimulationState = ReturnType<EarthMoonSimulation["getState"]>;
 type TelemetryState = ReturnType<EarthMoonSimulation["getTelemetry"]>;
@@ -230,7 +233,21 @@ function syncRocketVisuals(
     ROCKET_DRAW_RADIUS * 2.8,
     ROCKET_DRAW_RADIUS * 1.4,
   );
-  objects.rocket.quaternion.setFromUnitVectors(WORLD_UP, heading);
+  ROCKET_WORLD_UP.copy(WORLD_UP);
+  ROCKET_WORLD_RIGHT.crossVectors(heading, ROCKET_WORLD_UP);
+
+  if (ROCKET_WORLD_RIGHT.lengthSq() <= 1e-9) {
+    ROCKET_WORLD_RIGHT.set(1, 0, 0);
+  } else {
+    ROCKET_WORLD_RIGHT.normalize();
+  }
+
+  ROCKET_ORIENTATION_MATRIX.makeBasis(
+    ROCKET_WORLD_RIGHT,
+    heading,
+    ROCKET_WORLD_UP,
+  );
+  objects.rocket.quaternion.setFromRotationMatrix(ROCKET_ORIENTATION_MATRIX);
 }
 
 function getRocketModelVariant(frame: FrameState): RocketModelVariant {
