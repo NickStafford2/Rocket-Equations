@@ -16,10 +16,9 @@ import { TRAIL_POINT_CAPACITY } from "../sim/trail";
 import {
   ORBIT_METERS_TO_SCENE_UNITS,
   EARTH_RENDER_RADIUS_SCENE_UNITS,
-  orbitMetersToSceneUnits,
   MOON_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-} from "../three/objects";
+} from "../three/objects/constants";
 import type { RocketModelVariant } from "../three/objects/rocket";
 import { getRocketModelVariantForState } from "../rocket/variant";
 import { syncSatelliteSystem } from "../three/objects/satellites";
@@ -193,12 +192,12 @@ function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
   objects.earthRotatingFrame.rotation.y =
     EARTH_ANGULAR_SPEED * frame.simState.t;
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
-  objects.moon.position.copy(
-    orbitMetersToSceneUnits(frame.telemetry.moonPosition),
-  );
-  objects.rocket.position.copy(
-    orbitMetersToSceneUnits(frame.simState.rocket.position),
-  );
+  objects.moon.position
+    .copy(frame.telemetry.moonPosition)
+    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
+  objects.rocket.position
+    .copy(frame.simState.rocket.position)
+    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
 }
 
 function syncRocketVisuals(
@@ -280,7 +279,9 @@ function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
   objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
   objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
 
-  const launchOrigin = orbitMetersToSceneUnits(launchFrame.position);
+  const launchOrigin = launchFrame.position
+    .clone()
+    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
   objects.launchLocationArrow.position.set(0, 0, 0);
   objects.launchLocationArrow.setDirection(launchFrame.radialHat.clone());
   objects.launchLocationArrow.setLength(launchOrigin.length(), 6, 3);

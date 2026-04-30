@@ -1,21 +1,8 @@
 import * as THREE from "three";
-import {
-  ORBIT_METERS_TO_SCENE_UNITS,
-  EARTH_RENDER_RADIUS_SCENE_UNITS,
-  MOON_RENDER_RADIUS_SCENE_UNITS,
-  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-} from "./constants";
 import { createBodyObjects } from "./bodies";
 import type { RocketModelVariant } from "./rocket";
 import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
-
-export {
-  ORBIT_METERS_TO_SCENE_UNITS,
-  EARTH_RENDER_RADIUS_SCENE_UNITS,
-  MOON_RENDER_RADIUS_SCENE_UNITS,
-  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-};
 
 export type SceneObjects = {
   system: THREE.Group;
@@ -99,8 +86,4 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     trailLine,
     predictionLine,
   };
-}
-
-export function orbitMetersToSceneUnits(v: THREE.Vector3): THREE.Vector3 {
-  return v.clone().multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
 }
