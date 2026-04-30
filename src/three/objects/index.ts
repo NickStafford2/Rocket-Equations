@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import {
-  DISTANCE_SCALE,
-  EARTH_DRAW_RADIUS,
-  MOON_DRAW_RADIUS,
-  ROCKET_DRAW_RADIUS,
+  ORBIT_METERS_TO_SCENE_UNITS,
+  EARTH_RENDER_RADIUS_SCENE_UNITS,
+  MOON_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "./constants";
 import { createBodyObjects } from "./bodies";
 import type { RocketModelVariant } from "./rocket";
@@ -11,10 +11,10 @@ import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 
 export {
-  DISTANCE_SCALE,
-  EARTH_DRAW_RADIUS,
-  MOON_DRAW_RADIUS,
-  ROCKET_DRAW_RADIUS,
+  ORBIT_METERS_TO_SCENE_UNITS,
+  EARTH_RENDER_RADIUS_SCENE_UNITS,
+  MOON_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 };
 
 export type SceneObjects = {
@@ -101,6 +101,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   };
 }
 
-export function metersToScene(v: THREE.Vector3): THREE.Vector3 {
-  return v.clone().multiplyScalar(DISTANCE_SCALE);
+export function orbitMetersToSceneUnits(v: THREE.Vector3): THREE.Vector3 {
+  return v.clone().multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
 }

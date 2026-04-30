@@ -3,7 +3,7 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { EARTH_ROTATION_PERIOD, G, M_EARTH } from "../../../physics/bodies";
 import dracoDecoderJsUrl from "three/examples/jsm/libs/draco/gltf/draco_decoder.js?url";
-import { DISTANCE_SCALE } from "../constants";
+import { ORBIT_METERS_TO_SCENE_UNITS } from "../constants";
 import {
   orbitalRadiusMeters,
   geosynchronousOrbitRadiusMeters,
@@ -134,7 +134,7 @@ function resolveSatellitePosition(
 
   if (orbit.type === "earth-l2") {
     const distanceSceneUnits =
-      (orbit.distanceMeters ?? 1_500_000_000) * DISTANCE_SCALE;
+      (orbit.distanceMeters ?? 1_500_000_000) * ORBIT_METERS_TO_SCENE_UNITS;
 
     return ANTI_SUN_DIRECTION.clone().multiplyScalar(distanceSceneUnits);
   }
@@ -142,7 +142,7 @@ function resolveSatellitePosition(
   if (orbit.type === "deep-space") {
     const distanceSceneUnits =
       (orbit.distanceMeters ?? geosynchronousOrbitRadiusMeters()) *
-      DISTANCE_SCALE;
+      ORBIT_METERS_TO_SCENE_UNITS;
     const longitudeRad = THREE.MathUtils.degToRad(orbit.longitudeDeg ?? 0);
     const inclinationRad = THREE.MathUtils.degToRad(orbit.inclinationDeg ?? 0);
     const phaseRad = THREE.MathUtils.degToRad(orbit.phaseDeg ?? 0);
@@ -162,7 +162,8 @@ function resolveSatellitePosition(
       .clone();
   }
 
-  const radiusSceneUnits = orbitalRadiusMeters(orbit) * DISTANCE_SCALE;
+  const radiusSceneUnits =
+    orbitalRadiusMeters(orbit) * ORBIT_METERS_TO_SCENE_UNITS;
   const inclinationRad = THREE.MathUtils.degToRad(orbit.inclinationDeg ?? 0);
   const ascendingNodeRad = THREE.MathUtils.degToRad(
     orbit.ascendingNodeDeg ?? 0,

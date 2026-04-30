@@ -35,7 +35,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
 
   const rocket = new THREE.Group();
   const rocketVisual = createRocketVisual({
-    fitHeight: INDICATOR_TARGET_SIZE,
+    fitHeightSceneUnits: INDICATOR_TARGET_SIZE,
   });
   rocket.add(rocketVisual.root);
   frame.add(rocket);

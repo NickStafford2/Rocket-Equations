@@ -1,14 +1,20 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { EARTH_DRAW_RADIUS, ROCKET_DRAW_RADIUS } from "./constants";
 import {
-  ROCKET_MODEL_DEFINITIONS,
-  ROCKET_SCENE_SCALE,
+  EARTH_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
+} from "./constants";
+import {
+  ROCKET_RENDER_MODEL_DEFINITIONS,
+  ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
   type RocketModelDefinition,
   type RocketModelVariant,
 } from "./rocket-models";
 
-export type { RocketModelDefinition, RocketModelVariant } from "./rocket-models";
+export type {
+  RocketModelDefinition,
+  RocketModelVariant,
+} from "./rocket-models";
 
 export interface RocketVisualLoadedPayload {
   definition: RocketModelDefinition;
@@ -26,25 +32,24 @@ type RocketVisualController = {
 const SHOW_DEBUG_CYLINDER = false;
 const MODEL_CACHE = new Map<RocketModelVariant, Promise<THREE.Group>>();
 
-export function createRocketVisual(
-  {
-    initialVariant = "saturn-v",
-    sceneScale = ROCKET_SCENE_SCALE,
-    fitHeight,
-    onLoaded,
-  }: {
-    initialVariant?: RocketModelVariant;
-    sceneScale?: number;
-    fitHeight?: number;
-    onLoaded?: (payload: RocketVisualLoadedPayload) => void;
-  } = {},
-): RocketVisualController {
-  const scaleRoot = new THREE.Group();
+export function createRocketVisual({
+  initialVariant = "saturn-v",
+  visualMetersToSceneUnits:
+    visualMetersToSceneUnits = ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+  fitHeightSceneUnits: fitHeightSceneUnits,
+  onLoaded,
+}: {
+  initialVariant?: RocketModelVariant;
+  visualMetersToSceneUnits?: number;
+  fitHeightSceneUnits?: number;
+  onLoaded?: (payload: RocketVisualLoadedPayload) => void;
+} = {}): RocketVisualController {
+  const modelScaleRoot = new THREE.Group();
   let activeVariant = initialVariant;
   let loadRequestId = 0;
 
   function setVariant(variant: RocketModelVariant) {
-    if (variant === activeVariant && scaleRoot.children.length > 0) {
+    if (variant === activeVariant && modelScaleRoot.children.length > 0) {
       return;
     }
 
@@ -57,28 +62,28 @@ export function createRocketVisual(
           return;
         }
 
-        scaleRoot.clear();
-        scaleRoot.position.set(0, 0, 0);
-        scaleRoot.scale.setScalar(1);
-        scaleRoot.add(model);
+        modelScaleRoot.clear();
+        modelScaleRoot.position.set(0, 0, 0);
+        modelScaleRoot.scale.setScalar(1);
+        modelScaleRoot.add(model);
 
-        scaleRoot.updateMatrixWorld(true);
+        modelScaleRoot.updateMatrixWorld(true);
         const scale =
-          fitHeight && fitHeight > 0
-            ? fitHeight /
+          fitHeightSceneUnits && fitHeightSceneUnits > 0
+            ? fitHeightSceneUnits /
               Math.max(
-                ROCKET_MODEL_DEFINITIONS[variant].heightMeters,
+                ROCKET_RENDER_MODEL_DEFINITIONS[variant].heightMeters,
                 1e-6,
               )
-            : sceneScale;
-        scaleRoot.scale.setScalar(scale);
+            : visualMetersToSceneUnits;
+        modelScaleRoot.scale.setScalar(scale);
 
-        scaleRoot.updateMatrixWorld(true);
-        const scaledBox = new THREE.Box3().setFromObject(scaleRoot);
+        modelScaleRoot.updateMatrixWorld(true);
+        const scaledBox = new THREE.Box3().setFromObject(modelScaleRoot);
         const scaledSize = scaledBox.getSize(new THREE.Vector3());
         const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
         onLoaded?.({
-          definition: ROCKET_MODEL_DEFINITIONS[variant],
+          definition: ROCKET_RENDER_MODEL_DEFINITIONS[variant],
           bounds: scaledBox,
           center: scaledCenter,
           size: scaledSize,
@@ -86,7 +91,7 @@ export function createRocketVisual(
       })
       .catch((error) => {
         console.error(
-          `Failed to load ${ROCKET_MODEL_DEFINITIONS[variant].name} rocket model.`,
+          `Failed to load ${ROCKET_RENDER_MODEL_DEFINITIONS[variant].name} rocket model.`,
           error,
         );
       });
@@ -95,7 +100,7 @@ export function createRocketVisual(
   setVariant(initialVariant);
 
   return {
-    root: scaleRoot,
+    root: modelScaleRoot,
     setVariant,
     getVariant: () => activeVariant,
   };
@@ -104,13 +109,13 @@ export function createRocketVisual(
 export function createRocketObjects() {
   const rocket = new THREE.Group();
   rocket.userData.focusLabel = "Rocket";
-  const fallbackBodyLength = ROCKET_DRAW_RADIUS * 5.5;
+  const fallbackBodyLength = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 5.5;
   rocket.userData.focusRadius = fallbackBodyLength * 0.9;
 
   const enginePlume = new THREE.Mesh(
     new THREE.ConeGeometry(
-      ROCKET_DRAW_RADIUS * 0.34,
-      ROCKET_DRAW_RADIUS * 2.8,
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.34,
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
       18,
     ),
     new THREE.MeshBasicMaterial({
@@ -120,7 +125,8 @@ export function createRocketObjects() {
     }),
   );
   enginePlume.rotation.z = Math.PI;
-  enginePlume.position.y = -fallbackBodyLength / 2 - ROCKET_DRAW_RADIUS * 1.25;
+  enginePlume.position.y =
+    -fallbackBodyLength / 2 - REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.25;
   enginePlume.userData.baseScale = 1;
   enginePlume.visible = false;
   rocket.add(enginePlume);
@@ -134,14 +140,17 @@ export function createRocketObjects() {
       rocket.userData.focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
-        ROCKET_DRAW_RADIUS * 2.5,
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.5,
       );
       enginePlume.position.set(
-        definition.plumeOffsetMeters.x * ROCKET_SCENE_SCALE,
-        definition.plumeOffsetMeters.y * ROCKET_SCENE_SCALE,
-        definition.plumeOffsetMeters.z * ROCKET_SCENE_SCALE,
+        definition.nozzleLocalOffsetMeters.x *
+          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+        definition.nozzleLocalOffsetMeters.y *
+          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+        definition.nozzleLocalOffsetMeters.z *
+          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
       );
-      enginePlume.userData.baseScale = definition.plumeScale;
+      enginePlume.userData.baseScale = definition.plumeVisualScaleMultiplier;
     },
   });
   rocket.add(rocketVisual.root);
@@ -149,16 +158,17 @@ export function createRocketObjects() {
   const thrustDirectionArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 1, 0),
     new THREE.Vector3(),
-    ROCKET_DRAW_RADIUS * 10,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 10,
     0x7dffb2,
-    ROCKET_DRAW_RADIUS * 2.8,
-    ROCKET_DRAW_RADIUS * 1.4,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
   );
 
   const launchLocationArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
     new THREE.Vector3(),
-    EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6,
+    EARTH_RENDER_RADIUS_SCENE_UNITS +
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
     0xf472b6,
     6,
     3,
@@ -166,8 +176,8 @@ export function createRocketObjects() {
 
   const launchRing = new THREE.Mesh(
     new THREE.TorusGeometry(
-      ROCKET_DRAW_RADIUS * 3.4,
-      ROCKET_DRAW_RADIUS * 0.16,
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 3.4,
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.16,
       12,
       42,
     ),
@@ -177,11 +187,21 @@ export function createRocketObjects() {
       opacity: 0.9,
     }),
   );
-  launchRing.position.set(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 0.4, 0, 0);
+  launchRing.position.set(
+    EARTH_RENDER_RADIUS_SCENE_UNITS +
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.4,
+    0,
+    0,
+  );
 
   const launchTangentArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
+    new THREE.Vector3(
+      EARTH_RENDER_RADIUS_SCENE_UNITS +
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
+      0,
+      0,
+    ),
     16,
     0x000,
     4,
@@ -190,7 +210,12 @@ export function createRocketObjects() {
 
   const launchAimArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(EARTH_DRAW_RADIUS + ROCKET_DRAW_RADIUS * 1.6, 0, 0),
+    new THREE.Vector3(
+      EARTH_RENDER_RADIUS_SCENE_UNITS +
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
+      0,
+      0,
+    ),
     18,
     0xff8d5c,
     5,
@@ -218,7 +243,7 @@ function loadRocketModel(variant: RocketModelVariant): Promise<THREE.Group> {
   const loader = new GLTFLoader();
   const pendingModel = new Promise<THREE.Group>((resolve, reject) => {
     loader.load(
-      ROCKET_MODEL_DEFINITIONS[variant].url,
+      ROCKET_RENDER_MODEL_DEFINITIONS[variant].url,
       (gltf) => {
         const model = gltf.scene;
 
@@ -244,7 +269,7 @@ function loadRocketModel(variant: RocketModelVariant): Promise<THREE.Group> {
 }
 
 function createDebugRocketBody(bodyLength: number): THREE.Group {
-  const radius = ROCKET_DRAW_RADIUS * 0.62;
+  const radius = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.62;
   const noseLength = bodyLength * 0.24;
   const stageBandHeight = bodyLength * 0.08;
   const group = new THREE.Group();

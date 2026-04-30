@@ -41,7 +41,7 @@ export function stepSimulation(
   input: ManeuverInput,
   thrustAcceleration: number = DEFAULT_THRUST_ACCELERATION,
   turnRateDeg: number = DEFAULT_TURN_RATE_DEG,
-  contactOffsetMeters: number = 0,
+  surfaceContactOffsetMeters: number = 0,
 ): SimulationState {
   if (state.impact) return state
 
@@ -91,14 +91,14 @@ export function stepSimulation(
     .sub(moonVelocityMeters(nextTime))
   const moonRelativeSpeed = moonRelativeVelocity.length()
 
-  if (earthDistance <= R_EARTH + contactOffsetMeters) {
+  if (earthDistance <= R_EARTH + surfaceContactOffsetMeters) {
     next.impact = {
       target: 'earth',
       speed: next.rocket.velocity.length(),
       relativeSpeed: next.rocket.velocity.length(),
       softLanding: false,
     }
-  } else if (moonDistance <= R_MOON + contactOffsetMeters) {
+  } else if (moonDistance <= R_MOON + surfaceContactOffsetMeters) {
     next.impact = {
       target: 'moon',
       speed: next.rocket.velocity.length(),

@@ -4,9 +4,9 @@ import earthTextureUrl from "../../assets/textures/earth.jpg";
 import moonTextureUrl from "../../assets/Nasa Moon/moon_color.png";
 import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean2.png";
 import {
-  DISTANCE_SCALE,
-  EARTH_DRAW_RADIUS,
-  MOON_DRAW_RADIUS,
+  ORBIT_METERS_TO_SCENE_UNITS,
+  EARTH_RENDER_RADIUS_SCENE_UNITS,
+  MOON_RENDER_RADIUS_SCENE_UNITS,
 } from "./constants";
 import { createBodyLabelSprite } from "./labels";
 import { createSatelliteSystem } from "./satellites";
@@ -19,12 +19,12 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
 
   const earthGroup = new THREE.Group();
   earthGroup.userData.focusLabel = "Earth";
-  earthGroup.userData.focusRadius = EARTH_DRAW_RADIUS;
+  earthGroup.userData.focusRadius = EARTH_RENDER_RADIUS_SCENE_UNITS;
   const earthRotatingFrame = new THREE.Group();
   earthGroup.add(earthRotatingFrame);
 
   const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(EARTH_DRAW_RADIUS, 64, 64),
+    new THREE.SphereGeometry(EARTH_RENDER_RADIUS_SCENE_UNITS, 64, 64),
     new THREE.MeshStandardMaterial({
       map: earthTexture,
       color: 0xffffff,
@@ -39,7 +39,7 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   earthRotatingFrame.add(earth);
 
   const earthLabel = createBodyLabelSprite("Earth");
-  earthLabel.position.set(0, EARTH_DRAW_RADIUS * 2.35, 0);
+  earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
   earthLabel.visible = false;
   earthGroup.add(earthLabel);
 
@@ -53,7 +53,7 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   moonNormal.magFilter = THREE.LinearFilter;
 
   const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(MOON_DRAW_RADIUS, 256, 256),
+    new THREE.SphereGeometry(MOON_RENDER_RADIUS_SCENE_UNITS, 256, 256),
     new THREE.MeshStandardMaterial({
       map: moonTexture,
       normalMap: moonNormal,
@@ -66,10 +66,10 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   moon.receiveShadow = true;
   moon.rotation.y = Math.PI * 0.35;
   moon.userData.focusLabel = "Moon";
-  moon.userData.focusRadius = MOON_DRAW_RADIUS;
+  moon.userData.focusRadius = MOON_RENDER_RADIUS_SCENE_UNITS;
 
   const moonLabel = createBodyLabelSprite("Moon");
-  moonLabel.position.set(0, MOON_DRAW_RADIUS * 3.25, 0);
+  moonLabel.position.set(0, MOON_RENDER_RADIUS_SCENE_UNITS * 3.25, 0);
   moonLabel.visible = false;
   moon.add(moonLabel);
 
@@ -78,9 +78,9 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
     const theta = (i / 512) * Math.PI * 2;
     moonOrbitPoints.push(
       new THREE.Vector3(
-        EARTH_MOON_DISTANCE * Math.cos(theta) * DISTANCE_SCALE,
+        EARTH_MOON_DISTANCE * Math.cos(theta) * ORBIT_METERS_TO_SCENE_UNITS,
         0,
-        EARTH_MOON_DISTANCE * Math.sin(theta) * DISTANCE_SCALE,
+        EARTH_MOON_DISTANCE * Math.sin(theta) * ORBIT_METERS_TO_SCENE_UNITS,
       ),
     );
   }

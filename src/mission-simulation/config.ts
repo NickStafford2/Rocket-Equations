@@ -6,7 +6,7 @@ import {
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
 } from "../physics/bodies";
-import { ROCKET_MODEL_SPECS } from "../rocket/definitions";
+import { ROCKET_PHYSICAL_MODEL_SPECS } from "../rocket/definitions";
 
 export {
   DEFAULT_ANGLE_DEG,
@@ -30,7 +30,8 @@ export function createSimulationConfig({
     launchSpeed,
     launchAngleDeg,
     launchAzimuthDeg,
-    launchAltitudeMeters: ROCKET_MODEL_SPECS["saturn-v"].contactOffsetMeters,
+    launchAltitudeMeters:
+      ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"].surfaceContactOffsetMeters,
     dt,
     thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
     turnRateDeg: DEFAULT_TURN_RATE_DEG,

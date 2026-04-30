@@ -7,25 +7,27 @@ import {
   moonVelocityMeters,
 } from "../physics/bodies";
 import type { ManeuverInput } from "../physics/bodies";
-import {
-  describeMoonLanding,
-  formatSpeed,
-  getMissionPhase,
-} from "../mission";
-import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
+import { describeMoonLanding, formatSpeed, getMissionPhase } from "../mission";
+import type {
+  EarthMoonSimulation,
+  SimulationTelemetry,
+} from "../sim/simulation";
 import { TRAIL_POINT_CAPACITY } from "../sim/trail";
 import {
-  DISTANCE_SCALE,
-  EARTH_DRAW_RADIUS,
-  metersToScene,
-  MOON_DRAW_RADIUS,
-  ROCKET_DRAW_RADIUS,
+  ORBIT_METERS_TO_SCENE_UNITS,
+  EARTH_RENDER_RADIUS_SCENE_UNITS,
+  orbitMetersToSceneUnits,
+  MOON_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../three/objects";
 import type { RocketModelVariant } from "../three/objects/rocket";
 import { getRocketModelVariantForState } from "../rocket/variant";
 import { syncSatelliteSystem } from "../three/objects/satellites";
 import type { ThreeSceneBundle } from "../three/scene";
-import { getCameraDebugSnapshot, type CameraRigState } from "../three/camera-rig";
+import {
+  getCameraDebugSnapshot,
+  type CameraRigState,
+} from "../three/camera-rig";
 import type { CameraDebugState } from "./types";
 
 const UI_SYNC_INTERVAL_MS = 100;
@@ -180,17 +182,23 @@ function createFrameState({
     launchFrame,
     previewState,
     aimArrowLength: THREE.MathUtils.lerp(12, 30, normalizedLaunchSpeed),
-    stagedLaunchPreviewVisible: !running && simState.t === 0 && !simState.impact,
+    stagedLaunchPreviewVisible:
+      !running && simState.t === 0 && !simState.impact,
   };
 }
 
 function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
 
-  objects.earthRotatingFrame.rotation.y = EARTH_ANGULAR_SPEED * frame.simState.t;
+  objects.earthRotatingFrame.rotation.y =
+    EARTH_ANGULAR_SPEED * frame.simState.t;
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
-  objects.moon.position.copy(metersToScene(frame.telemetry.moonPosition));
-  objects.rocket.position.copy(metersToScene(frame.simState.rocket.position));
+  objects.moon.position.copy(
+    orbitMetersToSceneUnits(frame.telemetry.moonPosition),
+  );
+  objects.rocket.position.copy(
+    orbitMetersToSceneUnits(frame.simState.rocket.position),
+  );
 }
 
 function syncRocketVisuals(
@@ -212,13 +220,15 @@ function syncRocketVisuals(
 
   objects.thrustDirectionArrow.position.copy(objects.rocket.position);
   objects.thrustDirectionArrow.visible = showThrustDirectionArrow;
-  objects.enginePlume.visible = frame.stagedLaunchPreviewVisible ? false : thrusting;
+  objects.enginePlume.visible = frame.stagedLaunchPreviewVisible
+    ? false
+    : thrusting;
 
   if (objects.enginePlume.visible) {
     const baseScale = Number(objects.enginePlume.userData.baseScale ?? 1);
-    const plumeScale =
+    const plumeVisualScaleMultiplier =
       (0.9 + Math.abs(Math.sin(frame.simState.t * 0.08)) * 0.45) * baseScale;
-    objects.enginePlume.scale.setScalar(plumeScale);
+    objects.enginePlume.scale.setScalar(plumeVisualScaleMultiplier);
   }
 
   if (frame.simState.rocket.heading.lengthSq() <= 1e-6) {
@@ -228,9 +238,9 @@ function syncRocketVisuals(
   const heading = frame.simState.rocket.heading.clone().normalize();
   objects.thrustDirectionArrow.setDirection(heading);
   objects.thrustDirectionArrow.setLength(
-    ROCKET_DRAW_RADIUS * 11,
-    ROCKET_DRAW_RADIUS * 2.8,
-    ROCKET_DRAW_RADIUS * 1.4,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 11,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
   );
   ROCKET_WORLD_UP.copy(WORLD_UP);
   ROCKET_WORLD_RIGHT.crossVectors(heading, ROCKET_WORLD_UP);
@@ -258,15 +268,19 @@ function getRocketModelVariant(frame: FrameState): RocketModelVariant {
 
 function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
-  const { launchFrame, previewState, stagedLaunchPreviewVisible, aimArrowLength } =
-    frame;
+  const {
+    launchFrame,
+    previewState,
+    stagedLaunchPreviewVisible,
+    aimArrowLength,
+  } = frame;
 
   objects.launchRing.visible = stagedLaunchPreviewVisible;
   objects.launchLocationArrow.visible = stagedLaunchPreviewVisible;
   objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
   objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
 
-  const launchOrigin = metersToScene(launchFrame.position);
+  const launchOrigin = orbitMetersToSceneUnits(launchFrame.position);
   objects.launchLocationArrow.position.set(0, 0, 0);
   objects.launchLocationArrow.setDirection(launchFrame.radialHat.clone());
   objects.launchLocationArrow.setLength(launchOrigin.length(), 6, 3);
@@ -279,7 +293,9 @@ function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
   objects.launchTangentArrow.setDirection(launchFrame.tangentHat.clone());
   objects.launchTangentArrow.setLength(14, 3.5, 1.75);
   objects.launchAimArrow.position.copy(launchOrigin);
-  objects.launchAimArrow.setDirection(previewState.velocity.clone().normalize());
+  objects.launchAimArrow.setDirection(
+    previewState.velocity.clone().normalize(),
+  );
   objects.launchAimArrow.setLength(
     aimArrowLength,
     Math.max(4, aimArrowLength * 0.22),
@@ -319,7 +335,11 @@ function syncTrailDisplay({
   ) as THREE.BufferAttribute;
   const positionArray = trailPositions.array as Float32Array;
 
-  simulation.copyTrailPositionsTo(positionArray, DISTANCE_SCALE, startIndex);
+  simulation.copyTrailPositionsTo(
+    positionArray,
+    ORBIT_METERS_TO_SCENE_UNITS,
+    startIndex,
+  );
   trailPositions.needsUpdate = true;
   bundle.objects.trailLine.geometry.setDrawRange(0, trailLength);
   previousTrailLengthRef.current = trailLength;
@@ -354,13 +374,13 @@ function syncPredictionDisplay({
         t: frame.simState.t,
         position: frame.simState.rocket.position,
         velocity: frame.simState.rocket.velocity,
-      }
+      };
 
   const predictionUpdated = simulation.refreshPrediction(
     frame.now,
     sourceState,
     running,
-  )
+  );
   const predictionLength = simulation.getPredictionLength();
 
   if (
@@ -370,12 +390,16 @@ function syncPredictionDisplay({
     return;
   }
 
-  const predictionPositions = bundle.objects.predictionLine.geometry.getAttribute(
-    "position",
-  ) as THREE.BufferAttribute;
+  const predictionPositions =
+    bundle.objects.predictionLine.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute;
   const positionArray = predictionPositions.array as Float32Array;
 
-  simulation.copyPredictionPositionsTo(positionArray, DISTANCE_SCALE);
+  simulation.copyPredictionPositionsTo(
+    positionArray,
+    ORBIT_METERS_TO_SCENE_UNITS,
+  );
   predictionPositions.needsUpdate = true;
   bundle.objects.predictionLine.geometry.setDrawRange(0, predictionLength);
 }
@@ -389,12 +413,13 @@ function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
 
   relativeVelocityIndicator.frame.quaternion.copy(camera.quaternion).invert();
   INDICATOR_MOON_VELOCITY.copy(moonVelocityMeters(frame.simState.t));
-  INDICATOR_RELATIVE_VELOCITY
-    .copy(INDICATOR_MOON_VELOCITY)
-    .sub(frame.simState.rocket.velocity);
+  INDICATOR_RELATIVE_VELOCITY.copy(INDICATOR_MOON_VELOCITY).sub(
+    frame.simState.rocket.velocity,
+  );
   relativeVelocityIndicator.setValueLabel(
     formatSignedVelocityDelta(
-      INDICATOR_MOON_VELOCITY.length() - frame.simState.rocket.velocity.length(),
+      INDICATOR_MOON_VELOCITY.length() -
+        frame.simState.rocket.velocity.length(),
     ),
   );
 
@@ -405,9 +430,7 @@ function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
 
   INDICATOR_RELATIVE_VELOCITY.normalize();
   relativeVelocityIndicator.arrow.visible = true;
-  relativeVelocityIndicator.arrow.position.copy(
-    INDICATOR_RELATIVE_VELOCITY,
-  );
+  relativeVelocityIndicator.arrow.position.copy(INDICATOR_RELATIVE_VELOCITY);
   relativeVelocityIndicator.arrow.position.multiplyScalar(
     -relativeVelocityIndicator.arrowLength * 0.5,
   );
@@ -428,8 +451,8 @@ function syncFarAwayLabels(bundle: ThreeSceneBundle) {
     objects.earthGroup,
     camera,
     viewportHeight,
-    EARTH_DRAW_RADIUS,
-    EARTH_DRAW_RADIUS * 18,
+    EARTH_RENDER_RADIUS_SCENE_UNITS,
+    EARTH_RENDER_RADIUS_SCENE_UNITS * 18,
     10,
     24,
     150,
@@ -439,8 +462,8 @@ function syncFarAwayLabels(bundle: ThreeSceneBundle) {
     objects.moon,
     camera,
     viewportHeight,
-    MOON_DRAW_RADIUS,
-    MOON_DRAW_RADIUS * 24,
+    MOON_RENDER_RADIUS_SCENE_UNITS,
+    MOON_RENDER_RADIUS_SCENE_UNITS * 24,
     9,
     20,
     90,
@@ -505,7 +528,8 @@ function syncMissionUi({
   const telemetryChanged = lastTelemetryTimeRef.current !== simState.t;
   const shouldSyncUi =
     telemetryChanged &&
-    (now - lastUiSyncAtRef.current >= UI_SYNC_INTERVAL_MS || !runningRef.current);
+    (now - lastUiSyncAtRef.current >= UI_SYNC_INTERVAL_MS ||
+      !runningRef.current);
 
   if (shouldSyncUi) {
     lastUiSyncAtRef.current = now;
@@ -585,7 +609,11 @@ function syncCameraDebug({
 
   lastCameraDebugSyncAtRef.current = frameNow;
   setCameraDebug(
-    getCameraDebugSnapshot(cameraRigRef.current, bundle.camera, bundle.controls),
+    getCameraDebugSnapshot(
+      cameraRigRef.current,
+      bundle.camera,
+      bundle.controls,
+    ),
   );
 }
 
@@ -604,8 +632,9 @@ function updateFarAwayLabel(
   const cameraDistance = camera.position.distanceTo(LABEL_WORLD_POSITION);
   camera.getWorldDirection(CAMERA_DIRECTION);
   const inFrontOfCamera =
-    LABEL_WORLD_POSITION.sub(camera.position).normalize().dot(CAMERA_DIRECTION) >
-    0.1;
+    LABEL_WORLD_POSITION.sub(camera.position)
+      .normalize()
+      .dot(CAMERA_DIRECTION) > 0.1;
   const projectedDiameterPx =
     cameraDistance > 1e-6
       ? (bodyRadius /
@@ -620,6 +649,10 @@ function updateFarAwayLabel(
     projectedDiameterPx <= maxScreenDiameterPx;
   if (!sprite.visible) return;
 
-  const scale = THREE.MathUtils.clamp(cameraDistance * 0.05, minScale, maxScale);
+  const scale = THREE.MathUtils.clamp(
+    cameraDistance * 0.05,
+    minScale,
+    maxScale,
+  );
   sprite.scale.set(scale, scale * 0.375, 1);
 }
