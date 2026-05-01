@@ -18,8 +18,8 @@ export const MOON_SOI_RADIUS =
 
 // preset for near earth orbit to moon launch.
 export const ROCKET_DEFAULT_EARTH_ALTITUDE = 0.0;
-export const ROCKET_DEFAULT_SPEED = 10_430.0;
-export const ROCKET_DEFAULT_ANGLE_DEG = 12.0;
+export const ROCKET_DEFAULT_SPEED = 11_000.0;
+export const ROCKET_DEFAULT_ANGLE_DEG = 22.0;
 export const ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG = 273.0;
 
 // preset for stright to the moon launch.
@@ -33,6 +33,7 @@ export const MAX_SIMULATION_STEP = 2.0;
 export const DEFAULT_THRUST_ACCELERATION = 35.0;
 export const DEFAULT_TURN_RATE_DEG = 0.5;
 export const EARTH_ATMOSPHERE_HEIGHT_METERS = R_EARTH * 0.05;
+export const MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND = 7_800.0;
 export const SOFT_LANDING_SPEED = 25.0;
 
 export type BodyState = {

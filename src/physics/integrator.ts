@@ -2,7 +2,7 @@ import * as THREE from "three";
 import {
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
-  EARTH_ATMOSPHERE_HEIGHT_METERS,
+  MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
   moonPositionMeters,
   moonVelocityMeters,
   R_EARTH,
@@ -53,11 +53,11 @@ export function stepSimulation(
 ): SimulationState {
   if (state.impact) return state;
 
-  const altitudeEarthMeters =
-    altitudeAboveEarth(state.rocket.position, R_EARTH) - surfaceContactOffsetMeters;
-  const autopilotActive =
-    !state.guidanceComplete &&
-    altitudeEarthMeters <= EARTH_ATMOSPHERE_HEIGHT_METERS;
+  const requiredGuidanceSpeed = Math.max(
+    targetSpeed,
+    MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
+  );
+  const autopilotActive = !state.guidanceComplete;
   const heading = autopilotActive
     ? rotateHeadingTowardTargetInPlane(
         state.rocket.heading,
@@ -75,7 +75,7 @@ export function stepSimulation(
     GUIDANCE_ANGLE_TOLERANCE_DEG;
   const speedReached =
     state.rocket.velocity.length() + GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND >=
-    targetSpeed;
+    requiredGuidanceSpeed;
   const guidanceComplete = state.guidanceComplete || (directionReached && speedReached);
   const thrusting = autopilotActive ? !guidanceComplete : input.thrusting;
   const thrustVector = thrusting
@@ -124,7 +124,7 @@ export function stepSimulation(
       GUIDANCE_ANGLE_TOLERANCE_DEG &&
       next.rocket.velocity.length() +
         GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND >=
-        targetSpeed);
+        requiredGuidanceSpeed);
   next.thrusting = autopilotActive ? !next.guidanceComplete : input.thrusting;
 
   const earthDistance = next.rocket.position.length();
