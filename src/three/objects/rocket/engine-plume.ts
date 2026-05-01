@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
 
 export function createEnginePlume(): THREE.Mesh {
+  // Create the plume (cone-shaped engine exhaust)
   const plume = new THREE.Mesh(
     new THREE.ConeGeometry(
       REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.34,

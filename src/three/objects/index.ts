@@ -5,6 +5,7 @@ import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
+import { createSmokeTrail } from "./rocket/smoke-trail"; // import your new smoke trail functions
 
 export type SceneObjects = {
   system: THREE.Group;
@@ -14,16 +15,13 @@ export type SceneObjects = {
   earthCloudsFrame: THREE.Group;
   earthAtmosphere: THREE.Mesh;
   earthFresnel: THREE.Mesh;
-  // referenceEarthGroup: THREE.Group;
-  // referenceEarthRotatingFrame: THREE.Group;
-  // referenceEarth: THREE.Mesh;
-  // referenceEarthLabel: THREE.Sprite;
   earthLabel: THREE.Sprite;
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
   moonLabel: THREE.Sprite;
   rocket: THREE.Group;
   enginePlume: THREE.Mesh;
+  smokeTrail: THREE.Points;
   thrustDirectionArrow: THREE.ArrowHelper;
   launchLocationArrow: THREE.ArrowHelper;
   launchRing: THREE.Mesh;
@@ -50,12 +48,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthLabel,
     satelliteSystem,
   } = createEarthObjects(loader);
-  // const {
-  //   referenceEarthGroup,
-  //   referenceEarthRotatingFrame,
-  //   referenceEarth,
-  //   referenceEarthLabel,
-  // } = createReferenceEarthObjects(loader);
+
   const { moon, moonLabel, moonOrbit } = createMoonObjects(loader);
   const {
     rocket,
@@ -67,16 +60,21 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     launchAimArrow,
     setRocketModelVariant,
   } = createRocketObjects();
+
   const trailLine = createTrailLine();
   const predictionLine = createPredictionLine();
 
+  // Create the smoke trail and add it to the scene
+  //
+  console.log("calling createSmokeTrail");
+  const smokeTrail = createSmokeTrail(); // Create the smoke trail
+  system.add(smokeTrail);
+
+  // Add other objects
   system.add(earthGroup);
-  // system.add(referenceEarthGroup);
   system.add(moon);
   system.add(rocket);
-  // system.add(launchLocationArrow);
   system.add(launchRing);
-  // system.add(launchTangentArrow);
   system.add(launchAimArrow);
   system.add(moonOrbit);
   system.add(trailLine);
@@ -90,16 +88,13 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthCloudsFrame,
     earthAtmosphere,
     earthFresnel,
-    // referenceEarthGroup,
-    // referenceEarthRotatingFrame,
-    // referenceEarth,
-    // referenceEarthLabel,
     earthLabel,
     satelliteSystem,
     moon,
     moonLabel,
     rocket,
     enginePlume,
+    smokeTrail, // Include the smoke trail in the returned scene objects
     thrustDirectionArrow,
     launchLocationArrow,
     launchRing,

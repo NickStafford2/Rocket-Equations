@@ -4,6 +4,7 @@ import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../three/objects/con
 import type { RocketModelVariant } from "../three/objects/rocket/rocket";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
+import { updateSmokeTrail } from "../three/objects/rocket/smoke-trail"; // Import the update function for the smoke trail
 
 const ROCKET_WORLD_UP = new THREE.Vector3(0, 1, 0);
 const ROCKET_WORLD_RIGHT = new THREE.Vector3();
@@ -37,6 +38,14 @@ export function syncRocketVisuals(
     const plumeVisualScaleMultiplier =
       (0.9 + Math.abs(Math.sin(frame.simState.t * 0.08)) * 0.45) * baseScale;
     objects.enginePlume.scale.setScalar(plumeVisualScaleMultiplier);
+  }
+
+  // Handle smoke trail visibility and update
+  if (thrusting) {
+    objects.smokeTrail.visible = true;
+    updateSmokeTrail(objects.smokeTrail, objects.rocket.position);
+  } else {
+    objects.smokeTrail.visible = false; // Hide the smoke trail if not thrusting
   }
 
   if (frame.simState.rocket.heading.lengthSq() <= 1e-6) {
