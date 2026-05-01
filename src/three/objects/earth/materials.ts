@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { SUN_POSITION } from "../../sun";
+import earthCloudFragmentShader from "./shaders/earth-clouds.fragment.glsl?raw";
 import earthSurfaceFragmentShader from "./shaders/earth-surface.fragment.glsl?raw";
 import earthSurfaceVertexShader from "./shaders/earth-surface.vertex.glsl?raw";
 import type { EarthTextureSet } from "./textures";
@@ -23,16 +24,20 @@ export function createEarthSurfaceMaterial(
 
 export function createEarthCloudMaterial(
   textures: EarthTextureSet,
-): THREE.MeshPhongMaterial {
-  return new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    emissive: new THREE.Color(0x18202c),
-    emissiveIntensity: 0.2,
-    alphaMap: textures.clouds,
+): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uCloudTexture: { value: textures.clouds },
+      uOpacity: { value: 1.0 },
+    },
+    vertexShader: earthSurfaceVertexShader,
+    fragmentShader: earthCloudFragmentShader,
     transparent: true,
-    opacity: 0.92,
     depthWrite: false,
+    depthTest: true,
     side: THREE.DoubleSide,
-    shininess: 8,
+    alphaTest: 0.0,
+    blending: THREE.NormalBlending,
+    toneMapped: false,
   });
 }
