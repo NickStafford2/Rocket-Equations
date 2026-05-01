@@ -16,6 +16,11 @@ export type {
 } from "./rocket-models";
 
 const SHOW_DEBUG_CYLINDER = false;
+const SHOW_ROCKET_DEBUG_MARKER = false;
+const ROCKET_DEBUG_AXES_SIZE =
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
+const ROCKET_DEBUG_SPHERE_RADIUS =
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.6;
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
@@ -28,6 +33,9 @@ export function createRocketObjects() {
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 46;
   rocket.userData.followMaxDistance =
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 72;
+  if (SHOW_ROCKET_DEBUG_MARKER) {
+    rocket.add(createRocketDebugMarker());
+  }
 
   // Create the improved engine plume
   const enginePlume = createEnginePlume();
@@ -68,4 +76,36 @@ export function createRocketObjects() {
     ...launchIndicators,
     setRocketModelVariant: rocketVisual.setVariant,
   };
+}
+
+function createRocketDebugMarker(): THREE.Group {
+  const marker = new THREE.Group();
+
+  const axesHelper = new THREE.AxesHelper(ROCKET_DEBUG_AXES_SIZE);
+  axesHelper.renderOrder = 999;
+  const materials = Array.isArray(axesHelper.material)
+    ? axesHelper.material
+    : [axesHelper.material];
+  for (const material of materials) {
+    material.depthTest = false;
+    material.depthWrite = false;
+    material.transparent = true;
+    material.opacity = 0.95;
+  }
+  marker.add(axesHelper);
+
+  const originMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(ROCKET_DEBUG_SPHERE_RADIUS, 20, 20),
+    new THREE.MeshBasicMaterial({
+      color: 0xff00ff,
+      depthTest: false,
+      depthWrite: false,
+      transparent: true,
+      opacity: 0.95,
+    }),
+  );
+  originMarker.renderOrder = 1000;
+  marker.add(originMarker);
+
+  return marker;
 }

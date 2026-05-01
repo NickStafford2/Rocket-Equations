@@ -7,6 +7,7 @@ import {
   ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
   ROCKET_DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
+  getLaunchFrame,
   MAX_SIMULATION_STEP,
   R_EARTH,
   R_MOON,
@@ -157,6 +158,13 @@ export class EarthMoonSimulation {
 
   getState(): SimulationState {
     return this.state;
+  }
+
+  getLaunchFrame(): ReturnType<typeof getLaunchFrame> {
+    return getLaunchFrame(
+      this.config.launchAltitudeMeters,
+      this.config.launchAzimuthDeg,
+    );
   }
 
   getTrail(): THREE.Vector3[] {
