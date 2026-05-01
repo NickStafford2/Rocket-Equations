@@ -14,7 +14,7 @@ import { createSatelliteSystem } from "./satellites";
 const MOON_WORLD_ORIGIN = new THREE.Vector3();
 const MOON_TEXTURE_ALIGNMENT = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(0, 1, 0),
-  Math.PI * 1.35,
+  Math.PI * 1.55,
 );
 
 export function createBodyObjects(loader: THREE.TextureLoader) {
@@ -116,7 +116,9 @@ export function syncMoonVisual(
   moon: THREE.Mesh,
   moonPositionMeters: THREE.Vector3,
 ) {
-  moon.position.copy(moonPositionMeters).multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
+  moon.position
+    .copy(moonPositionMeters)
+    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
   moon.lookAt(MOON_WORLD_ORIGIN);
   moon.quaternion.multiply(MOON_TEXTURE_ALIGNMENT);
 }
