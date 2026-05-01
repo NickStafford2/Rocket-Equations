@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import type { RocketModelVariant } from "./rocket";
-import { createRocketObjects } from "./rocket";
+import type { RocketModelVariant } from "./rocket/rocket";
+import { createRocketObjects } from "./rocket/rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
 // import { createReferenceEarthObjects } from "./earthReference/object";

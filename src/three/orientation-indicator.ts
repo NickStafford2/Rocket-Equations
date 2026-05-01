@@ -1,5 +1,8 @@
 import * as THREE from "three";
-import { createRocketVisual, type RocketModelVariant } from "./objects/rocket";
+import {
+  createRocketVisual,
+  type RocketModelVariant,
+} from "./objects/rocket/rocket";
 
 const INDICATOR_TARGET_SIZE = 1.75;
 const VECTOR_ARROW_LENGTH = 1.45;

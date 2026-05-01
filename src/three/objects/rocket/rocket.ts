@@ -3,18 +3,18 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-} from "./constants";
+} from "../constants";
 import {
   ROCKET_RENDER_MODEL_DEFINITIONS,
   ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
   type RocketModelDefinition,
   type RocketModelVariant,
-} from "./rocket/rocket-models";
+} from "./rocket-models";
 
 export type {
   RocketModelDefinition,
   RocketModelVariant,
-} from "./rocket/rocket-models";
+} from "./rocket-models";
 
 export interface RocketVisualLoadedPayload {
   definition: RocketModelDefinition;

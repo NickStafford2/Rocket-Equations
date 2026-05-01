@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { getRocketModelVariantForState } from "../rocket/variant";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../three/objects/constants";
-import type { RocketModelVariant } from "../three/objects/rocket";
+import type { RocketModelVariant } from "../three/objects/rocket/rocket";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
