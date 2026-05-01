@@ -70,7 +70,7 @@ export function createRocketObjects() {
 
   return {
     rocket,
-    enginePlume, // Now the engine plume is properly added
+    enginePlume,
     ...launchIndicators,
     setRocketModelVariant: rocketVisual.setVariant,
   };
