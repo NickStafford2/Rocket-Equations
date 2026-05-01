@@ -15,7 +15,7 @@ import { gravitationalAccelerationMeters } from "./gravity";
 function rotateHeading(
   heading: THREE.Vector3,
   turn: ManeuverInput["turn"],
-  dt: number,
+  timeWarp: number,
   turnRateDeg: number,
 ): THREE.Vector3 {
   const planarHeading = heading.clone().setY(0);
@@ -30,14 +30,14 @@ function rotateHeading(
   return planarHeading
     .applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
-      THREE.MathUtils.degToRad(turn * turnRateDeg * dt),
+      THREE.MathUtils.degToRad(turn * turnRateDeg * timeWarp),
     )
     .normalize();
 }
 
 export function stepSimulation(
   state: SimulationState,
-  dt: number,
+  timeWarp: number,
   input: ManeuverInput,
   thrustAcceleration: number = DEFAULT_THRUST_ACCELERATION,
   turnRateDeg: number = DEFAULT_TURN_RATE_DEG,
@@ -48,7 +48,7 @@ export function stepSimulation(
   const heading = rotateHeading(
     state.rocket.heading,
     input.turn,
-    dt,
+    timeWarp,
     turnRateDeg,
   );
   const thrustVector = input.thrusting
@@ -73,10 +73,10 @@ export function stepSimulation(
   ).add(thrustVector.clone());
 
   next.rocket.position
-    .add(next.rocket.velocity.clone().multiplyScalar(dt))
-    .add(initialAcceleration.clone().multiplyScalar(0.5 * dt * dt));
+    .add(next.rocket.velocity.clone().multiplyScalar(timeWarp))
+    .add(initialAcceleration.clone().multiplyScalar(0.5 * timeWarp * timeWarp));
 
-  const nextTime = next.t + dt;
+  const nextTime = next.t + timeWarp;
   const nextMoonPos = moonPositionMeters(nextTime);
   const nextAcceleration = gravitationalAccelerationMeters(
     next.rocket.position,
@@ -84,7 +84,7 @@ export function stepSimulation(
   ).add(thrustVector);
 
   next.rocket.velocity.add(
-    initialAcceleration.add(nextAcceleration).multiplyScalar(0.5 * dt),
+    initialAcceleration.add(nextAcceleration).multiplyScalar(0.5 * timeWarp),
   );
   next.rocket.acceleration.copy(nextAcceleration);
   next.t = nextTime;

@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import type { ManeuverInput } from "../physics/bodies";
-import { clampDt, isInteractiveElement } from "../mission";
-import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
-import { createSimulationConfig } from "./config";
 import {
-  createRunningStatus,
-  PAUSED_STATUS,
-  RESET_STATUS,
-} from "./status";
+  clampTimeWarp as clampTimeWarp,
+  isInteractiveElement,
+} from "../mission";
+import type {
+  EarthMoonSimulation,
+  SimulationTelemetry,
+} from "../sim/simulation";
+import { createSimulationConfig } from "./config";
+import { createRunningStatus, PAUSED_STATUS, RESET_STATUS } from "./status";
 import {
   createInitialDirectionKeyState,
   INITIAL_PRESSED_CONTROLS,
@@ -25,11 +27,11 @@ type UseMissionControlsParams = {
   launchSpeedRef: MutableRefObject<number>;
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
-  dtRef: MutableRefObject<number>;
+  timeWarpRef: MutableRefObject<number>;
   setRunning: (value: boolean | ((previous: boolean) => boolean)) => void;
   setStatus: (value: string) => void;
   setTelemetry: (value: SimulationTelemetry) => void;
-  setDtState: (value: number | ((current: number) => number)) => void;
+  setTimeWarpState: (value: number | ((current: number) => number)) => void;
 };
 
 type UseMissionControlsResult = {
@@ -47,16 +49,17 @@ export function useMissionControls({
   launchSpeedRef,
   launchAngleRef,
   launchAzimuthRef,
-  dtRef,
+  timeWarpRef: timeWarpRef,
   setRunning,
   setStatus,
   setTelemetry,
-  setDtState,
+  setTimeWarpState: setTimeWarpState,
 }: UseMissionControlsParams): UseMissionControlsResult {
-  const [pressedControls, setPressedControls] = useState<PressedMissionControls>(
-    INITIAL_PRESSED_CONTROLS,
+  const [pressedControls, setPressedControls] =
+    useState<PressedMissionControls>(INITIAL_PRESSED_CONTROLS);
+  const keyStateRef = useRef<DirectionKeyState>(
+    createInitialDirectionKeyState(),
   );
-  const keyStateRef = useRef<DirectionKeyState>(createInitialDirectionKeyState());
 
   const syncManeuverInput = useCallback(() => {
     maneuverInputRef.current = {
@@ -68,21 +71,23 @@ export function useMissionControls({
   const setControlPressed = useCallback(
     (control: MissionControlKey, pressed: boolean) => {
       setPressedControls((current) =>
-        current[control] === pressed ? current : { ...current, [control]: pressed },
+        current[control] === pressed
+          ? current
+          : { ...current, [control]: pressed },
       );
     },
     [],
   );
 
-  const adjustDt = useCallback(
+  const adjustTimeWarp = useCallback(
     (multiplier: number) => {
-      setDtState((current) => {
-        const nextDt = clampDt(current * multiplier);
-        dtRef.current = nextDt;
-        return nextDt;
+      setTimeWarpState((current) => {
+        const nextTimeWarp = clampTimeWarp(current * multiplier);
+        timeWarpRef.current = nextTimeWarp;
+        return nextTimeWarp;
       });
     },
-    [dtRef, setDtState],
+    [timeWarpRef, setTimeWarpState],
   );
 
   const resetSimulation = useCallback(() => {
@@ -94,7 +99,7 @@ export function useMissionControls({
         launchSpeed: launchSpeedRef.current,
         launchAngleDeg: launchAngleRef.current,
         launchAzimuthDeg: launchAzimuthRef.current,
-        dt: dtRef.current,
+        timeWarp: timeWarpRef.current,
       }),
     );
     simulation.reset();
@@ -103,7 +108,7 @@ export function useMissionControls({
     setTelemetry(simulation.getTelemetry());
     setStatus(RESET_STATUS);
   }, [
-    dtRef,
+    timeWarpRef,
     launchAngleRef,
     launchAzimuthRef,
     launchSpeedRef,
@@ -123,10 +128,19 @@ export function useMissionControls({
     setRunning((previous) => {
       const nextRunning = !previous;
       runningRef.current = nextRunning;
-      setStatus(nextRunning ? createRunningStatus(dtRef.current) : PAUSED_STATUS);
+      setStatus(
+        nextRunning ? createRunningStatus(timeWarpRef.current) : PAUSED_STATUS,
+      );
       return nextRunning;
     });
-  }, [dtRef, resetSimulation, runningRef, setRunning, setStatus, simulation]);
+  }, [
+    timeWarpRef,
+    resetSimulation,
+    runningRef,
+    setRunning,
+    setStatus,
+    simulation,
+  ]);
 
   const pressMissionControl = useCallback(
     (control: MissionControlKey) => {
@@ -147,23 +161,29 @@ export function useMissionControls({
           resetSimulation();
           break;
         case "KeyW":
-          adjustDt(10);
+          adjustTimeWarp(10);
           break;
         case "KeyA":
-          adjustDt(0.98);
+          adjustTimeWarp(0.98);
           break;
         case "KeyS":
-          adjustDt(0.1);
+          adjustTimeWarp(0.1);
           break;
         case "KeyD":
-          adjustDt(1.02);
+          adjustTimeWarp(1.02);
           break;
       }
 
       setControlPressed(control, true);
       syncManeuverInput();
     },
-    [adjustDt, resetSimulation, setControlPressed, syncManeuverInput, toggleRunning],
+    [
+      adjustTimeWarp,
+      resetSimulation,
+      setControlPressed,
+      syncManeuverInput,
+      toggleRunning,
+    ],
   );
 
   const releaseMissionControl = useCallback(

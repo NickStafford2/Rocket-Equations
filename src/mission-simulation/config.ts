@@ -1,30 +1,19 @@
 import {
-  ROCKET_DEFAULT_ANGLE_DEG,
-  DEFAULT_DT,
-  ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
-  ROCKET_DEFAULT_SPEED,
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
 } from "../physics/bodies";
 import { ROCKET_PHYSICAL_MODEL_SPECS } from "../rocket/definitions";
 
-export {
-  ROCKET_DEFAULT_ANGLE_DEG as DEFAULT_ANGLE_DEG,
-  DEFAULT_DT,
-  ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG as DEFAULT_LAUNCH_AZIMUTH_DEG,
-  ROCKET_DEFAULT_SPEED as DEFAULT_SPEED,
-};
-
 export function createSimulationConfig({
   launchSpeed,
   launchAngleDeg,
   launchAzimuthDeg,
-  dt,
+  timeWarp: timeWarp,
 }: {
   launchSpeed: number;
   launchAngleDeg: number;
   launchAzimuthDeg: number;
-  dt: number;
+  timeWarp: number;
 }) {
   return {
     launchSpeed,
@@ -32,7 +21,7 @@ export function createSimulationConfig({
     launchAzimuthDeg,
     launchAltitudeMeters:
       ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"].surfaceContactOffsetMeters,
-    dt,
+    timeWarp: timeWarp,
     thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
     turnRateDeg: DEFAULT_TURN_RATE_DEG,
   };

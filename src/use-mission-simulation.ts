@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ManeuverInput } from "./physics/bodies";
 import { EarthMoonSimulation } from "./sim/simulation";
-import { clampDt } from "./mission";
+import { clampTimeWarp } from "./mission";
+import { createSimulationConfig } from "./mission-simulation/config";
+
 import {
-  createSimulationConfig,
-  DEFAULT_ANGLE_DEG,
-  DEFAULT_DT,
-  DEFAULT_LAUNCH_AZIMUTH_DEG,
-  DEFAULT_SPEED,
-} from "./mission-simulation/config";
+  ROCKET_DEFAULT_ANGLE_DEG,
+  DEFAULT_TIME_WARP,
+  ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+  ROCKET_DEFAULT_SPEED,
+} from "./physics/bodies";
 import {
   INITIAL_MISSION_STATUS,
   RESTAGED_STATUS,
@@ -19,10 +20,10 @@ export type { MissionControlKey } from "./mission-simulation/types";
 
 export function useMissionSimulation() {
   const runningRef = useRef(false);
-  const launchSpeedRef = useRef(DEFAULT_SPEED);
-  const launchAngleRef = useRef(DEFAULT_ANGLE_DEG);
-  const launchAzimuthRef = useRef(DEFAULT_LAUNCH_AZIMUTH_DEG);
-  const dtRef = useRef(DEFAULT_DT);
+  const launchSpeedRef = useRef(ROCKET_DEFAULT_SPEED);
+  const launchAngleRef = useRef(ROCKET_DEFAULT_ANGLE_DEG);
+  const launchAzimuthRef = useRef(ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG);
+  const timeWarpRef = useRef(DEFAULT_TIME_WARP);
   const launchConfigInitializedRef = useRef(false);
   const maneuverInputRef = useRef<ManeuverInput>({
     thrusting: false,
@@ -33,25 +34,28 @@ export function useMissionSimulation() {
     () =>
       new EarthMoonSimulation(
         createSimulationConfig({
-          launchSpeed: DEFAULT_SPEED,
-          launchAngleDeg: DEFAULT_ANGLE_DEG,
-          launchAzimuthDeg: DEFAULT_LAUNCH_AZIMUTH_DEG,
-          dt: DEFAULT_DT,
+          launchSpeed: ROCKET_DEFAULT_SPEED,
+          launchAngleDeg: ROCKET_DEFAULT_ANGLE_DEG,
+          launchAzimuthDeg: ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+          timeWarp: DEFAULT_TIME_WARP,
         }),
       ),
     [],
   );
 
   const [running, setRunning] = useState(false);
-  const [launchSpeed, setLaunchSpeed] = useState(DEFAULT_SPEED);
-  const [launchAngleDeg, setLaunchAngleDeg] = useState(DEFAULT_ANGLE_DEG);
-  const [launchAzimuthDeg, setLaunchAzimuthDeg] = useState(
-    DEFAULT_LAUNCH_AZIMUTH_DEG,
+  const [launchSpeed, setLaunchSpeed] = useState(ROCKET_DEFAULT_SPEED);
+  const [launchAngleDeg, setLaunchAngleDeg] = useState(
+    ROCKET_DEFAULT_ANGLE_DEG,
   );
-  const [dt, setDtState] = useState(DEFAULT_DT);
+  const [launchAzimuthDeg, setLaunchAzimuthDeg] = useState(
+    ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
+  );
+  const [timeWarp, setTimeWarp] = useState(DEFAULT_TIME_WARP);
   const [showTrail, setShowTrail] = useState(true);
   const [showPrediction, setShowPrediction] = useState(true);
-  const [showThrustDirectionArrow, setShowThrustDirectionArrow] = useState(true);
+  const [showThrustDirectionArrow, setShowThrustDirectionArrow] =
+    useState(true);
   const [status, setStatus] = useState(INITIAL_MISSION_STATUS);
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
@@ -66,8 +70,8 @@ export function useMissionSimulation() {
   }, [launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
-    dtRef.current = dt;
-  }, [dt]);
+    timeWarpRef.current = timeWarp;
+  }, [timeWarp]);
 
   useEffect(() => {
     simulation.setConfig(
@@ -75,10 +79,10 @@ export function useMissionSimulation() {
         launchSpeed,
         launchAngleDeg,
         launchAzimuthDeg,
-        dt,
+        timeWarp: timeWarp,
       }),
     );
-  }, [dt, launchAngleDeg, launchAzimuthDeg, launchSpeed, simulation]);
+  }, [timeWarp, launchAngleDeg, launchAzimuthDeg, launchSpeed, simulation]);
 
   const {
     pressedControls,
@@ -93,11 +97,11 @@ export function useMissionSimulation() {
     launchSpeedRef,
     launchAngleRef,
     launchAzimuthRef,
-    dtRef,
+    timeWarpRef: timeWarpRef,
     setRunning,
     setStatus,
     setTelemetry,
-    setDtState,
+    setTimeWarpState: setTimeWarp,
   });
 
   useEffect(() => {
@@ -113,10 +117,10 @@ export function useMissionSimulation() {
     setStatus(RESTAGED_STATUS);
   }, [launchAngleDeg, launchAzimuthDeg, launchSpeed, simulation]);
 
-  function setDt(value: number) {
-    const nextDt = clampDt(value);
-    dtRef.current = nextDt;
-    setDtState(nextDt);
+  function setTimeWarpState(value: number) {
+    const nextTimeWarp = clampTimeWarp(value);
+    timeWarpRef.current = nextTimeWarp;
+    setTimeWarp(nextTimeWarp);
   }
 
   return {
@@ -129,8 +133,8 @@ export function useMissionSimulation() {
     setLaunchAngleDeg,
     launchAzimuthDeg,
     setLaunchAzimuthDeg,
-    dt,
-    setDt,
+    timeWarp: timeWarp,
+    setTimeWarp: setTimeWarpState,
     showTrail,
     setShowTrail,
     showPrediction,

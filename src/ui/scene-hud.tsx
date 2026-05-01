@@ -20,7 +20,7 @@ export function SceneHud({
   launchSpeed,
   launchAngleDeg,
   launchAzimuthDeg,
-  dt,
+  timeWarp: timeWarp,
   showTrail,
   showPrediction,
   showThrustDirectionArrow,
@@ -33,7 +33,7 @@ export function SceneHud({
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
-  onDtChange,
+  onTimeWarpChange: onTimeWarpChange,
   onShowTrailChange,
   onShowPredictionChange,
   onToggleThrustDirectionArrow,
@@ -58,14 +58,14 @@ export function SceneHud({
               launchSpeed={launchSpeed}
               launchAngleDeg={launchAngleDeg}
               launchAzimuthDeg={launchAzimuthDeg}
-              dt={dt}
+              timeWarp={timeWarp}
               showTrail={showTrail}
               showPrediction={showPrediction}
               showThrustDirectionArrow={showThrustDirectionArrow}
               onLaunchSpeedChange={onLaunchSpeedChange}
               onLaunchAngleChange={onLaunchAngleChange}
               onLaunchAzimuthChange={onLaunchAzimuthChange}
-              onDtChange={onDtChange}
+              onTimeWarpChange={onTimeWarpChange}
               onShowTrailChange={onShowTrailChange}
               onShowPredictionChange={onShowPredictionChange}
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}

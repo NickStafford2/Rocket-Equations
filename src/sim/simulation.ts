@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {
   ROCKET_DEFAULT_ANGLE_DEG,
-  DEFAULT_DT,
+  DEFAULT_TIME_WARP,
   ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
   ROCKET_DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
@@ -34,7 +34,7 @@ export type SimulationConfig = {
   launchAngleDeg: number;
   launchAzimuthDeg: number;
   launchAltitudeMeters: number;
-  dt: number;
+  timeWarp: number;
   thrustAcceleration: number;
   turnRateDeg: number;
 };
@@ -76,7 +76,7 @@ export class EarthMoonSimulation {
       launchAzimuthDeg: ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
       launchAltitudeMeters:
         ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"].surfaceContactOffsetMeters,
-      dt: DEFAULT_DT,
+      timeWarp: DEFAULT_TIME_WARP,
       thrustAcceleration: 4,
       turnRateDeg: 1.25,
     },
@@ -97,7 +97,7 @@ export class EarthMoonSimulation {
   }
 
   getTimeWarp(): number {
-    return this.config.dt;
+    return this.config.timeWarp;
   }
 
   reset(): void {
@@ -115,13 +115,20 @@ export class EarthMoonSimulation {
 
   tick(
     input: ManeuverInput = { thrusting: false, turn: 0 },
-    simulatedSeconds: number = this.config.dt,
+    simulatedSeconds: number = this.config.timeWarp,
   ): void {
-    if (!Number.isFinite(simulatedSeconds) || simulatedSeconds <= 0 || this.state.impact) {
+    if (
+      !Number.isFinite(simulatedSeconds) ||
+      simulatedSeconds <= 0 ||
+      this.state.impact
+    ) {
       return;
     }
 
-    const steps = Math.max(1, Math.ceil(simulatedSeconds / MAX_SIMULATION_STEP));
+    const steps = Math.max(
+      1,
+      Math.ceil(simulatedSeconds / MAX_SIMULATION_STEP),
+    );
     const stepDt = simulatedSeconds / steps;
 
     for (let index = 0; index < steps; index += 1) {

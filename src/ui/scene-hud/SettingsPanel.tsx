@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { formatTimeWarp, MAX_DT, MIN_DT } from "../../mission";
+import { formatTimeWarp, MAX_TIME_WARP, MIN_TIME_WARP } from "../../mission";
 import { HoverHelp } from "../hover-help";
 import type { SceneHudProps } from "./types";
 
@@ -8,14 +8,14 @@ type SettingsPanelProps = Pick<
   | "launchSpeed"
   | "launchAngleDeg"
   | "launchAzimuthDeg"
-  | "dt"
+  | "timeWarp"
   | "showTrail"
   | "showPrediction"
   | "showThrustDirectionArrow"
   | "onLaunchSpeedChange"
   | "onLaunchAngleChange"
   | "onLaunchAzimuthChange"
-  | "onDtChange"
+  | "onTimeWarpChange"
   | "onShowTrailChange"
   | "onShowPredictionChange"
   | "onToggleThrustDirectionArrow"
@@ -25,14 +25,14 @@ export const SettingsPanel = memo(function SettingsPanel({
   launchSpeed,
   launchAngleDeg,
   launchAzimuthDeg,
-  dt,
+  timeWarp: timeWarp,
   showTrail,
   showPrediction,
   showThrustDirectionArrow,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
-  onDtChange,
+  onTimeWarpChange: onTimeWarpChange,
   onShowTrailChange,
   onShowPredictionChange,
   onToggleThrustDirectionArrow,
@@ -89,12 +89,12 @@ export const SettingsPanel = memo(function SettingsPanel({
           <CompactSlider
             label="Time warp"
             description="Simulated seconds advanced per real second. Lower values improve control precision; higher values speed up long coasts."
-            valueLabel={formatTimeStepLabel(dt)}
-            min={MIN_DT}
-            max={MAX_DT}
+            valueLabel={formatTimeStepLabel(timeWarp)}
+            min={MIN_TIME_WARP}
+            max={MAX_TIME_WARP}
             step={0.1}
-            value={dt}
-            onChange={onDtChange}
+            value={timeWarp}
+            onChange={onTimeWarpChange}
           />
           <CompactCheckbox
             label="Show trail"
@@ -200,6 +200,6 @@ function LabelWithHelp({
   );
 }
 
-function formatTimeStepLabel(dt: number) {
-  return `${formatTimeWarp(dt)}x`;
+function formatTimeStepLabel(timeWarp: number) {
+  return `${formatTimeWarp(timeWarp)}x`;
 }

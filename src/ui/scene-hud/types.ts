@@ -30,7 +30,7 @@ export type SceneHudProps = {
   launchSpeed: number;
   launchAngleDeg: number;
   launchAzimuthDeg: number;
-  dt: number;
+  timeWarp: number;
   showTrail: boolean;
   showPrediction: boolean;
   showThrustDirectionArrow: boolean;
@@ -43,7 +43,7 @@ export type SceneHudProps = {
   onLaunchSpeedChange: (value: number) => void;
   onLaunchAngleChange: (value: number) => void;
   onLaunchAzimuthChange: (value: number) => void;
-  onDtChange: (value: number) => void;
+  onTimeWarpChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
   onShowPredictionChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;

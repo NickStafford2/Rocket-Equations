@@ -24,8 +24,8 @@ export default function App() {
     setLaunchAngleDeg,
     launchAzimuthDeg,
     setLaunchAzimuthDeg,
-    dt,
-    setDt,
+    timeWarp: timeWarp,
+    setTimeWarp: setTimeWarp,
     showTrail,
     setShowTrail,
     showPrediction,
@@ -114,7 +114,7 @@ export default function App() {
         launchSpeed={launchSpeed}
         launchAngleDeg={launchAngleDeg}
         launchAzimuthDeg={launchAzimuthDeg}
-        dt={dt}
+        timeWarp={timeWarp}
         showTrail={showTrail}
         showPrediction={showPrediction}
         showThrustDirectionArrow={showThrustDirectionArrow}
@@ -144,7 +144,7 @@ export default function App() {
         onLaunchSpeedChange={setLaunchSpeed}
         onLaunchAngleChange={setLaunchAngleDeg}
         onLaunchAzimuthChange={setLaunchAzimuthDeg}
-        onDtChange={setDt}
+        onTimeWarpChange={setTimeWarp}
         onShowTrailChange={setShowTrail}
         onShowPredictionChange={setShowPrediction}
         onToggleThrustDirectionArrow={() => {
