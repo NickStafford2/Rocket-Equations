@@ -1,113 +1,82 @@
 import * as THREE from "three";
 
-// Adjust for your scene settings (feel free to tweak these values)
-const SMOKE_LIFETIME = 5; // seconds before particle resets
-const SMOKE_FADE_SPEED = 0.05; // how quickly particles fade out
-const SMOKE_PARTICLE_SIZE = 1.5; // Size of each particle
-const SMOKE_SPEED = 0.3; // Speed of the particles moving in the trail
-const GRAVITY = -0.02; // Gravity effect on the smoke particles (optional)
-
-interface SmokeParticle {
-  lifetime: number; // Lifetime of the particle in seconds
-  position: THREE.Vector3;
-  velocity: THREE.Vector3; // Speed and direction of the particle
-  opacity: number; // Opacity of the particle to simulate fading
-}
-
 // Constants for smoke particles
-const SMOKE_PARTICLE_COUNT = 1000; // Number of particles in the trail
-const SMOKE_COLOR = new THREE.Color(0x808080); // Smoke color
+const SMOKE_LIFETIME = 5; // Lifetime of each particle (seconds before it resets)
+const SMOKE_SPEED = 0.3; // Speed of the particles (used now)
+const GRAVITY = -0.02; // Gravity effect on particles (optional)
 
-export function createSmokeTrail(): THREE.Points {
+const SMOKE_PARTICLE_COUNT = 500; // Number of particles
+const CUBE_SIZE = 1; // Size of each smoke cube
+const SMOKE_COLOR = new THREE.Color(0x808080); // Smoke color (gray)
+
+// Function to create smoke trail
+export function createSmokeTrail(): THREE.Group {
   console.log("createSmokeTrail");
-  // Create a geometry for the particles (we will use a BufferGeometry for better performance)
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(SMOKE_PARTICLE_COUNT * 3); // x, y, z for each particle
-  const colors = new Float32Array(SMOKE_PARTICLE_COUNT * 3); // RGB color values for each particle
 
-  // Initialize particles
+  // Create a group to hold all the smoke cubes
+  const smokeGroup = new THREE.Group();
+
+  // Initialize particles with cubes
   for (let i = 0; i < SMOKE_PARTICLE_COUNT; i++) {
-    // Randomly place particles around the rocket's starting position
-    positions[i * 3] = Math.random() * 0.5 - 0.25; // Random X offset
-    positions[i * 3 + 1] = Math.random() * 0.5; // Random Y offset (height above the rocket)
-    positions[i * 3 + 2] = Math.random() * 0.5 - 0.25; // Random Z offset
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), // Cube geometry for the particle
+      new THREE.MeshBasicMaterial({
+        color: SMOKE_COLOR,
+        transparent: true,
+        opacity: 0.8,
+      }),
+    );
 
-    // Set color (initially gray for smoke)
-    colors[i * 3] = SMOKE_COLOR.r; // Red channel
-    colors[i * 3 + 1] = SMOKE_COLOR.g; // Green channel
-    colors[i * 3 + 2] = SMOKE_COLOR.b; // Blue channel
+    // Randomize the initial position of the cubes
+    cube.position.set(
+      Math.random() * 0.5 - 0.25, // X offset
+      Math.random() * 0.5, // Y offset
+      Math.random() * 0.5 - 0.25, // Z offset
+    );
+
+    // Randomize the velocity of the cubes
+    cube.userData = {
+      velocity: new THREE.Vector3(
+        Math.random() * 0.2 - 0.1, // Random X velocity
+        Math.random() * 0.2 + 0.1, // Random Y velocity (upward)
+        Math.random() * 0.2 - 0.1, // Random Z velocity
+      ),
+      lifetime: 0, // Track lifetime of the particle
+    };
+
+    smokeGroup.add(cube); // Add the cube to the smoke group
   }
 
-  // Add the position and color attributes to the geometry
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-  // Create a material for the smoke particles
-  const material = new THREE.PointsMaterial({
-    size: SMOKE_PARTICLE_SIZE,
-    vertexColors: true, // Use vertex colors (for opacity fading)
-    transparent: true,
-    opacity: 0.6, // Initial opacity of smoke
-  });
-
-  // Create the points (particle system)
-  const smokeTrail = new THREE.Points(geometry, material);
-  smokeTrail.name = "smokeTrail";
-
-  return smokeTrail;
+  return smokeGroup;
 }
 
 export function updateSmokeTrail(
-  smoke: THREE.Points,
+  smoke: THREE.Group,
   rocketPosition: THREE.Vector3,
 ): void {
   console.log("updateSmokeTrail");
-  const positions = smoke.geometry.attributes.position.array as Float32Array;
-  const colors = smoke.geometry.attributes.color.array as Float32Array; // For fading effects
-  const particleCount = positions.length / 3;
 
-  for (let i = 0; i < particleCount; i++) {
-    const offset = i * 3;
-
-    // Store each particle’s current position
-    const x = positions[offset];
-    const y = positions[offset + 1];
-    const z = positions[offset + 2];
-
-    // Calculate the direction to move each particle
-    const direction = new THREE.Vector3(
-      Math.random() * 0.2 - 0.1, // Random X direction
-      Math.random() * 0.2 + 0.1, // Upward Y direction
-      Math.random() * 0.2 - 0.1, // Random Z direction
+  // Loop through the children (the cubes)
+  smoke.children.forEach((cube) => {
+    // Move the cube based on its velocity
+    cube.position.add(
+      cube.userData.velocity.clone().multiplyScalar(SMOKE_SPEED),
     );
 
-    // Move particles over time based on velocity
-    positions[offset] += direction.x * SMOKE_SPEED;
-    positions[offset + 1] += direction.y * SMOKE_SPEED + GRAVITY; // Apply gravity
-    positions[offset + 2] += direction.z * SMOKE_SPEED;
+    // Apply gravity on Y-axis
+    cube.position.y += GRAVITY;
 
-    // Simulate fading by reducing opacity over time
-    const age = rocketPosition.y - y; // Calculate particle's age based on its distance from the rocket
-    const opacity = Math.max(0, 1 - age / SMOKE_LIFETIME);
-    colors[offset + 0] = opacity; // Red channel for opacity
-    colors[offset + 1] = opacity * 0.5; // Green channel (dimmed opacity)
-    colors[offset + 2] = opacity * 0.25; // Blue channel (dimmed opacity)
+    // Log the position to see if it's moving
+    console.log(cube.position);
 
-    // Reset the particle when it moves too far away or has faded out
-    if (y < rocketPosition.y - SMOKE_LIFETIME) {
-      positions[offset + 1] = rocketPosition.y; // Reset to the rocket's position
-      positions[offset] = Math.random() * 0.5 - 0.25; // Random X
-      positions[offset + 2] = Math.random() * 0.5 - 0.25; // Random Z
-
-      // Randomize the initial direction slightly
-      direction.set(
-        Math.random() * 0.2 - 0.1,
-        Math.random() * 0.2 + 0.1,
-        Math.random() * 0.2 - 0.1,
-      );
+    // Add AxesHelper to each cube to see their movement visually
+    if (!cube.userData.hasAxesHelper) {
+      const axes = new THREE.AxesHelper(0.5); // Add axes helper to the cube
+      cube.add(axes);
+      cube.userData.hasAxesHelper = true; // Prevent adding multiple helpers to the same cube
     }
-  }
+  });
 
-  smoke.geometry.attributes.position.needsUpdate = true;
-  smoke.geometry.attributes.color.needsUpdate = true; // Ensure color updates are applied
+  // Update all cubes to move with the rocket by adjusting the smoke group's position
+  smoke.position.copy(rocketPosition);
 }

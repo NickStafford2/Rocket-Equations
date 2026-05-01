@@ -21,7 +21,7 @@ export type SceneObjects = {
   moonLabel: THREE.Sprite;
   rocket: THREE.Group;
   enginePlume: THREE.Mesh;
-  smokeTrail: THREE.Points;
+  smokeTrail: THREE.Group;
   thrustDirectionArrow: THREE.ArrowHelper;
   launchLocationArrow: THREE.ArrowHelper;
   launchRing: THREE.Mesh;

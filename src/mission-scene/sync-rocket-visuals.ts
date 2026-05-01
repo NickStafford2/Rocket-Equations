@@ -45,7 +45,7 @@ export function syncRocketVisuals(
     objects.smokeTrail.visible = true;
     updateSmokeTrail(objects.smokeTrail, objects.rocket.position);
   } else {
-    objects.smokeTrail.visible = false; // Hide the smoke trail if not thrusting
+    // objects.smokeTrail.visible = false; // Hide the smoke trail if not thrusting
   }
 
   if (frame.simState.rocket.heading.lengthSq() <= 1e-6) {
