@@ -5,6 +5,7 @@ import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean2.png";
 import {
   ORBIT_METERS_TO_SCENE_UNITS,
   MOON_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "./constants";
 import { createBodyLabelSprite } from "./labels";
 
@@ -38,6 +39,8 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
   moon.receiveShadow = true;
   moon.userData.focusLabel = "Moon";
   moon.userData.focusRadius = MOON_RENDER_RADIUS_SCENE_UNITS;
+  moon.userData.cameraCollisionClearance =
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
   syncMoonVisual(moon, new THREE.Vector3(EARTH_MOON_DISTANCE, 0, 0));
 
   const moonLabel = createBodyLabelSprite("Moon");
