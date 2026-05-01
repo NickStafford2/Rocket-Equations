@@ -7,6 +7,7 @@ export interface RocketPhysicalModelSpec {
   name: string;
   heightMeters: number;
   surfaceContactOffsetMeters: number;
+  thrustAccelerationMetersPerSecondSquared: number;
 }
 
 export interface RocketRenderModelSpec {
@@ -26,16 +27,19 @@ export const ROCKET_PHYSICAL_MODEL_SPECS: Record<
     name: "Saturn V",
     heightMeters: 111,
     surfaceContactOffsetMeters: 55,
+    thrustAccelerationMetersPerSecondSquared: 35,
   },
   "apollo-soyuz": {
     name: "Apollo Soyuz",
     heightMeters: 50,
     surfaceContactOffsetMeters: 24,
+    thrustAccelerationMetersPerSecondSquared: 8,
   },
   "apollo-lunar-module": {
     name: "Apollo Lunar Module",
     heightMeters: 9,
     surfaceContactOffsetMeters: 4.6,
+    thrustAccelerationMetersPerSecondSquared: 4,
   },
 };
 

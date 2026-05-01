@@ -135,12 +135,17 @@ export class EarthMoonSimulation {
 
     for (let index = 0; index < steps; index += 1) {
       const moonPosition = moonPositionMeters(this.state.t);
+      const rocketModelVariant = getRocketModelVariantForState(
+        this.state.rocket.position,
+        moonPosition,
+      );
       this.state = stepSimulation(
         this.state,
         stepDt,
         input,
         this.config.launchSpeed,
-        this.config.thrustAcceleration,
+        ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
+          .thrustAccelerationMetersPerSecondSquared,
         this.config.turnRateDeg,
         this.getSurfaceContactOffsetMeters(moonPosition),
       );
