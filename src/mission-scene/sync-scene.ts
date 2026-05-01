@@ -7,42 +7,31 @@ import {
   moonVelocityMeters,
 } from "../physics/bodies";
 import type { ManeuverInput } from "../physics/bodies";
-import { describeMoonLanding, formatSpeed, getMissionPhase } from "../mission";
 import type {
   EarthMoonSimulation,
   SimulationTelemetry,
 } from "../sim/simulation";
-import { TRAIL_POINT_CAPACITY } from "../sim/trail";
 import {
   ORBIT_METERS_TO_SCENE_UNITS,
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   MOON_RENDER_RADIUS_SCENE_UNITS,
-  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../three/objects/constants";
-import { syncMoonVisual } from "../three/objects/bodies";
-import type { RocketModelVariant } from "../three/objects/rocket";
-import { getRocketModelVariantForState } from "../rocket/variant";
-import { syncSatelliteSystem } from "../three/objects/satellites";
+import { syncCelestialBodies } from "./sync-celestial-bodies";
+import { syncRocketVisuals } from "./sync-rocket-visuals";
+import { syncTrailDisplay, syncPredictionDisplay } from "./sync-trails";
+import { syncMissionUi, syncCameraDebug } from "./sync-ui";
 import type { ThreeSceneBundle } from "../three/scene";
-import {
-  getCameraDebugSnapshot,
-  type CameraRigState,
-} from "../three/camera-rig";
+import { type CameraRigState } from "../three/camera-rig";
 import type { CameraDebugState } from "./types";
+import type { FrameState } from "./frame-state";
 
-const UI_SYNC_INTERVAL_MS = 100;
-const CAMERA_DIRECTION = new THREE.Vector3();
+export const CAMERA_DIRECTION = new THREE.Vector3();
 const INDICATOR_MOON_VELOCITY = new THREE.Vector3();
 const INDICATOR_RELATIVE_VELOCITY = new THREE.Vector3();
 const LABEL_WORLD_POSITION = new THREE.Vector3();
-const WORLD_UP = new THREE.Vector3(0, 1, 0);
 const WORLD_FORWARD = new THREE.Vector3(0, 0, 1);
-const ROCKET_WORLD_RIGHT = new THREE.Vector3();
-const ROCKET_WORLD_UP = new THREE.Vector3();
-const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
 
-type SimulationState = ReturnType<EarthMoonSimulation["getState"]>;
-type TelemetryState = ReturnType<EarthMoonSimulation["getTelemetry"]>;
+export type TelemetryState = ReturnType<EarthMoonSimulation["getTelemetry"]>;
 
 type SyncMissionSceneParams = {
   bundle: ThreeSceneBundle;
@@ -65,16 +54,6 @@ type SyncMissionSceneParams = {
   setStatus: (value: string) => void;
   setTelemetry: (value: SimulationTelemetry) => void;
   setCameraDebug: (value: CameraDebugState) => void;
-};
-
-type FrameState = {
-  now: number;
-  simState: SimulationState;
-  telemetry: TelemetryState;
-  launchFrame: ReturnType<typeof getLaunchFrame>;
-  previewState: ReturnType<typeof makeInitialRocketState>;
-  aimArrowLength: number;
-  stagedLaunchPreviewVisible: boolean;
 };
 
 export function syncMissionScene({
@@ -187,83 +166,6 @@ function createFrameState({
   };
 }
 
-function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
-  const { objects } = bundle;
-
-  objects.earthRotatingFrame.rotation.y =
-    EARTH_ANGULAR_SPEED * frame.simState.t;
-  syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
-  syncMoonVisual(objects.moon, frame.telemetry.moonPosition);
-  objects.rocket.position
-    .copy(frame.simState.rocket.position)
-    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
-}
-
-function syncRocketVisuals(
-  bundle: ThreeSceneBundle,
-  frame: FrameState,
-  {
-    thrusting,
-    showThrustDirectionArrow,
-  }: {
-    thrusting: boolean;
-    showThrustDirectionArrow: boolean;
-  },
-) {
-  const { objects } = bundle;
-  const rocketModelVariant = getRocketModelVariant(frame);
-
-  objects.setRocketModelVariant(rocketModelVariant);
-  bundle.orientationIndicator.setRocketModelVariant(rocketModelVariant);
-
-  objects.thrustDirectionArrow.position.copy(objects.rocket.position);
-  objects.thrustDirectionArrow.visible = showThrustDirectionArrow;
-  objects.enginePlume.visible = frame.stagedLaunchPreviewVisible
-    ? false
-    : thrusting;
-
-  if (objects.enginePlume.visible) {
-    const baseScale = Number(objects.enginePlume.userData.baseScale ?? 1);
-    const plumeVisualScaleMultiplier =
-      (0.9 + Math.abs(Math.sin(frame.simState.t * 0.08)) * 0.45) * baseScale;
-    objects.enginePlume.scale.setScalar(plumeVisualScaleMultiplier);
-  }
-
-  if (frame.simState.rocket.heading.lengthSq() <= 1e-6) {
-    return;
-  }
-
-  const heading = frame.simState.rocket.heading.clone().normalize();
-  objects.thrustDirectionArrow.setDirection(heading);
-  objects.thrustDirectionArrow.setLength(
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 11,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
-  );
-  ROCKET_WORLD_UP.copy(WORLD_UP);
-  ROCKET_WORLD_RIGHT.crossVectors(heading, ROCKET_WORLD_UP);
-
-  if (ROCKET_WORLD_RIGHT.lengthSq() <= 1e-9) {
-    ROCKET_WORLD_RIGHT.set(1, 0, 0);
-  } else {
-    ROCKET_WORLD_RIGHT.normalize();
-  }
-
-  ROCKET_ORIENTATION_MATRIX.makeBasis(
-    ROCKET_WORLD_RIGHT,
-    heading,
-    ROCKET_WORLD_UP,
-  );
-  objects.rocket.quaternion.setFromRotationMatrix(ROCKET_ORIENTATION_MATRIX);
-}
-
-function getRocketModelVariant(frame: FrameState): RocketModelVariant {
-  return getRocketModelVariantForState(
-    frame.simState.rocket.position,
-    frame.telemetry.moonPosition,
-  );
-}
-
 function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
   const {
@@ -301,107 +203,6 @@ function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
     Math.max(4, aimArrowLength * 0.22),
     Math.max(2, aimArrowLength * 0.11),
   );
-}
-
-function syncTrailDisplay({
-  bundle,
-  simulation,
-  showTrail,
-  previousTrailLengthRef,
-}: {
-  bundle: ThreeSceneBundle;
-  simulation: EarthMoonSimulation;
-  showTrail: boolean;
-  previousTrailLengthRef: MutableRefObject<number>;
-}) {
-  bundle.objects.trailLine.visible = showTrail;
-
-  const trailLength = simulation.getTrailLength();
-  const previousTrailLength = previousTrailLengthRef.current;
-  const trailIsSlidingWindow =
-    trailLength === TRAIL_POINT_CAPACITY &&
-    previousTrailLength === TRAIL_POINT_CAPACITY;
-
-  if (trailLength === previousTrailLength && !trailIsSlidingWindow) {
-    return;
-  }
-
-  const startIndex =
-    trailLength < previousTrailLength || trailIsSlidingWindow
-      ? 0
-      : previousTrailLength;
-  const trailPositions = bundle.objects.trailLine.geometry.getAttribute(
-    "position",
-  ) as THREE.BufferAttribute;
-  const positionArray = trailPositions.array as Float32Array;
-
-  simulation.copyTrailPositionsTo(
-    positionArray,
-    ORBIT_METERS_TO_SCENE_UNITS,
-    startIndex,
-  );
-  trailPositions.needsUpdate = true;
-  bundle.objects.trailLine.geometry.setDrawRange(0, trailLength);
-  previousTrailLengthRef.current = trailLength;
-}
-
-function syncPredictionDisplay({
-  bundle,
-  simulation,
-  frame,
-  running,
-  showPrediction,
-}: {
-  bundle: ThreeSceneBundle;
-  simulation: EarthMoonSimulation;
-  frame: FrameState;
-  running: boolean;
-  showPrediction: boolean;
-}) {
-  bundle.objects.predictionLine.visible = showPrediction;
-
-  if (!showPrediction) {
-    return;
-  }
-
-  const sourceState = frame.stagedLaunchPreviewVisible
-    ? {
-        t: 0,
-        position: frame.previewState.position,
-        velocity: frame.previewState.velocity,
-      }
-    : {
-        t: frame.simState.t,
-        position: frame.simState.rocket.position,
-        velocity: frame.simState.rocket.velocity,
-      };
-
-  const predictionUpdated = simulation.refreshPrediction(
-    frame.now,
-    sourceState,
-    running,
-  );
-  const predictionLength = simulation.getPredictionLength();
-
-  if (
-    !predictionUpdated &&
-    bundle.objects.predictionLine.geometry.drawRange.count === predictionLength
-  ) {
-    return;
-  }
-
-  const predictionPositions =
-    bundle.objects.predictionLine.geometry.getAttribute(
-      "position",
-    ) as THREE.BufferAttribute;
-  const positionArray = predictionPositions.array as Float32Array;
-
-  simulation.copyPredictionPositionsTo(
-    positionArray,
-    ORBIT_METERS_TO_SCENE_UNITS,
-  );
-  predictionPositions.needsUpdate = true;
-  bundle.objects.predictionLine.geometry.setDrawRange(0, predictionLength);
 }
 
 function syncOrientationIndicator(bundle: ThreeSceneBundle, frame: FrameState) {
@@ -467,153 +268,6 @@ function syncFarAwayLabels(bundle: ThreeSceneBundle) {
     9,
     20,
     90,
-  );
-}
-
-function syncMissionUi({
-  frame,
-  runningRef,
-  lastUiSyncAtRef,
-  lastTelemetryTimeRef,
-  lastRunningStatusRef,
-  setRunning,
-  setStatus,
-  setTelemetry,
-}: {
-  frame: FrameState;
-  runningRef: MutableRefObject<boolean>;
-  lastUiSyncAtRef: MutableRefObject<number>;
-  lastTelemetryTimeRef: MutableRefObject<number | null>;
-  lastRunningStatusRef: MutableRefObject<string | null>;
-  setRunning: (value: boolean) => void;
-  setStatus: (value: string) => void;
-  setTelemetry: (value: SimulationTelemetry) => void;
-}) {
-  const { now, simState, telemetry } = frame;
-
-  if (simState.impact?.target === "earth") {
-    stopAndSyncImpact({
-      now,
-      t: simState.t,
-      telemetry,
-      status: `Rocket impacted Earth at ${formatSpeed(simState.impact.speed)}.`,
-      runningRef,
-      lastUiSyncAtRef,
-      lastTelemetryTimeRef,
-      lastRunningStatusRef,
-      setRunning,
-      setStatus,
-      setTelemetry,
-    });
-    return;
-  }
-
-  if (simState.impact?.target === "moon") {
-    stopAndSyncImpact({
-      now,
-      t: simState.t,
-      telemetry,
-      status: describeMoonLanding(simState.impact),
-      runningRef,
-      lastUiSyncAtRef,
-      lastTelemetryTimeRef,
-      lastRunningStatusRef,
-      setRunning,
-      setStatus,
-      setTelemetry,
-    });
-    return;
-  }
-
-  const telemetryChanged = lastTelemetryTimeRef.current !== simState.t;
-  const shouldSyncUi =
-    telemetryChanged &&
-    (now - lastUiSyncAtRef.current >= UI_SYNC_INTERVAL_MS ||
-      !runningRef.current);
-
-  if (shouldSyncUi) {
-    lastUiSyncAtRef.current = now;
-    lastTelemetryTimeRef.current = simState.t;
-    setTelemetry(telemetry);
-  }
-
-  if (runningRef.current && shouldSyncUi) {
-    const runningStatus = `Running: ${getMissionPhase(
-      telemetry.altitudeEarth,
-      telemetry.altitudeMoon,
-      telemetry.relativeMoonSpeed,
-    )}.`;
-
-    if (lastRunningStatusRef.current !== runningStatus) {
-      lastRunningStatusRef.current = runningStatus;
-      setStatus(runningStatus);
-    }
-    return;
-  }
-
-  if (!runningRef.current) {
-    lastRunningStatusRef.current = null;
-  }
-}
-
-function stopAndSyncImpact({
-  now,
-  t,
-  telemetry,
-  status,
-  runningRef,
-  lastUiSyncAtRef,
-  lastTelemetryTimeRef,
-  lastRunningStatusRef,
-  setRunning,
-  setStatus,
-  setTelemetry,
-}: {
-  now: number;
-  t: number;
-  telemetry: TelemetryState;
-  status: string;
-  runningRef: MutableRefObject<boolean>;
-  lastUiSyncAtRef: MutableRefObject<number>;
-  lastTelemetryTimeRef: MutableRefObject<number | null>;
-  lastRunningStatusRef: MutableRefObject<string | null>;
-  setRunning: (value: boolean) => void;
-  setStatus: (value: string) => void;
-  setTelemetry: (value: SimulationTelemetry) => void;
-}) {
-  runningRef.current = false;
-  setRunning(false);
-  lastUiSyncAtRef.current = now;
-  lastTelemetryTimeRef.current = t;
-  lastRunningStatusRef.current = null;
-  setTelemetry(telemetry);
-  setStatus(status);
-}
-
-function syncCameraDebug({
-  bundle,
-  cameraRigRef,
-  frameNow,
-  lastCameraDebugSyncAtRef,
-  setCameraDebug,
-}: {
-  bundle: ThreeSceneBundle;
-  cameraRigRef: MutableRefObject<CameraRigState>;
-  frameNow: number;
-  lastCameraDebugSyncAtRef: MutableRefObject<number>;
-  setCameraDebug: (value: CameraDebugState) => void;
-}) {
-  if (frameNow - lastCameraDebugSyncAtRef.current < UI_SYNC_INTERVAL_MS) {
-    return;
-  }
-
-  lastCameraDebugSyncAtRef.current = frameNow;
-  setCameraDebug(
-    getCameraDebugSnapshot(
-      cameraRigRef.current,
-      bundle.camera,
-      bundle.controls,
-    ),
   );
 }
 
