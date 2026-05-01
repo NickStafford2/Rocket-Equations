@@ -3,7 +3,7 @@ import type { RocketModelVariant } from "./rocket";
 import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth";
-import { createReferenceEarthObjects } from "./earthReference/object";
+// import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
 
 export type SceneObjects = {
@@ -14,10 +14,10 @@ export type SceneObjects = {
   earthCloudsFrame: THREE.Group;
   earthAtmosphere: THREE.Mesh;
   earthFresnel: THREE.Mesh;
-  referenceEarthGroup: THREE.Group;
-  referenceEarthRotatingFrame: THREE.Group;
-  referenceEarth: THREE.Mesh;
-  referenceEarthLabel: THREE.Sprite;
+  // referenceEarthGroup: THREE.Group;
+  // referenceEarthRotatingFrame: THREE.Group;
+  // referenceEarth: THREE.Mesh;
+  // referenceEarthLabel: THREE.Sprite;
   earthLabel: THREE.Sprite;
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
@@ -50,12 +50,12 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthLabel,
     satelliteSystem,
   } = createEarthObjects(loader);
-  const {
-    referenceEarthGroup,
-    referenceEarthRotatingFrame,
-    referenceEarth,
-    referenceEarthLabel,
-  } = createReferenceEarthObjects(loader);
+  // const {
+  //   referenceEarthGroup,
+  //   referenceEarthRotatingFrame,
+  //   referenceEarth,
+  //   referenceEarthLabel,
+  // } = createReferenceEarthObjects(loader);
   const { moon, moonLabel, moonOrbit } = createMoonObjects(loader);
   const {
     rocket,
@@ -71,7 +71,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const predictionLine = createPredictionLine();
 
   system.add(earthGroup);
-  system.add(referenceEarthGroup);
+  // system.add(referenceEarthGroup);
   system.add(moon);
   system.add(rocket);
   // system.add(launchLocationArrow);
@@ -90,10 +90,10 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthCloudsFrame,
     earthAtmosphere,
     earthFresnel,
-    referenceEarthGroup,
-    referenceEarthRotatingFrame,
-    referenceEarth,
-    referenceEarthLabel,
+    // referenceEarthGroup,
+    // referenceEarthRotatingFrame,
+    // referenceEarth,
+    // referenceEarthLabel,
     earthLabel,
     satelliteSystem,
     moon,
