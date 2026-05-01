@@ -96,6 +96,10 @@ export class EarthMoonSimulation {
     this.config = config;
   }
 
+  getTimeWarp(): number {
+    return this.config.dt;
+  }
+
   reset(): void {
     this.state = makeInitialSimulationState(
       this.config.launchSpeed,
@@ -109,9 +113,16 @@ export class EarthMoonSimulation {
     this.updateFlightExtrema();
   }
 
-  tick(input: ManeuverInput = { thrusting: false, turn: 0 }): void {
-    const steps = Math.max(1, Math.ceil(this.config.dt / MAX_SIMULATION_STEP));
-    const stepDt = this.config.dt / steps;
+  tick(
+    input: ManeuverInput = { thrusting: false, turn: 0 },
+    simulatedSeconds: number = this.config.dt,
+  ): void {
+    if (!Number.isFinite(simulatedSeconds) || simulatedSeconds <= 0 || this.state.impact) {
+      return;
+    }
+
+    const steps = Math.max(1, Math.ceil(simulatedSeconds / MAX_SIMULATION_STEP));
+    const stepDt = simulatedSeconds / steps;
 
     for (let index = 0; index < steps; index += 1) {
       const moonPosition = moonPositionMeters(this.state.t);

@@ -2,8 +2,8 @@ import * as THREE from "three";
 import type { ImpactState } from "./physics/bodies";
 import { SOFT_LANDING_SPEED } from "./physics/bodies";
 
-const MIN_DT = 0.1;
-const MAX_DT = 1000;
+export const MIN_DT = 0.1;
+export const MAX_DT = 10000;
 
 export type CameraPreset = "overview" | "earth" | "moon" | "sun" | "rocket";
 export type CameraTarget = Exclude<CameraPreset, "overview">;
@@ -49,7 +49,7 @@ export function formatElapsed(hours: number): string {
   return `${days} d ${remainingHours.toFixed(1)} hr`;
 }
 
-export function formatDt(dt: number): string {
+export function formatTimeWarp(dt: number): string {
   if (dt >= 100) return dt.toFixed(0);
   if (dt >= 10) return dt.toFixed(1);
   return dt.toFixed(2);

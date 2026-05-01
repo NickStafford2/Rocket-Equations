@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { formatDt } from "../../mission";
+import { formatTimeWarp, MAX_DT, MIN_DT } from "../../mission";
 import { HoverHelp } from "../hover-help";
 import type { SceneHudProps } from "./types";
 
@@ -40,7 +40,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="pointer-events-auto min-w-[210px] max-w-[320px] overflow-hidden rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
+    <div className="pointer-events-auto max-w-[320px] min-w-[210px] overflow-hidden rounded-[1.4rem] border border-white/12 bg-[#07111f]/35 p-3 shadow-[0_24px_60px_rgba(0,0,0,0.24)] backdrop-blur-md">
       <button
         type="button"
         className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/6 px-3 py-2 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
@@ -87,11 +87,11 @@ export const SettingsPanel = memo(function SettingsPanel({
             onChange={onLaunchAngleChange}
           />
           <CompactSlider
-            label="Time step"
-            description="Smaller steps improve control precision; larger steps speed up long coasts."
+            label="Time warp"
+            description="Simulated seconds advanced per real second. Lower values improve control precision; higher values speed up long coasts."
             valueLabel={formatTimeStepLabel(dt)}
-            min={0.1}
-            max={1000}
+            min={MIN_DT}
+            max={MAX_DT}
             step={0.1}
             value={dt}
             onChange={onDtChange}
@@ -201,5 +201,5 @@ function LabelWithHelp({
 }
 
 function formatTimeStepLabel(dt: number) {
-  return `${formatDt(dt)} s`;
+  return `${formatTimeWarp(dt)}x`;
 }

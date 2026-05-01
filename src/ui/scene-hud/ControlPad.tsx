@@ -52,7 +52,7 @@ export const ControlPad = memo(function ControlPad({
   const WASD_CLUSTER: KeyboardClusterConfig = {
     label: "WASD",
     description:
-      "W multiplies delta t by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%.",
+      "W multiplies time warp by 10, S divides it by 10, A trims it down by 2%, and D increases it by 2%.",
     className: "min-w-[232px]",
     rows: [
       [{ control: "KeyW", label: "W", caption: "x10" }],

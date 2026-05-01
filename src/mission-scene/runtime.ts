@@ -46,6 +46,8 @@ type MissionSceneRuntime = {
   cleanup: () => void;
 };
 
+const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
+
 export function startMissionSceneRuntime({
   mount,
   simulation,
@@ -78,6 +80,7 @@ export function startMissionSceneRuntime({
   let disposed = false;
   let controlsInteracting = false;
   let renderRequested = false;
+  let previousFrameTimeMs: number | null = null;
 
   previousTrailLengthRef.current = 0;
 
@@ -132,6 +135,7 @@ export function startMissionSceneRuntime({
     if (animationFrameId === null) return;
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
+    previousFrameTimeMs = null;
   }
 
   function startFrameLoop() {
@@ -166,12 +170,24 @@ export function startMissionSceneRuntime({
     requestRender();
   }
 
-  function frame() {
+  function frame(nowMs: number) {
     animationFrameId = null;
     renderRequested = false;
 
-    if (runningRef.current) {
-      simulation.tick(maneuverInputRef.current);
+    const elapsedRealSeconds =
+      previousFrameTimeMs === null
+        ? 0
+        : Math.min(
+            (nowMs - previousFrameTimeMs) / 1000,
+            MAX_REAL_FRAME_ELAPSED_SECONDS,
+          );
+    previousFrameTimeMs = nowMs;
+
+    if (runningRef.current && elapsedRealSeconds > 0) {
+      simulation.tick(
+        maneuverInputRef.current,
+        elapsedRealSeconds * simulation.getTimeWarp(),
+      );
     }
 
     syncMissionScene({
@@ -209,7 +225,10 @@ export function startMissionSceneRuntime({
     render();
     if (shouldKeepRendering()) {
       startFrameLoop();
+      return;
     }
+
+    previousFrameTimeMs = null;
   }
 
   window.addEventListener("resize", onResize);
