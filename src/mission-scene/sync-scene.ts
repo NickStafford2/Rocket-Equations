@@ -2,6 +2,7 @@ import type { MutableRefObject } from "react";
 import * as THREE from "three";
 import {
   EARTH_ANGULAR_SPEED,
+  MOON_ANGULAR_SPEED,
   getLaunchFrame,
   makeInitialRocketState,
   moonVelocityMeters,
@@ -191,6 +192,9 @@ function syncCelestialBodies(bundle: ThreeSceneBundle, frame: FrameState) {
 
   objects.earthRotatingFrame.rotation.y =
     EARTH_ANGULAR_SPEED * frame.simState.t;
+  objects.moon.rotation.y =
+    Number(objects.moon.userData.baseRotationY ?? 0) +
+    MOON_ANGULAR_SPEED * frame.simState.t;
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
   objects.moon.position
     .copy(frame.telemetry.moonPosition)

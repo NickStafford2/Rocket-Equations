@@ -64,7 +64,8 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   );
   moon.castShadow = true;
   moon.receiveShadow = true;
-  moon.rotation.y = Math.PI * 0.35;
+  moon.userData.baseRotationY = Math.PI * 0.35;
+  moon.rotation.y = moon.userData.baseRotationY;
   moon.userData.focusLabel = "Moon";
   moon.userData.focusRadius = MOON_RENDER_RADIUS_SCENE_UNITS;
 
