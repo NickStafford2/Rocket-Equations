@@ -69,7 +69,7 @@ export function createEarthFresnelMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       u_sunRelPosition: { value: SUN_POSITION.clone() },
-      u_color: { value: new THREE.Vector3(1.0, 0.16, 0.63) },
+      u_color: { value: new THREE.Vector3(0.45, 0.55, 1.0) },
     },
     vertexShader: earthAtmosphereVertexShader,
     fragmentShader: earthFresnelFragmentShader,
