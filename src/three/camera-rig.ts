@@ -397,6 +397,18 @@ function getFollowDistanceSetting(
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+function getCameraCollisionClearance(object: THREE.Object3D, focusRadius: number) {
+  const override = Number(object.userData.cameraCollisionClearance);
+  if (Number.isFinite(override) && override >= 0) {
+    return override;
+  }
+
+  return Math.max(
+    focusRadius * CAMERA_COLLISION_CLEARANCE_MULTIPLIER,
+    CAMERA_COLLISION_MIN_CLEARANCE,
+  );
+}
+
 function preventCameraBodyIntersection(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
@@ -417,10 +429,7 @@ function preventCameraBodyIntersection(
 
     const minimumDistance =
       focusRadius +
-      Math.max(
-        focusRadius * CAMERA_COLLISION_CLEARANCE_MULTIPLIER,
-        CAMERA_COLLISION_MIN_CLEARANCE,
-      );
+      getCameraCollisionClearance(object, focusRadius);
 
     if (CAMERA_COLLISION_OFFSET.length() >= minimumDistance) return;
 

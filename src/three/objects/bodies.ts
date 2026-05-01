@@ -7,6 +7,7 @@ import {
   ORBIT_METERS_TO_SCENE_UNITS,
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   MOON_RENDER_RADIUS_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "./constants";
 import { createBodyLabelSprite } from "./labels";
 import { createSatelliteSystem } from "./satellites";
@@ -26,6 +27,8 @@ export function createBodyObjects(loader: THREE.TextureLoader) {
   const earthGroup = new THREE.Group();
   earthGroup.userData.focusLabel = "Earth";
   earthGroup.userData.focusRadius = EARTH_RENDER_RADIUS_SCENE_UNITS;
+  earthGroup.userData.cameraCollisionClearance =
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
   const earthRotatingFrame = new THREE.Group();
   earthGroup.add(earthRotatingFrame);
 
