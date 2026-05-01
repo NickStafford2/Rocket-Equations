@@ -73,28 +73,6 @@ export function createRocketObjects() {
   const launchTangentArrow = createLaunchTangentArrow();
   const launchAimArrow = createLaunchAimArrow();
 
-  // Set positions for launch indicators
-  launchRing.position.set(
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.4,
-    0,
-    0,
-  );
-
-  launchTangentArrow.position.set(
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-    0,
-    0,
-  );
-
-  launchAimArrow.position.set(
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-    0,
-    0,
-  );
-
   return {
     rocket,
     enginePlume, // Now the engine plume is properly added
