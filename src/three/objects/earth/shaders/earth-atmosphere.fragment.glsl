@@ -1,24 +1,21 @@
 uniform vec3 uSunPosition;
-uniform vec3 uAtmosphereColor;
-uniform vec3 uNightAtmosphereColor;
+uniform vec3 uColor;
 
 varying vec3 vWorldNormal;
-varying vec3 vWorldPosition;
+varying vec3 vViewNormal;
 
 float saturate(float value) {
   return clamp(value, 0.0, 1.0);
 }
 
 void main() {
-  vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-  vec3 sunDirection = normalize(uSunPosition - vWorldPosition);
+  vec3 sunDirection = normalize(uSunPosition);
+  float sunAmount = saturate(dot(normalize(vWorldNormal), sunDirection));
 
-  // Strong first-pass rim so the shell is obvious before we tune it down.
-  float rim = pow(1.0 - saturate(dot(viewDirection, normalize(vWorldNormal))), 3.0);
-  float dayMask = smoothstep(-0.12, 0.3, dot(normalize(vWorldNormal), sunDirection));
+  // Match the reference shell behavior: strongest at the limb, weaker toward
+  // the center, and biased toward the lit hemisphere.
+  float rim = pow(1.0 - saturate(abs(vViewNormal.z)), 2.6);
+  float alpha = rim * mix(0.08, 0.42, pow(sunAmount, 0.65));
 
-  vec3 color = mix(uNightAtmosphereColor, uAtmosphereColor, dayMask);
-  float alpha = rim * mix(0.18, 0.55, dayMask);
-
-  gl_FragColor = vec4(color, alpha);
+  gl_FragColor = vec4(uColor, alpha);
 }

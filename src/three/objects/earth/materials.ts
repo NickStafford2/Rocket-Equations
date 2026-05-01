@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { SUN_POSITION } from "../../sun";
 import earthAtmosphereFragmentShader from "./shaders/earth-atmosphere.fragment.glsl?raw";
+import earthAtmosphereVertexShader from "./shaders/earth-atmosphere.vertex.glsl?raw";
 import earthCloudFragmentShader from "./shaders/earth-clouds.fragment.glsl?raw";
 import earthSurfaceFragmentShader from "./shaders/earth-surface.fragment.glsl?raw";
 import earthSurfaceVertexShader from "./shaders/earth-surface.vertex.glsl?raw";
@@ -50,15 +51,15 @@ export function createEarthAtmosphereMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       uSunPosition: { value: SUN_POSITION.clone() },
-      uAtmosphereColor: { value: new THREE.Color(0x4ca8ff) },
-      uNightAtmosphereColor: { value: new THREE.Color(0x123d88) },
+      uColor: { value: new THREE.Color(0.45, 0.55, 1.0) },
     },
-    vertexShader: earthSurfaceVertexShader,
+    vertexShader: earthAtmosphereVertexShader,
     fragmentShader: earthAtmosphereFragmentShader,
     transparent: true,
     depthWrite: false,
+    depthTest: true,
     side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
     toneMapped: false,
   });
 }
