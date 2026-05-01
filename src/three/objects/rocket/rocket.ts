@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import {
-  EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../constants";
 import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "./rocket-models";
@@ -8,11 +7,6 @@ import { createRocketVisual } from "./rocket-visual";
 import { createEnginePlume } from "./engine-plume"; // Import the new plume function
 import { createDebugRocketBody } from "./debug-rocket-body";
 import {
-  createThrustDirectionArrow,
-  createLaunchLocationArrow,
-  createLaunchRing,
-  createLaunchTangentArrow,
-  createLaunchAimArrow,
   launchIndicators,
 } from "./launch-indicators";
 

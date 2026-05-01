@@ -1,50 +1,84 @@
 import * as THREE from "three";
+import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
 
-// Constants for smoke particles
-const SMOKE_LIFETIME = 5; // Lifetime of each particle (seconds before it resets)
-const SMOKE_SPEED = 0.3; // Speed of the particles (used now)
-const GRAVITY = -0.02; // Gravity effect on particles (optional)
+const SMOKE_PARTICLE_COUNT = 48;
+const CUBE_SIZE = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.35;
+const SMOKE_COLOR = new THREE.Color(0x808080);
+const SMOKE_BASE_OPACITY = 0.28;
+const SMOKE_FADE_STEP = 0.006;
+const SMOKE_SPEED = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.16;
+const SMOKE_JITTER = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.05;
+const SMOKE_SPAWN_SPREAD = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.08;
 
-const SMOKE_PARTICLE_COUNT = 500; // Number of particles
-const CUBE_SIZE = 1; // Size of each smoke cube
-const SMOKE_COLOR = new THREE.Color(0x808080); // Smoke color (gray)
+type SmokeParticleData = {
+  life: number;
+  velocity: THREE.Vector3;
+};
 
-// Function to create smoke trail
+type SmokeParticle = THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> & {
+  userData: SmokeParticleData;
+};
+
+type SmokeGroup = THREE.Group & {
+  userData: {
+    nextParticleIndex: number;
+  };
+};
+
+const SPAWN_OFFSET = new THREE.Vector3();
+const VELOCITY_OFFSET = new THREE.Vector3();
+
+function randomSigned(amount: number) {
+  return (Math.random() - 0.5) * 2 * amount;
+}
+
+function resetParticle(
+  particle: SmokeParticle,
+  exhaustPosition: THREE.Vector3,
+  heading: THREE.Vector3,
+) {
+  particle.position.copy(exhaustPosition);
+  particle.position.add(
+    SPAWN_OFFSET.set(
+      randomSigned(SMOKE_SPAWN_SPREAD),
+      randomSigned(SMOKE_SPAWN_SPREAD),
+      randomSigned(SMOKE_SPAWN_SPREAD),
+    ),
+  );
+  particle.userData.velocity.copy(heading).multiplyScalar(-SMOKE_SPEED);
+  particle.userData.velocity.add(
+    VELOCITY_OFFSET.set(
+      randomSigned(SMOKE_JITTER),
+      randomSigned(SMOKE_JITTER),
+      randomSigned(SMOKE_JITTER),
+    ),
+  );
+  particle.userData.life = 1;
+  particle.material.opacity = SMOKE_BASE_OPACITY;
+  particle.visible = true;
+}
+
 export function createSmokeTrail(): THREE.Group {
-  console.log("createSmokeTrail");
+  const smokeGroup = new THREE.Group() as SmokeGroup;
+  smokeGroup.userData.nextParticleIndex = 0;
 
-  // Create a group to hold all the smoke cubes
-  const smokeGroup = new THREE.Group();
-
-  // Initialize particles with cubes
-  for (let i = 0; i < SMOKE_PARTICLE_COUNT; i++) {
+  for (let i = 0; i < SMOKE_PARTICLE_COUNT; i += 1) {
     const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE), // Cube geometry for the particle
+      new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
       new THREE.MeshBasicMaterial({
         color: SMOKE_COLOR,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0,
       }),
-    );
+    ) as SmokeParticle;
 
-    // Randomize the initial position of the cubes
-    cube.position.set(
-      Math.random() * 0.5 - 0.25, // X offset
-      Math.random() * 0.5, // Y offset
-      Math.random() * 0.5 - 0.25, // Z offset
-    );
-
-    // Randomize the velocity of the cubes
+    cube.visible = false;
     cube.userData = {
-      velocity: new THREE.Vector3(
-        Math.random() * 0.2 - 0.1, // Random X velocity
-        Math.random() * 0.2 + 0.1, // Random Y velocity (upward)
-        Math.random() * 0.2 - 0.1, // Random Z velocity
-      ),
-      lifetime: 0, // Track lifetime of the particle
+      life: 0,
+      velocity: new THREE.Vector3(),
     };
 
-    smokeGroup.add(cube); // Add the cube to the smoke group
+    smokeGroup.add(cube);
   }
 
   return smokeGroup;
@@ -52,31 +86,41 @@ export function createSmokeTrail(): THREE.Group {
 
 export function updateSmokeTrail(
   smoke: THREE.Group,
-  rocketPosition: THREE.Vector3,
-): void {
-  console.log("updateSmokeTrail");
+  exhaustPosition: THREE.Vector3,
+  heading: THREE.Vector3,
+  emitting: boolean,
+): boolean {
+  const smokeGroup = smoke as SmokeGroup;
+  let hasVisibleParticles = false;
 
-  // Loop through the children (the cubes)
-  smoke.children.forEach((cube) => {
-    // Move the cube based on its velocity
-    cube.position.add(
-      cube.userData.velocity.clone().multiplyScalar(SMOKE_SPEED),
-    );
+  for (const child of smoke.children) {
+    const cube = child as SmokeParticle;
 
-    // Apply gravity on Y-axis
-    cube.position.y += GRAVITY;
-
-    // Log the position to see if it's moving
-    console.log(cube.position);
-
-    // Add AxesHelper to each cube to see their movement visually
-    if (!cube.userData.hasAxesHelper) {
-      const axes = new THREE.AxesHelper(0.5); // Add axes helper to the cube
-      cube.add(axes);
-      cube.userData.hasAxesHelper = true; // Prevent adding multiple helpers to the same cube
+    if (!cube.visible) {
+      continue;
     }
-  });
 
-  // Update all cubes to move with the rocket by adjusting the smoke group's position
-  smoke.position.copy(rocketPosition);
+    cube.position.add(cube.userData.velocity);
+    cube.userData.life -= SMOKE_FADE_STEP;
+    cube.material.opacity = Math.max(cube.userData.life, 0) * SMOKE_BASE_OPACITY;
+
+    if (cube.userData.life <= 0) {
+      cube.visible = false;
+      cube.material.opacity = 0;
+      continue;
+    }
+
+    hasVisibleParticles = true;
+  }
+
+  if (emitting && smoke.children.length > 0) {
+    const cube = smoke.children[
+      smokeGroup.userData.nextParticleIndex % smoke.children.length
+    ] as SmokeParticle;
+    resetParticle(cube, exhaustPosition, heading);
+    smokeGroup.userData.nextParticleIndex += 1;
+    hasVisibleParticles = true;
+  }
+
+  return hasVisibleParticles;
 }
