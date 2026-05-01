@@ -1,15 +1,17 @@
-import * as THREE from "three";
-import {
-  EARTH_RENDER_RADIUS_SCENE_UNITS,
-  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-} from "../constants";
-import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "./rocket-models";
-import { createRocketVisual } from "./rocket-visual";
+// rocket.ts
 
-export type {
-  RocketModelDefinition,
-  RocketModelVariant,
-} from "./rocket-models";
+import * as THREE from "three";
+import { createRocketVisual } from "./rocket-visual";
+import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
+import { createEnginePlume } from "./engine-plume";
+import { createDebugRocketBody } from "./debug-rocket-body";
+import {
+  createThrustDirectionArrow,
+  createLaunchLocationArrow,
+  createLaunchRing,
+  createLaunchTangentArrow,
+  createLaunchAimArrow,
+} from "./launch-indicators"; // Launch indicator creation
 
 const SHOW_DEBUG_CYLINDER = false;
 
@@ -17,6 +19,8 @@ export function createRocketObjects() {
   const rocket = new THREE.Group();
   rocket.userData.focusLabel = "Rocket";
   const fallbackBodyLength = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 5.5;
+
+  // Set up user data for distances
   rocket.userData.focusRadius = fallbackBodyLength * 0.9;
   rocket.userData.followMinDistance =
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 22;
@@ -25,29 +29,16 @@ export function createRocketObjects() {
   rocket.userData.followMaxDistance =
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 72;
 
-  const enginePlume = new THREE.Mesh(
-    new THREE.ConeGeometry(
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.34,
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
-      18,
-    ),
-    new THREE.MeshBasicMaterial({
-      color: 0xffc857,
-      transparent: true,
-      opacity: 0.85,
-    }),
-  );
-  enginePlume.rotation.z = Math.PI;
-  enginePlume.position.y =
-    -fallbackBodyLength / 2 - REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.25;
-  enginePlume.userData.baseScale = 1;
-  enginePlume.visible = false;
+  // Add engine plume
+  const enginePlume = createEnginePlume();
   rocket.add(enginePlume);
 
+  // Add debug body if needed
   if (SHOW_DEBUG_CYLINDER) {
     rocket.add(createDebugRocketBody(fallbackBodyLength));
   }
 
+  // Create and add the rocket visual (3D model of the rocket)
   const rocketVisual = createRocketVisual({
     onLoaded: ({ definition, size: scaledSize }) => {
       rocket.userData.focusRadius = Math.max(
@@ -57,84 +48,25 @@ export function createRocketObjects() {
       );
       enginePlume.position.set(
         definition.nozzleLocalOffsetMeters.x *
-          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+          REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
         definition.nozzleLocalOffsetMeters.y *
-          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+          REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
         definition.nozzleLocalOffsetMeters.z *
-          ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
+          REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
       );
       enginePlume.userData.baseScale = definition.plumeVisualScaleMultiplier;
     },
   });
   rocket.add(rocketVisual.root);
 
-  const thrustDirectionArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(),
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 10,
-    0x7dffb2,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
-  );
+  // Add arrows and launch indicators
+  const thrustDirectionArrow = createThrustDirectionArrow();
+  const launchLocationArrow = createLaunchLocationArrow();
+  const launchRing = createLaunchRing();
+  const launchTangentArrow = createLaunchTangentArrow();
+  const launchAimArrow = createLaunchAimArrow();
 
-  const launchLocationArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(),
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-    0xf472b6,
-    6,
-    3,
-  );
-
-  const launchRing = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 3.4,
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.16,
-      12,
-      42,
-    ),
-    new THREE.MeshBasicMaterial({
-      color: 0xffc857,
-      transparent: true,
-      opacity: 0.9,
-    }),
-  );
-  launchRing.position.set(
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.4,
-    0,
-    0,
-  );
-
-  const launchTangentArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(
-      EARTH_RENDER_RADIUS_SCENE_UNITS +
-        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-      0,
-      0,
-    ),
-    16,
-    0x000,
-    4,
-    2,
-  );
-
-  const launchAimArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(
-      EARTH_RENDER_RADIUS_SCENE_UNITS +
-        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-      0,
-      0,
-    ),
-    18,
-    0xff8d5c,
-    5,
-    2.5,
-  );
-
+  // Return the assembled rocket and its components
   return {
     rocket,
     enginePlume,
@@ -145,66 +77,4 @@ export function createRocketObjects() {
     launchAimArrow,
     setRocketModelVariant: rocketVisual.setVariant,
   };
-}
-
-function createDebugRocketBody(bodyLength: number): THREE.Group {
-  const radius = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.62;
-  const noseLength = bodyLength * 0.24;
-  const stageBandHeight = bodyLength * 0.08;
-  const group = new THREE.Group();
-
-  const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius, bodyLength, 24, 1),
-    new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      roughness: 0.72,
-      metalness: 0.12,
-      transparent: true,
-      opacity: 0.9,
-    }),
-  );
-  group.add(body);
-
-  const nose = new THREE.Mesh(
-    new THREE.ConeGeometry(radius * 0.98, noseLength, 24, 1),
-    new THREE.MeshStandardMaterial({
-      color: 0xfb7185,
-      roughness: 0.5,
-      metalness: 0.08,
-      transparent: true,
-      opacity: 0.95,
-    }),
-  );
-  nose.position.y = bodyLength / 2 + noseLength / 2;
-  group.add(nose);
-
-  const stageBand = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      radius * 1.01,
-      radius * 1.01,
-      stageBandHeight,
-      24,
-    ),
-    new THREE.MeshStandardMaterial({
-      color: 0x38bdf8,
-      roughness: 0.42,
-      metalness: 0.2,
-      transparent: true,
-      opacity: 0.92,
-    }),
-  );
-  stageBand.position.y = -bodyLength * 0.18;
-  group.add(stageBand);
-
-  group.traverse((object) => {
-    const mesh = object as THREE.Mesh;
-    if (!mesh.isMesh) {
-      return;
-    }
-
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-  });
-
-  return group;
 }
