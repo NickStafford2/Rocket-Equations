@@ -13,6 +13,7 @@ export type SceneObjects = {
   earth: THREE.LOD;
   earthCloudsFrame: THREE.Group;
   earthAtmosphere: THREE.Mesh;
+  earthFresnel: THREE.Mesh;
   referenceEarthGroup: THREE.Group;
   referenceEarthRotatingFrame: THREE.Group;
   referenceEarth: THREE.Mesh;
@@ -45,6 +46,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earth,
     earthCloudsFrame,
     earthAtmosphere,
+    earthFresnel,
     earthLabel,
     satelliteSystem,
   } = createEarthObjects(loader);
@@ -87,6 +89,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earth,
     earthCloudsFrame,
     earthAtmosphere,
+    earthFresnel,
     referenceEarthGroup,
     referenceEarthRotatingFrame,
     referenceEarth,
