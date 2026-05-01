@@ -5,6 +5,10 @@ import type { RocketModelVariant } from "../three/objects/rocket";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
+const ROCKET_WORLD_UP = new THREE.Vector3(0, 1, 0);
+const ROCKET_WORLD_RIGHT = new THREE.Vector3();
+const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
+
 export function syncRocketVisuals(
   bundle: ThreeSceneBundle,
   frame: FrameState,
@@ -46,10 +50,6 @@ export function syncRocketVisuals(
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
   );
-  const ROCKET_WORLD_UP = new THREE.Vector3(0, 1, 0);
-  const ROCKET_WORLD_RIGHT = new THREE.Vector3();
-  const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
-
   ROCKET_WORLD_RIGHT.crossVectors(heading, ROCKET_WORLD_UP);
 
   if (ROCKET_WORLD_RIGHT.lengthSq() <= 1e-9) {

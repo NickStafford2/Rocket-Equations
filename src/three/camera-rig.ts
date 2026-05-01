@@ -232,7 +232,7 @@ export function updateCameraRig(
   camera.position.lerp(rig.desiredPosition, positionAlpha);
   controls.target.lerp(rig.desiredTarget, targetAlpha);
   preventCameraBodyIntersection(scene, camera);
-  if (followPosition) {
+  if (followPosition && !rig.positionTransitioning) {
     rig.offset.copy(camera.position).sub(followPosition);
   }
   controls.update();

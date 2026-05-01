@@ -3,14 +3,18 @@ import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz6.glb?url";
 import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V3.glb?url";
 import {
   ROCKET_PHYSICAL_MODEL_SPECS,
-  type RocketModelSpec,
+  ROCKET_RENDER_MODEL_SPECS,
+  type RocketPhysicalModelSpec,
+  type RocketRenderModelSpec,
   type RocketModelVariant,
 } from "../../rocket/definitions";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "./constants";
 
 export type { RocketModelVariant } from "../../rocket/definitions";
 
-export interface RocketModelDefinition extends RocketModelSpec {
+export interface RocketModelDefinition
+  extends RocketPhysicalModelSpec,
+    RocketRenderModelSpec {
   url: string;
 }
 
@@ -29,13 +33,16 @@ export const ROCKET_RENDER_MODEL_DEFINITIONS: Record<
   "saturn-v": {
     url: saturnVModelUrl,
     ...ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"],
+    ...ROCKET_RENDER_MODEL_SPECS["saturn-v"],
   },
   "apollo-soyuz": {
     url: apolloSoyuzUrl,
     ...ROCKET_PHYSICAL_MODEL_SPECS["apollo-soyuz"],
+    ...ROCKET_RENDER_MODEL_SPECS["apollo-soyuz"],
   },
   "apollo-lunar-module": {
     url: apolloLunarModuleUrl,
     ...ROCKET_PHYSICAL_MODEL_SPECS["apollo-lunar-module"],
+    ...ROCKET_RENDER_MODEL_SPECS["apollo-lunar-module"],
   },
 };

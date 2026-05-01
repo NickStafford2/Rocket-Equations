@@ -133,20 +133,13 @@ export class EarthMoonSimulation {
 
     for (let index = 0; index < steps; index += 1) {
       const moonPosition = moonPositionMeters(this.state.t);
-      const rocketModelVariant = getRocketModelVariantForState(
-        this.state.rocket.position,
-        moonPosition,
-      );
-      const surfaceContactOffsetMeters =
-        ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
-          .surfaceContactOffsetMeters;
       this.state = stepSimulation(
         this.state,
         stepDt,
         input,
         this.config.thrustAcceleration,
         this.config.turnRateDeg,
-        surfaceContactOffsetMeters,
+        this.getSurfaceContactOffsetMeters(moonPosition),
       );
       this.appendTrailPoint(this.state.rocket.position);
       this.updateFlightExtrema();
@@ -253,13 +246,9 @@ export class EarthMoonSimulation {
 
   getTelemetry(): SimulationTelemetry {
     const moonPos = moonPositionMeters(this.state.t);
-    const rocketModelVariant = getRocketModelVariantForState(
-      this.state.rocket.position,
+    const surfaceContactOffsetMeters = this.getSurfaceContactOffsetMeters(
       moonPos,
     );
-    const surfaceContactOffsetMeters =
-      ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
-        .surfaceContactOffsetMeters;
     return {
       hours: this.state.t / 3600,
       speed: this.state.rocket.velocity.length(),
@@ -285,13 +274,9 @@ export class EarthMoonSimulation {
 
   private updateFlightExtrema(): void {
     const moonPos = moonPositionMeters(this.state.t);
-    const rocketModelVariant = getRocketModelVariantForState(
-      this.state.rocket.position,
+    const surfaceContactOffsetMeters = this.getSurfaceContactOffsetMeters(
       moonPos,
     );
-    const surfaceContactOffsetMeters =
-      ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
-        .surfaceContactOffsetMeters;
     const altitudeEarth = Math.max(
       altitudeAboveEarth(this.state.rocket.position, R_EARTH) -
         surfaceContactOffsetMeters,
@@ -322,6 +307,15 @@ export class EarthMoonSimulation {
 
     this.trail[this.trailStart].copy(position);
     this.trailStart = (this.trailStart + 1) % TRAIL_POINT_CAPACITY;
+  }
+
+  private getSurfaceContactOffsetMeters(moonPosition: THREE.Vector3): number {
+    const rocketModelVariant = getRocketModelVariantForState(
+      this.state.rocket.position,
+      moonPosition,
+    );
+    return ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
+      .surfaceContactOffsetMeters;
   }
 
   private serializePredictionState(state: TrajectoryPredictionState): string {

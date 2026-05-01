@@ -3,10 +3,13 @@ export type RocketModelVariant =
   | "apollo-soyuz"
   | "apollo-lunar-module";
 
-export interface RocketModelSpec {
+export interface RocketPhysicalModelSpec {
   name: string;
   heightMeters: number;
   surfaceContactOffsetMeters: number;
+}
+
+export interface RocketRenderModelSpec {
   nozzleLocalOffsetMeters: {
     x: number;
     y: number;
@@ -17,12 +20,30 @@ export interface RocketModelSpec {
 
 export const ROCKET_PHYSICAL_MODEL_SPECS: Record<
   RocketModelVariant,
-  RocketModelSpec
+  RocketPhysicalModelSpec
 > = {
   "saturn-v": {
     name: "Saturn V",
     heightMeters: 111,
     surfaceContactOffsetMeters: 55,
+  },
+  "apollo-soyuz": {
+    name: "Apollo Soyuz",
+    heightMeters: 50,
+    surfaceContactOffsetMeters: 24,
+  },
+  "apollo-lunar-module": {
+    name: "Apollo Lunar Module",
+    heightMeters: 9,
+    surfaceContactOffsetMeters: 4.6,
+  },
+};
+
+export const ROCKET_RENDER_MODEL_SPECS: Record<
+  RocketModelVariant,
+  RocketRenderModelSpec
+> = {
+  "saturn-v": {
     nozzleLocalOffsetMeters: {
       x: 0,
       y: -62,
@@ -31,9 +52,6 @@ export const ROCKET_PHYSICAL_MODEL_SPECS: Record<
     plumeVisualScaleMultiplier: 1,
   },
   "apollo-soyuz": {
-    name: "Apollo Soyuz",
-    heightMeters: 50,
-    surfaceContactOffsetMeters: 24,
     nozzleLocalOffsetMeters: {
       x: 0,
       y: -30,
@@ -42,9 +60,6 @@ export const ROCKET_PHYSICAL_MODEL_SPECS: Record<
     plumeVisualScaleMultiplier: 0.78,
   },
   "apollo-lunar-module": {
-    name: "Apollo Lunar Module",
-    heightMeters: 9,
-    surfaceContactOffsetMeters: 4.6,
     nozzleLocalOffsetMeters: {
       x: 0,
       y: -4.2,

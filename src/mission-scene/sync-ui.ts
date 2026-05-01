@@ -8,7 +8,6 @@ import type { ThreeSceneBundle } from "../three/scene";
 import type { MutableRefObject } from "react";
 import type { FrameState } from "./frame-state";
 import type { SimulationTelemetry } from "../sim/simulation";
-import type { TelemetryState } from "./sync-scene";
 
 const UI_SYNC_INTERVAL_MS = 100;
 
@@ -113,7 +112,7 @@ function stopAndSyncImpact({
 }: {
   now: number;
   t: number;
-  telemetry: TelemetryState;
+  telemetry: SimulationTelemetry;
   status: string;
   runningRef: MutableRefObject<boolean>;
   lastUiSyncAtRef: MutableRefObject<number>;
