@@ -1,6 +1,6 @@
-import apolloLunarModuleUrl from "../../assets/Rocket Sections/Apollo Lunar Module3.glb?url";
-import apolloSoyuzUrl from "../../assets/Rocket Sections/Apollo Soyuz6.glb?url";
-import saturnVModelUrl from "../../assets/Rocket Sections/Saturn V3.glb?url";
+import apolloLunarModuleUrl from "../../../assets/Rocket Sections/Apollo Lunar Module3.glb?url";
+import apolloSoyuzUrl from "../../../assets/Rocket Sections/Apollo Soyuz6.glb?url";
+import saturnVModelUrl from "../../../assets/Rocket Sections/Saturn V3.glb?url";
 import {
   ROCKET_PHYSICAL_MODEL_SPECS,
   ROCKET_RENDER_MODEL_SPECS,
