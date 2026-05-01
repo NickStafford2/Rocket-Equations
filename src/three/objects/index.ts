@@ -2,7 +2,7 @@ import * as THREE from "three";
 import type { RocketModelVariant } from "./rocket";
 import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
-import { createEarthObjects } from "./earth";
+import { createEarthObjects } from "./earth/earth";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
 

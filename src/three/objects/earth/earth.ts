@@ -2,16 +2,16 @@ import * as THREE from "three";
 import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
-} from "./constants";
+} from "../constants";
 import {
   createEarthAtmosphereMaterial,
   createEarthCloudMaterial,
   createEarthFresnelMaterial,
   createEarthSurfaceMaterial,
-} from "./earth/materials";
-import { loadEarthTextureVariants } from "./earth/textures";
-import { createBodyLabelSprite } from "./labels";
-import { createSatelliteSystem } from "./satellites";
+} from "./materials";
+import { loadEarthTextureVariants } from "./textures";
+import { createBodyLabelSprite } from "../labels";
+import { createSatelliteSystem } from "../satellites";
 
 const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
 const EARTH_NEAR_SEGMENTS = 128;
