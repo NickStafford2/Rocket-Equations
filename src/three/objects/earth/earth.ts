@@ -11,7 +11,7 @@ import {
 } from "./materials";
 import { loadEarthTextureVariants } from "./textures";
 import { createBodyLabelSprite } from "../labels";
-import { createSatelliteSystem } from "../satellites";
+import { createSatelliteSystem } from "./satellites";
 
 const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
 const EARTH_NEAR_SEGMENTS = 128;

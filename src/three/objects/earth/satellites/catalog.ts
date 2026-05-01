@@ -4,17 +4,17 @@ import {
   G,
   M_EARTH,
   R_EARTH,
-} from "../../../physics/bodies";
-import acrimSatModelUrl from "../../../assets/satellites/Active Cavity Irradiance Monitor Satellite (AcrimSAT) (A).glb?url";
-import auraModelUrl from "../../../assets/satellites/Aura (B).glb?url";
-import cassiniModelUrl from "../../../assets/satellites/Cassini-Huygens (A).glb?url";
-import clementineModelUrl from "../../../assets/satellites/Clementine.glb?url";
-import hubbleModelUrl from "../../../assets/satellites/Hubble Space Telescope (A).glb?url";
-// import issModelUrl from "../../../assets/satellites/International Space Station (ISS).glb?url";
-import jwstModelUrl from "../../../assets/satellites/James Webb Space Telescope (B).glb?url";
-import tessModelUrl from "../../../assets/satellites/Transiting Exoplanet Survey Satellite (TESS) (B).glb?url";
-import vanAllenModelUrl from "../../../assets/satellites/Van Allen Probes.glb?url";
-import voyagerModelUrl from "../../../assets/satellites/Voyager Probe (A).glb?url";
+} from "../../../../physics/bodies";
+import acrimSatModelUrl from "../../../../assets/satellites/Active Cavity Irradiance Monitor Satellite (AcrimSAT) (A).glb?url";
+import auraModelUrl from "../../../../assets/satellites/Aura (B).glb?url";
+import cassiniModelUrl from "../../../../assets/satellites/Cassini-Huygens (A).glb?url";
+import clementineModelUrl from "../../../../assets/satellites/Clementine.glb?url";
+import hubbleModelUrl from "../../../../assets/satellites/Hubble Space Telescope (A).glb?url";
+// import issModelUrl from "../../../../assets/satellites/International Space Station (ISS).glb?url";
+import jwstModelUrl from "../../../../assets/satellites/James Webb Space Telescope (B).glb?url";
+import tessModelUrl from "../../../../assets/satellites/Transiting Exoplanet Survey Satellite (TESS) (B).glb?url";
+import vanAllenModelUrl from "../../../../assets/satellites/Van Allen Probes.glb?url";
+import voyagerModelUrl from "../../../../assets/satellites/Voyager Probe (A).glb?url";
 
 export type SatelliteOrbitDefinition = {
   type: "geosynchronous" | "circular" | "earth-l2" | "deep-space";

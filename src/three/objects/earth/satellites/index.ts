@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { EARTH_ROTATION_PERIOD, G, M_EARTH } from "../../../physics/bodies";
+import { EARTH_ROTATION_PERIOD, G, M_EARTH } from "../../../../physics/bodies";
 import dracoDecoderJsUrl from "three/examples/jsm/libs/draco/gltf/draco_decoder.js?url";
-import { ORBIT_METERS_TO_SCENE_UNITS } from "../constants";
+import { ORBIT_METERS_TO_SCENE_UNITS } from "../../constants";
 import {
   orbitalRadiusMeters,
   geosynchronousOrbitRadiusMeters,
@@ -11,7 +11,7 @@ import {
   SATELLITE_DEFINITIONS,
   type SatelliteDefinition,
 } from "./catalog";
-import { SUN_POSITION } from "../../sun";
+import { SUN_POSITION } from "../../../sun";
 
 const MODEL_SIZE = new THREE.Vector3();
 const ORBIT_POSITION = new THREE.Vector3();

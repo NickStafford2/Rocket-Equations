@@ -1,7 +1,7 @@
 import { EARTH_ANGULAR_SPEED } from "../physics/bodies";
 import { ORBIT_METERS_TO_SCENE_UNITS } from "../three/objects/constants";
 import { syncMoonVisual } from "../three/objects/moon";
-import { syncSatelliteSystem } from "../three/objects/satellites";
+import { syncSatelliteSystem } from "../three/objects/earth/satellites";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
