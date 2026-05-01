@@ -79,8 +79,10 @@ function createEarthMesh(
     segments,
     segments,
   );
-
-  const earthMesh = new THREE.Mesh(geometry, createEarthSurfaceMaterial(textures));
+  const earthMesh = new THREE.Mesh(
+    geometry,
+    createEarthSurfaceMaterial(textures),
+  );
   earthMesh.castShadow = true;
   earthMesh.receiveShadow = true;
   return earthMesh;

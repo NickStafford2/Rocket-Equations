@@ -10,11 +10,9 @@ export function createEarthSurfaceMaterial(
 ): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uCloudTexture: { value: textures.clouds },
       uDayTexture: { value: textures.day },
       uNightTexture: { value: textures.night },
       uSunPosition: { value: SUN_POSITION.clone() },
-      uCloudShadowStrength: { value: 0.99 },
       uNightStrength: { value: 1.5 },
       uTerminatorSoftness: { value: 0.16 },
     },

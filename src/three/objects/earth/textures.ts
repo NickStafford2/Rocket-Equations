@@ -66,5 +66,6 @@ function loadMaskTexture(
   const texture = textureLoader.load(url);
   texture.colorSpace = THREE.NoColorSpace;
   texture.anisotropy = 8;
+  texture.wrapS = THREE.RepeatWrapping;
   return texture;
 }
