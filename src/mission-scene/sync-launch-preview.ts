@@ -4,6 +4,7 @@ import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
 const WORLD_FORWARD = new THREE.Vector3(0, 0, 1);
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
 
 export function syncLaunchPreview(
   bundle: ThreeSceneBundle,
@@ -31,6 +32,11 @@ export function syncLaunchPreview(
   objects.launchRing.position.copy(launchOrigin);
   objects.launchRing.quaternion.setFromUnitVectors(
     WORLD_FORWARD,
+    launchFrame.radialHat.clone(),
+  );
+  objects.earthLaunchSite.position.copy(launchOrigin);
+  objects.earthLaunchSite.quaternion.setFromUnitVectors(
+    WORLD_UP,
     launchFrame.radialHat.clone(),
   );
   objects.launchTangentArrow.position.copy(launchOrigin);

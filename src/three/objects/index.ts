@@ -3,6 +3,7 @@ import type { RocketModelVariant } from "./rocket/rocket";
 import { createRocketObjects } from "./rocket/rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
+import { createEarthLaunchSite } from "./earth/launch-site";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
 import { createSmokeTrail } from "./rocket/smoke-trail";
@@ -16,6 +17,7 @@ export type SceneObjects = {
   earthAtmosphere: THREE.Mesh;
   earthFresnel: THREE.Mesh;
   earthLabel: THREE.Sprite;
+  earthLaunchSite: THREE.Group;
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
   moonLabel: THREE.Sprite;
@@ -48,6 +50,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthLabel,
     satelliteSystem,
   } = createEarthObjects(loader);
+  const earthLaunchSite = createEarthLaunchSite();
 
   const { moon, moonLabel, moonOrbit } = createMoonObjects(loader);
   const {
@@ -69,6 +72,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
 
   // Add other objects
   system.add(earthGroup);
+  system.add(earthLaunchSite);
   system.add(moon);
   system.add(rocket);
   system.add(launchRing);
@@ -86,6 +90,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthAtmosphere,
     earthFresnel,
     earthLabel,
+    earthLaunchSite,
     satelliteSystem,
     moon,
     moonLabel,
