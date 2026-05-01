@@ -14,7 +14,7 @@ import type {
 import { loadReferenceBackground } from "./skybox";
 import { createReferenceSun } from "./sun";
 
-const BLOOM_STRENGTH = 0.38;
+const BLOOM_STRENGTH = 0.18;
 const BLOOM_RADIUS = 0.42;
 const BLOOM_THRESHOLD = 0.52;
 const GRID_SIZE = 520 * 9;
@@ -73,7 +73,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
 
-  const ambientLight = new THREE.AmbientLight(0x1e2633, 2.8);
+  const ambientLight = new THREE.AmbientLight(0x1e2633, 0.8);
   scene.add(ambientLight);
 
   const objects = createSceneObjects(scene);
