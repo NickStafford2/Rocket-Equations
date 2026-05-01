@@ -111,6 +111,12 @@ export function createRocketObjects() {
   rocket.userData.focusLabel = "Rocket";
   const fallbackBodyLength = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 5.5;
   rocket.userData.focusRadius = fallbackBodyLength * 0.9;
+  rocket.userData.followMinDistance =
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 22;
+  rocket.userData.followDefaultDistance =
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 46;
+  rocket.userData.followMaxDistance =
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 72;
 
   const enginePlume = new THREE.Mesh(
     new THREE.ConeGeometry(

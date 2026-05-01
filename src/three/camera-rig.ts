@@ -343,15 +343,32 @@ function getInitialFollowOffset(
 
   const currentOffset = camera.position.clone().sub(FOLLOW_WORLD_POSITION);
   const focusRadius = Number(object.userData.focusRadius ?? 12);
-  const minDistance = THREE.MathUtils.clamp(
-    focusRadius * FOLLOW_MIN_DISTANCE_MULTIPLIER,
-    0.05,
-    520,
+  const minDistance = getFollowDistanceSetting(
+    object,
+    "followMinDistance",
+    THREE.MathUtils.clamp(
+      focusRadius * FOLLOW_MIN_DISTANCE_MULTIPLIER,
+      0.05,
+      520,
+    ),
   );
-  const maxDistance = THREE.MathUtils.clamp(
-    focusRadius * FOLLOW_MAX_DISTANCE_MULTIPLIER,
-    0.8,
-    700,
+  const maxDistance = getFollowDistanceSetting(
+    object,
+    "followMaxDistance",
+    THREE.MathUtils.clamp(
+      focusRadius * FOLLOW_MAX_DISTANCE_MULTIPLIER,
+      0.8,
+      700,
+    ),
+  );
+  const defaultDistance = getFollowDistanceSetting(
+    object,
+    "followDefaultDistance",
+    THREE.MathUtils.clamp(
+      focusRadius * FOLLOW_DEFAULT_DISTANCE_MULTIPLIER,
+      0.2,
+      520,
+    ),
   );
 
   if (currentOffset.lengthSq() > 1e-6) {
@@ -365,26 +382,19 @@ function getInitialFollowOffset(
 
   const viewDirection = camera.position.clone().sub(controls.target);
   if (viewDirection.lengthSq() > 1e-6) {
-    return viewDirection
-      .normalize()
-      .multiplyScalar(
-        THREE.MathUtils.clamp(
-          focusRadius * FOLLOW_DEFAULT_DISTANCE_MULTIPLIER,
-          0.2,
-          520,
-        ),
-      );
+    return viewDirection.normalize().multiplyScalar(defaultDistance);
   }
 
-  return FALLBACK_VIEW_DIRECTION
-    .clone()
-    .multiplyScalar(
-      THREE.MathUtils.clamp(
-        focusRadius * FOLLOW_DEFAULT_DISTANCE_MULTIPLIER,
-        0.2,
-        520,
-      ),
-    );
+  return FALLBACK_VIEW_DIRECTION.clone().multiplyScalar(defaultDistance);
+}
+
+function getFollowDistanceSetting(
+  object: THREE.Object3D,
+  key: "followMinDistance" | "followMaxDistance" | "followDefaultDistance",
+  fallback: number,
+): number {
+  const value = Number(object.userData[key]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
 function preventCameraBodyIntersection(
