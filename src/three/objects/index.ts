@@ -9,7 +9,7 @@ export type SceneObjects = {
   system: THREE.Group;
   earthGroup: THREE.Group;
   earthRotatingFrame: THREE.Group;
-  earth: THREE.Mesh;
+  earth: THREE.LOD;
   earthLabel: THREE.Sprite;
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
