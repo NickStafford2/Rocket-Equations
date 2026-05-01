@@ -20,3 +20,19 @@ export function createEarthSurfaceMaterial(
     toneMapped: true,
   });
 }
+
+export function createEarthCloudMaterial(
+  textures: EarthTextureSet,
+): THREE.MeshPhongMaterial {
+  return new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    emissive: new THREE.Color(0x18202c),
+    emissiveIntensity: 0.2,
+    alphaMap: textures.clouds,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    shininess: 8,
+  });
+}
