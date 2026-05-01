@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { createBodyObjects } from "./bodies";
 import type { RocketModelVariant } from "./rocket";
 import { createRocketObjects } from "./rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
+import { createEarthObjects } from "./earth";
+import { createMoonObjects } from "./moon";
 
 export type SceneObjects = {
   system: THREE.Group;
@@ -31,16 +32,9 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   scene.add(system);
 
   const loader = new THREE.TextureLoader();
-  const {
-    earthGroup,
-    earthRotatingFrame,
-    earth,
-    earthLabel,
-    satelliteSystem,
-    moon,
-    moonLabel,
-    moonOrbit,
-  } = createBodyObjects(loader);
+  const { earthGroup, earthRotatingFrame, earth, earthLabel, satelliteSystem } =
+    createEarthObjects(loader);
+  const { moon, moonLabel, moonOrbit } = createMoonObjects(loader);
   const {
     rocket,
     enginePlume,
