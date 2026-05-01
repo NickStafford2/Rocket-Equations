@@ -7,6 +7,13 @@ import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "./rocket-models";
 import { createRocketVisual } from "./rocket-visual";
 import { createEnginePlume } from "./engine-plume"; // Import the new plume function
 import { createDebugRocketBody } from "./debug-rocket-body";
+import {
+  createThrustDirectionArrow,
+  createLaunchLocationArrow,
+  createLaunchRing,
+  createLaunchTangentArrow,
+  createLaunchAimArrow,
+} from "./launch-indicators";
 
 export type {
   RocketModelDefinition,
@@ -60,38 +67,13 @@ export function createRocketObjects() {
   });
   rocket.add(rocketVisual.root);
 
-  const thrustDirectionArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 1, 0),
-    new THREE.Vector3(),
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 10,
-    0x7dffb2,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.8,
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.4,
-  );
+  const thrustDirectionArrow = createThrustDirectionArrow();
+  const launchLocationArrow = createLaunchLocationArrow();
+  const launchRing = createLaunchRing();
+  const launchTangentArrow = createLaunchTangentArrow();
+  const launchAimArrow = createLaunchAimArrow();
 
-  const launchLocationArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1, 0, 0),
-    new THREE.Vector3(),
-    EARTH_RENDER_RADIUS_SCENE_UNITS +
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-    0xf472b6,
-    6,
-    3,
-  );
-
-  const launchRing = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 3.4,
-      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.16,
-      12,
-      42,
-    ),
-    new THREE.MeshBasicMaterial({
-      color: 0xffc857,
-      transparent: true,
-      opacity: 0.9,
-    }),
-  );
+  // Set positions for launch indicators
   launchRing.position.set(
     EARTH_RENDER_RADIUS_SCENE_UNITS +
       REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.4,
@@ -99,32 +81,18 @@ export function createRocketObjects() {
     0,
   );
 
-  const launchTangentArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(
-      EARTH_RENDER_RADIUS_SCENE_UNITS +
-        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-      0,
-      0,
-    ),
-    16,
-    0x000,
-    4,
-    2,
+  launchTangentArrow.position.set(
+    EARTH_RENDER_RADIUS_SCENE_UNITS +
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
+    0,
+    0,
   );
 
-  const launchAimArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, 0, 1),
-    new THREE.Vector3(
-      EARTH_RENDER_RADIUS_SCENE_UNITS +
-        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
-      0,
-      0,
-    ),
-    18,
-    0xff8d5c,
-    5,
-    2.5,
+  launchAimArrow.position.set(
+    EARTH_RENDER_RADIUS_SCENE_UNITS +
+      REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6,
+    0,
+    0,
   );
 
   return {
