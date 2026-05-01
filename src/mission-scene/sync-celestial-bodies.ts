@@ -17,6 +17,8 @@ export function syncCelestialBodies(
     EARTH_ANGULAR_SPEED * frame.simState.t;
   objects.earthCloudsFrame.rotation.y =
     (EARTH_CLOUD_DRIFT_RATIO - 1) * EARTH_ANGULAR_SPEED * frame.simState.t;
+  objects.referenceEarthRotatingFrame.rotation.y =
+    EARTH_ANGULAR_SPEED * frame.simState.t;
 
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
   syncMoonVisual(objects.moon, frame.telemetry.moonPosition);

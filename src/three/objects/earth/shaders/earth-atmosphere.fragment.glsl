@@ -1,21 +1,21 @@
 uniform vec3 uSunPosition;
 uniform vec3 uColor;
 
-varying vec3 vWorldNormal;
-varying vec3 vViewNormal;
-
-float saturate(float value) {
-  return clamp(value, 0.0, 1.0);
-}
+varying vec3 vNormal;
+varying vec3 vNormalView;
+varying vec3 vPosition;
 
 void main() {
-  vec3 sunDirection = normalize(uSunPosition);
-  float sunAmount = saturate(dot(normalize(vWorldNormal), sunDirection));
+  vec3 sunDir = uSunPosition;
+  vec3 sunDirUnit = normalize(sunDir);
 
-  // Match the reference shell behavior: strongest at the limb, weaker toward
-  // the center, and biased toward the lit hemisphere.
-  float rim = pow(1.0 - saturate(abs(vViewNormal.z)), 2.6);
-  float alpha = rim * mix(0.08, 0.42, pow(sunAmount, 0.65));
+  // Keep the article's day/night mask, but tighten the visible atmosphere
+  // toward the limb so it does not read like a full glowing disk at distance.
+  float cosAngleSunToNormal = dot(vNormal, sunDirUnit);
+  float mixAmount = 1. / (1. + exp(-7. * (cosAngleSunToNormal + 0.1)));
 
-  gl_FragColor = vec4(uColor, alpha);
+  float rimBase = max(dot(vPosition, vNormalView), 0.);
+  float intensity = pow(rimBase, 6.0) * 1.35;
+
+  gl_FragColor = vec4(uColor, intensity) * mixAmount;
 }
