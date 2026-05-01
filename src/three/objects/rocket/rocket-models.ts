@@ -7,14 +7,13 @@ import {
   type RocketPhysicalModelSpec,
   type RocketRenderModelSpec,
   type RocketModelVariant,
-} from "../../rocket/definitions";
-import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "./constants";
+} from "../../../rocket/definitions";
+import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
 
-export type { RocketModelVariant } from "../../rocket/definitions";
+export type { RocketModelVariant } from "../../../rocket/definitions";
 
 export interface RocketModelDefinition
-  extends RocketPhysicalModelSpec,
-    RocketRenderModelSpec {
+  extends RocketPhysicalModelSpec, RocketRenderModelSpec {
   url: string;
 }
 

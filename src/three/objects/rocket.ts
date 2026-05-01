@@ -9,12 +9,12 @@ import {
   ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
   type RocketModelDefinition,
   type RocketModelVariant,
-} from "./rocket-models";
+} from "./rocket/rocket-models";
 
 export type {
   RocketModelDefinition,
   RocketModelVariant,
-} from "./rocket-models";
+} from "./rocket/rocket-models";
 
 export interface RocketVisualLoadedPayload {
   definition: RocketModelDefinition;
