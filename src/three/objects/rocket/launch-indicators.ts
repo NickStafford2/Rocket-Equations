@@ -99,3 +99,11 @@ export function createLaunchAimArrow(): THREE.ArrowHelper {
   arrow.position.copy(position);
   return arrow;
 }
+
+export const launchIndicators = {
+  thrustDirectionArrow: createThrustDirectionArrow(),
+  launchLocationArrow: createLaunchLocationArrow(),
+  launchRing: createLaunchRing(),
+  launchTangentArrow: createLaunchTangentArrow(),
+  launchAimArrow: createLaunchAimArrow(),
+};

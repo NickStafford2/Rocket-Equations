@@ -13,6 +13,7 @@ import {
   createLaunchRing,
   createLaunchTangentArrow,
   createLaunchAimArrow,
+  launchIndicators,
 } from "./launch-indicators";
 
 export type {
@@ -67,20 +68,10 @@ export function createRocketObjects() {
   });
   rocket.add(rocketVisual.root);
 
-  const thrustDirectionArrow = createThrustDirectionArrow();
-  const launchLocationArrow = createLaunchLocationArrow();
-  const launchRing = createLaunchRing();
-  const launchTangentArrow = createLaunchTangentArrow();
-  const launchAimArrow = createLaunchAimArrow();
-
   return {
     rocket,
     enginePlume, // Now the engine plume is properly added
-    thrustDirectionArrow,
-    launchLocationArrow,
-    launchRing,
-    launchTangentArrow,
-    launchAimArrow,
+    ...launchIndicators,
     setRocketModelVariant: rocketVisual.setVariant,
   };
 }
