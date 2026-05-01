@@ -50,8 +50,8 @@ export function createEarthCloudMaterial(
 export function createEarthAtmosphereMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
-      uSunPosition: { value: SUN_POSITION.clone() },
-      uColor: { value: new THREE.Color(0.45, 0.55, 1.0) },
+      u_sunRelPosition: { value: SUN_POSITION.clone() },
+      u_color: { value: new THREE.Vector3(0.45, 0.55, 1.0) },
     },
     vertexShader: earthAtmosphereVertexShader,
     fragmentShader: earthAtmosphereFragmentShader,
