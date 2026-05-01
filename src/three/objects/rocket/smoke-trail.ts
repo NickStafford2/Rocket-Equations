@@ -1,85 +1,97 @@
 import * as THREE from "three";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
 
-const SMOKE_PARTICLE_COUNT = 48;
-const CUBE_SIZE = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.35;
-const SMOKE_COLOR = new THREE.Color(0x808080);
-const SMOKE_BASE_OPACITY = 0.28;
-const SMOKE_FADE_STEP = 0.006;
-const SMOKE_SPEED = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.16;
-const SMOKE_JITTER = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.05;
-const SMOKE_SPAWN_SPREAD = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.08;
+const SMOKE_POINT_CAPACITY = 8192;
+const SMOKE_POINTS_PER_SAMPLE = 3;
+const SMOKE_POINT_SIZE = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.5;
+const SMOKE_SAMPLE_SPACING = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.6;
+const SMOKE_SAMPLE_RADIUS = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.35;
+const SMOKE_COLOR = new THREE.Color(0x9aa3aa);
 
-type SmokeParticleData = {
-  life: number;
-  velocity: THREE.Vector3;
+type SmokeState = {
+  count: number;
+  lastSimTime: number;
+  nextIndex: number;
+  points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>;
+  positions: Float32Array;
+  lastEmissionPosition: THREE.Vector3 | null;
 };
 
-type SmokeParticle = THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> & {
-  userData: SmokeParticleData;
+type SmokeTrailGroup = THREE.Group & {
+  userData: SmokeState;
 };
 
-type SmokeGroup = THREE.Group & {
-  userData: {
-    nextParticleIndex: number;
-  };
-};
-
-const SPAWN_OFFSET = new THREE.Vector3();
-const VELOCITY_OFFSET = new THREE.Vector3();
+const SAMPLE_POSITION = new THREE.Vector3();
+const SEGMENT_VECTOR = new THREE.Vector3();
+const JITTER_VECTOR = new THREE.Vector3();
 
 function randomSigned(amount: number) {
   return (Math.random() - 0.5) * 2 * amount;
 }
 
-function resetParticle(
-  particle: SmokeParticle,
-  exhaustPosition: THREE.Vector3,
-  heading: THREE.Vector3,
+function clearSmokeTrail(smoke: SmokeTrailGroup) {
+  smoke.userData.count = 0;
+  smoke.userData.nextIndex = 0;
+  smoke.userData.lastEmissionPosition = null;
+  smoke.userData.points.geometry.setDrawRange(0, 0);
+}
+
+function appendSmokeSample(
+  smoke: SmokeTrailGroup,
+  position: THREE.Vector3,
 ) {
-  particle.position.copy(exhaustPosition);
-  particle.position.add(
-    SPAWN_OFFSET.set(
-      randomSigned(SMOKE_SPAWN_SPREAD),
-      randomSigned(SMOKE_SPAWN_SPREAD),
-      randomSigned(SMOKE_SPAWN_SPREAD),
-    ),
-  );
-  particle.userData.velocity.copy(heading).multiplyScalar(-SMOKE_SPEED);
-  particle.userData.velocity.add(
-    VELOCITY_OFFSET.set(
-      randomSigned(SMOKE_JITTER),
-      randomSigned(SMOKE_JITTER),
-      randomSigned(SMOKE_JITTER),
-    ),
-  );
-  particle.userData.life = 1;
-  particle.material.opacity = SMOKE_BASE_OPACITY;
-  particle.visible = true;
+  for (let index = 0; index < SMOKE_POINTS_PER_SAMPLE; index += 1) {
+    const offset = smoke.userData.nextIndex * 3;
+    JITTER_VECTOR.set(
+      randomSigned(SMOKE_SAMPLE_RADIUS),
+      randomSigned(SMOKE_SAMPLE_RADIUS),
+      randomSigned(SMOKE_SAMPLE_RADIUS),
+    );
+    smoke.userData.positions[offset] = position.x + JITTER_VECTOR.x;
+    smoke.userData.positions[offset + 1] = position.y + JITTER_VECTOR.y;
+    smoke.userData.positions[offset + 2] = position.z + JITTER_VECTOR.z;
+    smoke.userData.nextIndex =
+      (smoke.userData.nextIndex + 1) % SMOKE_POINT_CAPACITY;
+    smoke.userData.count = Math.min(
+      smoke.userData.count + 1,
+      SMOKE_POINT_CAPACITY,
+    );
+  }
+
+  smoke.userData.points.geometry.setDrawRange(0, smoke.userData.count);
+  smoke.userData.points.geometry.getAttribute("position").needsUpdate = true;
 }
 
 export function createSmokeTrail(): THREE.Group {
-  const smokeGroup = new THREE.Group() as SmokeGroup;
-  smokeGroup.userData.nextParticleIndex = 0;
+  const smokeGroup = new THREE.Group() as SmokeTrailGroup;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(SMOKE_POINT_CAPACITY * 3);
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setDrawRange(0, 0);
 
-  for (let i = 0; i < SMOKE_PARTICLE_COUNT; i += 1) {
-    const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE),
-      new THREE.MeshBasicMaterial({
-        color: SMOKE_COLOR,
-        transparent: true,
-        opacity: 0,
-      }),
-    ) as SmokeParticle;
+  const points = new THREE.Points(
+    geometry,
+    new THREE.PointsMaterial({
+      color: SMOKE_COLOR,
+      size: SMOKE_POINT_SIZE,
+      transparent: true,
+      opacity: 0.3,
+      depthWrite: false,
+      sizeAttenuation: true,
+    }),
+  );
+  points.frustumCulled = false;
+  points.renderOrder = 1;
 
-    cube.visible = false;
-    cube.userData = {
-      life: 0,
-      velocity: new THREE.Vector3(),
-    };
-
-    smokeGroup.add(cube);
-  }
+  smokeGroup.userData = {
+    count: 0,
+    lastSimTime: Number.NEGATIVE_INFINITY,
+    nextIndex: 0,
+    points,
+    positions,
+    lastEmissionPosition: null,
+  };
+  smokeGroup.add(points);
 
   return smokeGroup;
 }
@@ -87,40 +99,44 @@ export function createSmokeTrail(): THREE.Group {
 export function updateSmokeTrail(
   smoke: THREE.Group,
   exhaustPosition: THREE.Vector3,
-  heading: THREE.Vector3,
+  simTime: number,
   emitting: boolean,
 ): boolean {
-  const smokeGroup = smoke as SmokeGroup;
-  let hasVisibleParticles = false;
+  const smokeGroup = smoke as SmokeTrailGroup;
 
-  for (const child of smoke.children) {
-    const cube = child as SmokeParticle;
+  if (simTime < smokeGroup.userData.lastSimTime) {
+    clearSmokeTrail(smokeGroup);
+  }
+  smokeGroup.userData.lastSimTime = simTime;
 
-    if (!cube.visible) {
-      continue;
-    }
-
-    cube.position.add(cube.userData.velocity);
-    cube.userData.life -= SMOKE_FADE_STEP;
-    cube.material.opacity = Math.max(cube.userData.life, 0) * SMOKE_BASE_OPACITY;
-
-    if (cube.userData.life <= 0) {
-      cube.visible = false;
-      cube.material.opacity = 0;
-      continue;
-    }
-
-    hasVisibleParticles = true;
+  if (!emitting) {
+    return smokeGroup.userData.count > 0;
   }
 
-  if (emitting && smoke.children.length > 0) {
-    const cube = smoke.children[
-      smokeGroup.userData.nextParticleIndex % smoke.children.length
-    ] as SmokeParticle;
-    resetParticle(cube, exhaustPosition, heading);
-    smokeGroup.userData.nextParticleIndex += 1;
-    hasVisibleParticles = true;
+  if (smokeGroup.userData.lastEmissionPosition == null) {
+    appendSmokeSample(smokeGroup, exhaustPosition);
+    smokeGroup.userData.lastEmissionPosition = exhaustPosition.clone();
+    return true;
   }
 
-  return hasVisibleParticles;
+  SEGMENT_VECTOR
+    .copy(exhaustPosition)
+    .sub(smokeGroup.userData.lastEmissionPosition);
+  const distance = SEGMENT_VECTOR.length();
+
+  if (distance < SMOKE_SAMPLE_SPACING) {
+    return smokeGroup.userData.count > 0;
+  }
+
+  const samples = Math.min(Math.ceil(distance / SMOKE_SAMPLE_SPACING), 64);
+
+  for (let index = 1; index <= samples; index += 1) {
+    SAMPLE_POSITION
+      .copy(smokeGroup.userData.lastEmissionPosition)
+      .lerp(exhaustPosition, index / samples);
+    appendSmokeSample(smokeGroup, SAMPLE_POSITION);
+  }
+
+  smokeGroup.userData.lastEmissionPosition.copy(exhaustPosition);
+  return true;
 }

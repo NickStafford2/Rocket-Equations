@@ -5,7 +5,7 @@ import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
-import { createSmokeTrail } from "./rocket/smoke-trail"; // import your new smoke trail functions
+import { createSmokeTrail } from "./rocket/smoke-trail";
 
 export type SceneObjects = {
   system: THREE.Group;
@@ -64,10 +64,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const trailLine = createTrailLine();
   const predictionLine = createPredictionLine();
 
-  // Create the smoke trail and add it to the scene
-  //
-  console.log("calling createSmokeTrail");
-  const smokeTrail = createSmokeTrail(); // Create the smoke trail
+  const smokeTrail = createSmokeTrail();
   system.add(smokeTrail);
 
   // Add other objects
@@ -94,7 +91,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     moonLabel,
     rocket,
     enginePlume,
-    smokeTrail, // Include the smoke trail in the returned scene objects
+    smokeTrail,
     thrustDirectionArrow,
     launchLocationArrow,
     launchRing,

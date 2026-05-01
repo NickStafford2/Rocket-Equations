@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { R_EARTH } from "../physics/bodies";
 import { getRocketModelVariantForState } from "../rocket/variant";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../three/objects/constants";
 import type { RocketModelVariant } from "../three/objects/rocket/rocket";
@@ -11,6 +12,7 @@ const ROCKET_WORLD_RIGHT = new THREE.Vector3();
 const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
 const SMOKE_WORLD_POSITION = new THREE.Vector3();
 const DEFAULT_HEADING = new THREE.Vector3(0, 1, 0);
+const ATMOSPHERIC_SMOKE_MAX_ALTITUDE_METERS = R_EARTH * 0.05;
 
 export function syncRocketVisuals(
   bundle: ThreeSceneBundle,
@@ -74,8 +76,10 @@ export function syncRocketVisuals(
   objects.smokeTrail.visible = updateSmokeTrail(
     objects.smokeTrail,
     SMOKE_WORLD_POSITION,
-    heading,
-    thrusting && !frame.stagedLaunchPreviewVisible,
+    frame.simState.t,
+    thrusting &&
+      !frame.stagedLaunchPreviewVisible &&
+      frame.telemetry.altitudeEarth <= ATMOSPHERIC_SMOKE_MAX_ALTITUDE_METERS,
   );
 }
 
