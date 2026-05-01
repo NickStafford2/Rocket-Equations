@@ -1,15 +1,9 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../constants";
-import {
-  ROCKET_RENDER_MODEL_DEFINITIONS,
-  ROCKET_VISUAL_METERS_TO_SCENE_UNITS,
-  type RocketModelDefinition,
-  type RocketModelVariant,
-} from "./rocket-models";
+import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "./rocket-models";
 import { createRocketVisual } from "./rocket-visual";
 
 export type {
