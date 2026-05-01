@@ -32,8 +32,8 @@ export function createEarthCloudMaterial(
     uniforms: {
       uCloudTexture: { value: textures.clouds },
       uSunPosition: { value: SUN_POSITION.clone() },
-      uDayOpacity: { value: 1.0 },
-      uNightOpacity: { value: 0.14 },
+      uDayOpacity: { value: 0.78 },
+      uNightOpacity: { value: 0.1 },
       uCloudBrightness: { value: 1.0 },
     },
     vertexShader: earthSurfaceVertexShader,
