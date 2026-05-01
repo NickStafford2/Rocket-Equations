@@ -2,10 +2,7 @@ uniform sampler2D uCloudTexture;
 uniform vec3 uSunPosition;
 uniform float uDayOpacity;
 uniform float uNightOpacity;
-uniform float uDayBrightness;
-uniform float uNightBrightness;
-uniform vec3 uTwilightColor;
-uniform float uTwilightStrength;
+uniform float uCloudBrightness;
 
 varying vec2 vUv;
 varying vec3 vWorldNormal;
@@ -17,12 +14,21 @@ void main() {
 
   vec3 sunDirection = normalize(uSunPosition - vWorldPosition);
   float lightAmount = dot(normalize(vWorldNormal), sunDirection);
-  float dayMask = smoothstep(-0.18, 0.18, lightAmount);
-  float opacity = mix(uNightOpacity, uDayOpacity, dayMask);
-  float alpha = cloudMask * opacity;
-  float brightness = mix(uNightBrightness, uDayBrightness, dayMask);
-  float twilight = 1.0 - smoothstep(0.0, 0.42, abs(lightAmount));
-  vec3 twilightTint = uTwilightColor * twilight * uTwilightStrength;
+  float hemisphereLight = smoothstep(-0.18, 0.18, lightAmount);
 
-  gl_FragColor = vec4(vec3(brightness) + twilightTint, alpha);
+  // Match the reference approach: blue falls off fastest at the terminator,
+  // green next, and red slowest. That yields a subtle warm edge without
+  // painting an explicit orange band onto the clouds.
+  vec3 color = vec3(
+    clamp(hemisphereLight, 0.2, 1.0),
+    clamp(pow(hemisphereLight, 1.5), 0.2, 1.0),
+    clamp(pow(hemisphereLight, 2.0), 0.2, 1.0)
+  ) * uCloudBrightness;
+
+  // Keep some cloud presence on the dark side, but let opacity rise toward
+  // the lit hemisphere so the night side does not stay as visually heavy.
+  float opacity = mix(uNightOpacity, uDayOpacity, hemisphereLight);
+  float alpha = cloudMask * opacity * clamp(hemisphereLight, 0.1, 1.0);
+
+  gl_FragColor = vec4(color, alpha);
 }
