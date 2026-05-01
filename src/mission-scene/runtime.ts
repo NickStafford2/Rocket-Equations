@@ -214,7 +214,6 @@ export function startMissionSceneRuntime({
       simulation,
       cameraRigRef,
       runningRef,
-      maneuverInputRef,
       launchSpeedRef,
       launchAngleRef,
       launchAzimuthRef,

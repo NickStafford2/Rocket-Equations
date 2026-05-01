@@ -2,6 +2,7 @@ import * as THREE from "three";
 import {
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
+  EARTH_ATMOSPHERE_HEIGHT_METERS,
   moonPositionMeters,
   moonVelocityMeters,
   R_EARTH,
@@ -11,8 +12,12 @@ import {
 import type { ManeuverInput } from "./bodies";
 import type { SimulationState } from "./bodies";
 import { gravitationalAccelerationMeters } from "./gravity";
+import { rotateHeadingTowardTargetInPlane } from "./launch-guidance";
 
-function rotateHeading(
+const GUIDANCE_ANGLE_TOLERANCE_DEG = 0.75;
+const GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND = 10;
+
+function rotateHeadingFromManualInput(
   heading: THREE.Vector3,
   turn: ManeuverInput["turn"],
   timeWarp: number,
@@ -25,7 +30,9 @@ function rotateHeading(
     planarHeading.normalize();
   }
 
-  if (turn === 0) return planarHeading;
+  if (turn === 0) {
+    return planarHeading;
+  }
 
   return planarHeading
     .applyAxisAngle(
@@ -39,19 +46,39 @@ export function stepSimulation(
   state: SimulationState,
   timeWarp: number,
   input: ManeuverInput,
+  targetSpeed: number,
   thrustAcceleration: number = DEFAULT_THRUST_ACCELERATION,
   turnRateDeg: number = DEFAULT_TURN_RATE_DEG,
   surfaceContactOffsetMeters: number = 0,
 ): SimulationState {
   if (state.impact) return state;
 
-  const heading = rotateHeading(
-    state.rocket.heading,
-    input.turn,
-    timeWarp,
-    turnRateDeg,
-  );
-  const thrustVector = input.thrusting
+  const altitudeEarthMeters =
+    altitudeAboveEarth(state.rocket.position, R_EARTH) - surfaceContactOffsetMeters;
+  const autopilotActive =
+    !state.guidanceComplete &&
+    altitudeEarthMeters <= EARTH_ATMOSPHERE_HEIGHT_METERS;
+  const heading = autopilotActive
+    ? rotateHeadingTowardTargetInPlane(
+        state.rocket.heading,
+        state.targetDirection,
+        turnRateDeg * timeWarp,
+      )
+    : rotateHeadingFromManualInput(
+        state.rocket.heading,
+        input.turn,
+        timeWarp,
+        turnRateDeg,
+      );
+  const directionReached =
+    THREE.MathUtils.radToDeg(heading.angleTo(state.targetDirection)) <=
+    GUIDANCE_ANGLE_TOLERANCE_DEG;
+  const speedReached =
+    state.rocket.velocity.length() + GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND >=
+    targetSpeed;
+  const guidanceComplete = state.guidanceComplete || (directionReached && speedReached);
+  const thrusting = autopilotActive ? !guidanceComplete : input.thrusting;
+  const thrustVector = thrusting
     ? heading.clone().multiplyScalar(thrustAcceleration)
     : new THREE.Vector3();
 
@@ -63,6 +90,9 @@ export function stepSimulation(
       acceleration: state.rocket.acceleration.clone(),
       heading,
     },
+    targetDirection: state.targetDirection.clone(),
+    thrusting,
+    guidanceComplete,
     impact: state.impact,
   };
 
@@ -88,6 +118,14 @@ export function stepSimulation(
   );
   next.rocket.acceleration.copy(nextAcceleration);
   next.t = nextTime;
+  next.guidanceComplete =
+    next.guidanceComplete ||
+    (THREE.MathUtils.radToDeg(next.rocket.heading.angleTo(next.targetDirection)) <=
+      GUIDANCE_ANGLE_TOLERANCE_DEG &&
+      next.rocket.velocity.length() +
+        GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND >=
+        targetSpeed);
+  next.thrusting = autopilotActive ? !next.guidanceComplete : input.thrusting;
 
   const earthDistance = next.rocket.position.length();
   const moonDistance = next.rocket.position.clone().sub(nextMoonPos).length();

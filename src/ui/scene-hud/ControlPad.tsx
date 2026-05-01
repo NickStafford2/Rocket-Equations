@@ -38,7 +38,7 @@ export const ControlPad = memo(function ControlPad({
   const ARROW_CLUSTER: KeyboardClusterConfig = {
     label: "Arrow keys",
     description:
-      "Left and Right rotate the ship. Up applies thrust while you hold it.",
+      "These take over after atmospheric autopilot ends. Left and Right rotate the ship. Up applies thrust while you hold it.",
     className: "min-w-[176px]",
     rows: [
       [{ control: "ArrowUp", label: "↑", caption: "Thrust" }],

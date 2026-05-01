@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import {
   ROCKET_DEFAULT_ANGLE_DEG,
+  DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TIME_WARP,
+  DEFAULT_TURN_RATE_DEG,
   ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
   ROCKET_DEFAULT_SPEED,
   EARTH_MOON_DISTANCE,
@@ -77,8 +79,8 @@ export class EarthMoonSimulation {
       launchAltitudeMeters:
         ROCKET_PHYSICAL_MODEL_SPECS["saturn-v"].surfaceContactOffsetMeters,
       timeWarp: DEFAULT_TIME_WARP,
-      thrustAcceleration: 4,
-      turnRateDeg: 1.25,
+      thrustAcceleration: DEFAULT_THRUST_ACCELERATION,
+      turnRateDeg: DEFAULT_TURN_RATE_DEG,
     },
   ) {
     this.config = config;
@@ -137,6 +139,7 @@ export class EarthMoonSimulation {
         this.state,
         stepDt,
         input,
+        this.config.launchSpeed,
         this.config.thrustAcceleration,
         this.config.turnRateDeg,
         this.getSurfaceContactOffsetMeters(moonPosition),

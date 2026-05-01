@@ -57,8 +57,8 @@ export const SettingsPanel = memo(function SettingsPanel({
       {settingsOpen ? (
         <div className="mt-3 max-h-[40vh] min-w-0 space-y-3 overflow-y-auto pr-1">
           <CompactSlider
-            label="Launch speed"
-            description="Initial launch impulse at staging."
+            label="Target speed"
+            description="Autopilot burn cutoff speed during atmospheric ascent."
             valueLabel={`${launchSpeed.toLocaleString()} m/s`}
             min={8800}
             max={12100}
@@ -78,7 +78,7 @@ export const SettingsPanel = memo(function SettingsPanel({
           />
           <CompactSlider
             label="Flight path angle"
-            description="0 degrees follows the local tangent, 90 points away from Earth, and 180 reverses along the tangent."
+            description="Autopilot pitch target during atmospheric ascent. 0 degrees follows the local tangent, 90 points away from Earth, and 180 reverses along the tangent."
             valueLabel={`${launchAngleDeg.toFixed(1)}°`}
             min={0}
             max={180}

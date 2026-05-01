@@ -1,5 +1,4 @@
 import type { MutableRefObject } from "react";
-import type { ManeuverInput } from "../physics/bodies";
 import type {
   EarthMoonSimulation,
   SimulationTelemetry,
@@ -21,7 +20,6 @@ type SyncMissionSceneParams = {
   simulation: EarthMoonSimulation;
   cameraRigRef: MutableRefObject<CameraRigState>;
   runningRef: MutableRefObject<boolean>;
-  maneuverInputRef: MutableRefObject<ManeuverInput>;
   launchSpeedRef: MutableRefObject<number>;
   launchAngleRef: MutableRefObject<number>;
   launchAzimuthRef: MutableRefObject<number>;
@@ -44,7 +42,6 @@ export function syncMissionScene({
   simulation,
   cameraRigRef,
   runningRef,
-  maneuverInputRef,
   launchSpeedRef,
   launchAngleRef,
   launchAzimuthRef,
@@ -71,7 +68,7 @@ export function syncMissionScene({
 
   syncCelestialBodies(bundle, frame);
   syncRocketVisuals(bundle, frame, {
-    thrusting: maneuverInputRef.current.thrusting,
+    thrusting: frame.simState.thrusting,
     showThrustDirectionArrow: showThrustDirectionArrowRef.current,
   });
   syncLaunchPreview(bundle, frame);
