@@ -3,10 +3,7 @@ import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "./constants";
-import {
-  createEarthAtmosphereMaterial,
-  createEarthSurfaceMaterial,
-} from "./earth/materials";
+import { createEarthSurfaceMaterial } from "./earth/materials";
 import { loadEarthTextureVariants } from "./earth/textures";
 import { createBodyLabelSprite } from "./labels";
 import { createSatelliteSystem } from "./satellites";
@@ -17,8 +14,6 @@ const EARTH_MID_SEGMENTS = 64;
 const EARTH_FAR_SEGMENTS = 24;
 const EARTH_MID_LOD_DISTANCE = 140;
 const EARTH_FAR_LOD_DISTANCE = 420;
-const EARTH_ATMOSPHERE_SCALE = 1.035;
-const EARTH_ATMOSPHERE_SEGMENTS = 96;
 
 export function createEarthObjects(loader: THREE.TextureLoader) {
   const textures = loadEarthTextureVariants(loader);
@@ -47,7 +42,6 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
     EARTH_FAR_LOD_DISTANCE,
   );
   earthRotatingFrame.add(earth);
-  earthRotatingFrame.add(createEarthAtmosphereMesh());
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
@@ -75,23 +69,9 @@ function createEarthMesh(
     segments,
     segments,
   );
-  geometry.computeTangents();
 
   const earthMesh = new THREE.Mesh(geometry, createEarthSurfaceMaterial(textures));
   earthMesh.castShadow = true;
   earthMesh.receiveShadow = true;
   return earthMesh;
-}
-
-function createEarthAtmosphereMesh(): THREE.Mesh {
-  const atmosphereMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      EARTH_RENDER_RADIUS_SCENE_UNITS * EARTH_ATMOSPHERE_SCALE,
-      EARTH_ATMOSPHERE_SEGMENTS,
-      EARTH_ATMOSPHERE_SEGMENTS,
-    ),
-    createEarthAtmosphereMaterial(),
-  );
-  atmosphereMesh.renderOrder = 2;
-  return atmosphereMesh;
 }
