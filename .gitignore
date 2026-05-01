@@ -26,3 +26,4 @@ dist-ssr
 *.blend
 *.blend1
 data/scores.json
+*.stl
