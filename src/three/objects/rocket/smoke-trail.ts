@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
+import whitePuffSpriteUrl from "../../../assets/Sprites/whitePuff00.png";
 
 const SMOKE_POINT_CAPACITY = 8192;
 const SMOKE_POINTS_PER_SAMPLE = 3;
-const SMOKE_POINT_SIZE = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.5;
+const SMOKE_POINT_SIZE = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 9;
 const SMOKE_SAMPLE_SPACING = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.6;
 const SMOKE_SAMPLE_RADIUS = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.35;
-const SMOKE_COLOR = new THREE.Color(0x9aa3aa);
+const SMOKE_COLOR = new THREE.Color(0xe6eaed);
+const SMOKE_TEXTURE = new THREE.TextureLoader().load(whitePuffSpriteUrl);
 
 type SmokeState = {
   count: number;
@@ -73,9 +75,11 @@ export function createSmokeTrail(): THREE.Group {
     geometry,
     new THREE.PointsMaterial({
       color: SMOKE_COLOR,
+      map: SMOKE_TEXTURE,
       size: SMOKE_POINT_SIZE,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.26,
+      alphaTest: 0.05,
       depthWrite: false,
       sizeAttenuation: true,
     }),
