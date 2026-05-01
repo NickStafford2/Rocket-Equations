@@ -47,6 +47,9 @@ type MissionSceneRuntime = {
 };
 
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
+const MIN_CAMERA_NEAR = 0.01;
+const MAX_CAMERA_NEAR = 4;
+const CAMERA_NEAR_DISTANCE_FACTOR = 0.0015;
 
 export function startMissionSceneRuntime({
   mount,
@@ -129,6 +132,22 @@ export function startMissionSceneRuntime({
   function onControlsEnd() {
     controlsInteracting = false;
     requestRender();
+  }
+
+  function syncCameraClipPlanes() {
+    const distanceToTarget = camera.position.distanceTo(controls.target);
+    const nextNear = THREE.MathUtils.clamp(
+      distanceToTarget * CAMERA_NEAR_DISTANCE_FACTOR,
+      MIN_CAMERA_NEAR,
+      MAX_CAMERA_NEAR,
+    );
+
+    if (Math.abs(camera.near - nextNear) <= 1e-6) {
+      return;
+    }
+
+    camera.near = nextNear;
+    camera.updateProjectionMatrix();
   }
 
   function stopFrameLoop() {
@@ -218,6 +237,7 @@ export function startMissionSceneRuntime({
       controls,
       scene,
     });
+    syncCameraClipPlanes();
     if (cameraStatuses.length > 0) {
       setStatus(cameraStatuses.join(" "));
     }
