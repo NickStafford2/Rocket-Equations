@@ -49,9 +49,13 @@ const DEFAULT_TARGET_EPSILON = 0.35;
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 const FOLLOW_WORLD_POSITION = new THREE.Vector3();
 const LOOK_WORLD_POSITION = new THREE.Vector3();
-const FOLLOW_MIN_DISTANCE_MULTIPLIER = 0.75;
+const FOLLOW_MIN_DISTANCE_MULTIPLIER = 0.3;
 const FOLLOW_MAX_DISTANCE_MULTIPLIER = 8;
-const FOLLOW_DEFAULT_DISTANCE_MULTIPLIER = 1.6;
+const FOLLOW_DEFAULT_DISTANCE_MULTIPLIER = 1.05;
+const CAMERA_COLLISION_CENTER = new THREE.Vector3();
+const CAMERA_COLLISION_OFFSET = new THREE.Vector3();
+const CAMERA_COLLISION_CLEARANCE_MULTIPLIER = 0.03;
+const CAMERA_COLLISION_MIN_CLEARANCE = 0.04;
 
 export type CameraRigState = {
   mode: CameraRigMode;
@@ -227,6 +231,10 @@ export function updateCameraRig(
   const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
   camera.position.lerp(rig.desiredPosition, positionAlpha);
   controls.target.lerp(rig.desiredTarget, targetAlpha);
+  preventCameraBodyIntersection(scene, camera);
+  if (followPosition) {
+    rig.offset.copy(camera.position).sub(followPosition);
+  }
   controls.update();
 
   const statuses: string[] = [];
@@ -377,4 +385,37 @@ function getInitialFollowOffset(
         520,
       ),
     );
+}
+
+function preventCameraBodyIntersection(
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+) {
+  scene.traverse((object) => {
+    const focusLabel = String(object.userData.focusLabel ?? "").toLowerCase();
+    if (focusLabel !== "earth" && focusLabel !== "moon") return;
+
+    const focusRadius = Number(object.userData.focusRadius ?? 0);
+    if (!Number.isFinite(focusRadius) || focusRadius <= 0) return;
+
+    object.getWorldPosition(CAMERA_COLLISION_CENTER);
+    CAMERA_COLLISION_OFFSET.copy(camera.position).sub(CAMERA_COLLISION_CENTER);
+
+    if (CAMERA_COLLISION_OFFSET.lengthSq() <= 1e-9) {
+      CAMERA_COLLISION_OFFSET.copy(FALLBACK_VIEW_DIRECTION);
+    }
+
+    const minimumDistance =
+      focusRadius +
+      Math.max(
+        focusRadius * CAMERA_COLLISION_CLEARANCE_MULTIPLIER,
+        CAMERA_COLLISION_MIN_CLEARANCE,
+      );
+
+    if (CAMERA_COLLISION_OFFSET.length() >= minimumDistance) return;
+
+    camera.position
+      .copy(CAMERA_COLLISION_CENTER)
+      .add(CAMERA_COLLISION_OFFSET.setLength(minimumDistance));
+  });
 }

@@ -3,7 +3,7 @@ import { R_EARTH, R_MOON } from "../physics/bodies";
 import type { RocketModelVariant } from "./definitions";
 
 const APOLLO_SOYUZ_PROGRESS = 1 / 3;
-const LUNAR_MODULE_APPROACH_ALTITUDE_METERS = R_MOON * 1.5;
+const LUNAR_MODULE_APPROACH_ALTITUDE_METERS = R_MOON * 1.1;
 
 export function getRocketModelVariantForState(
   rocketPosition: THREE.Vector3,

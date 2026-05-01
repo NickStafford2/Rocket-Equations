@@ -42,7 +42,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   const camera = new THREE.PerspectiveCamera(
     55,
     container.clientWidth / Math.max(container.clientHeight, 1),
-    0.002,
+    0.0005,
     10000,
   );
   camera.up.set(0, 1, 0);
@@ -96,7 +96,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   controls.zoomSpeed = 0.9;
   controls.panSpeed = 0.75;
   controls.screenSpacePanning = false;
-  controls.minDistance = 0.01;
+  controls.minDistance = 0.002;
   controls.maxDistance = 5600;
   controls.minPolarAngle = 0.08;
   controls.maxPolarAngle = Math.PI - 0.08;
