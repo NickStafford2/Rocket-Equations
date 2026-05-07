@@ -14,7 +14,7 @@ import { createBodyLabelSprite } from "../labels";
 import { createSatelliteSystem } from "./satellites";
 
 const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
-const SHOW_PLANETARY_CLOUDS = false;
+const SHOW_PLANETARY_CLOUDS = true;
 const EARTH_NEAR_SEGMENTS = 128;
 const EARTH_MID_SEGMENTS = 64;
 const EARTH_FAR_SEGMENTS = 24;
