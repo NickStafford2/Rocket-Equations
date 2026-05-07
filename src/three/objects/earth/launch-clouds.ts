@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { ImprovedNoise } from "three/examples/jsm/math/ImprovedNoise.js";
 import whitePuffSpriteUrl from "../../../assets/Sprites/whitePuff00.png";
-import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "../rocket/rocket-models";
+import { ORBIT_METERS_TO_SCENE_UNITS } from "../constants";
 
 const CLOUD_COLOR = 0xe6eaee;
 const CLOUD_FADE_START_ALTITUDE_METERS = 12_000;
@@ -138,11 +138,13 @@ export function updateLaunchCloudField(
     altitudeMeters: number;
   },
 ) {
-  const visibility = 1 - THREE.MathUtils.smoothstep(
-    altitudeMeters,
-    CLOUD_FADE_START_ALTITUDE_METERS,
-    CLOUD_FADE_END_ALTITUDE_METERS,
-  );
+  const visibility =
+    1 -
+    THREE.MathUtils.smoothstep(
+      altitudeMeters,
+      CLOUD_FADE_START_ALTITUDE_METERS,
+      CLOUD_FADE_END_ALTITUDE_METERS,
+    );
 
   cloudField.root.visible = visibility > 0.01;
   if (!cloudField.root.visible) {
@@ -347,10 +349,7 @@ function createCloudVolumeMesh(): THREE.Mesh<
 
   const volume = new THREE.Mesh(geometry, material);
   volume.position.copy(
-    toSceneVector(
-      CLOUD_POSITION_METERS,
-      CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER,
-    ),
+    toSceneVector(CLOUD_POSITION_METERS, CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER),
   );
   volume.scale.copy(
     toSceneVector(CLOUD_SIZE_METERS, CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER),
@@ -433,7 +432,8 @@ function getCloudTexture(): THREE.Data3DTexture {
         const nz = w - 0.5;
 
         const radialDistance = Math.sqrt(nx * nx + nz * nz);
-        const horizontalMask = 1 - THREE.MathUtils.smoothstep(0.3, 0.72, radialDistance);
+        const horizontalMask =
+          1 - THREE.MathUtils.smoothstep(0.3, 0.72, radialDistance);
         const lowerFalloff = THREE.MathUtils.smoothstep(0.08, 0.28, v);
         const upperFalloff = 1 - THREE.MathUtils.smoothstep(0.55, 0.95, v);
         const verticalMask = lowerFalloff * upperFalloff;
@@ -443,18 +443,12 @@ function getCloudTexture(): THREE.Data3DTexture {
           THREE.MathUtils.smoothstep(0.03, 0.16, w) *
           THREE.MathUtils.smoothstep(0.03, 0.16, 1 - w);
 
-        const weather =
-          0.5 +
-          0.5 * perlin.noise(x * 0.028, 11.7, z * 0.028);
-        const billow =
-          0.5 +
-          0.5 * perlin.noise(x * 0.05, y * 0.09, z * 0.05);
+        const weather = 0.5 + 0.5 * perlin.noise(x * 0.028, 11.7, z * 0.028);
+        const billow = 0.5 + 0.5 * perlin.noise(x * 0.05, y * 0.09, z * 0.05);
         const detail =
-          0.5 +
-          0.5 * perlin.noise(x * 0.11 + 19.0, y * 0.2, z * 0.11 + 7.0);
+          0.5 + 0.5 * perlin.noise(x * 0.11 + 19.0, y * 0.2, z * 0.11 + 7.0);
         const wisps =
-          0.5 +
-          0.5 * perlin.noise(x * 0.18 + 41.0, y * 0.31, z * 0.18 + 13.0);
+          0.5 + 0.5 * perlin.noise(x * 0.18 + 41.0, y * 0.31, z * 0.18 + 13.0);
 
         let density =
           horizontalMask *
@@ -496,13 +490,8 @@ function toSceneVector(
   [xMeters, yMeters, zMeters]: [number, number, number],
   visualScaleMultiplier: number,
 ): THREE.Vector3 {
-  const scale =
-    ROCKET_VISUAL_METERS_TO_SCENE_UNITS * visualScaleMultiplier;
-  return new THREE.Vector3(
-    xMeters * scale,
-    yMeters * scale,
-    zMeters * scale,
-  );
+  const scale = ORBIT_METERS_TO_SCENE_UNITS * visualScaleMultiplier;
+  return new THREE.Vector3(xMeters * scale, yMeters * scale, zMeters * scale);
 }
 
 function toSceneScale(
@@ -516,13 +505,6 @@ function toSceneScale(
   );
 }
 
-function toSceneUnits(
-  meters: number,
-  visualScaleMultiplier: number,
-): number {
-  return (
-    meters *
-    ROCKET_VISUAL_METERS_TO_SCENE_UNITS *
-    visualScaleMultiplier
-  );
+function toSceneUnits(meters: number, visualScaleMultiplier: number): number {
+  return meters * ORBIT_METERS_TO_SCENE_UNITS * visualScaleMultiplier;
 }

@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import earthLaunchSiteUrl from "../../../assets/EarthLaunch/EarthLaunchSite.glb?url";
-import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
+import {
+  ORBIT_METERS_TO_SCENE_UNITS,
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
+} from "../constants";
 import {
   createLaunchCloudField,
   type LaunchCloudField,
 } from "./launch-clouds";
-import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "../rocket/rocket-models";
 
 let launchSitePromise: Promise<THREE.Group> | null = null;
 const SHOW_LAUNCH_SITE_DEBUG_MARKER = false;
@@ -97,7 +99,7 @@ function loadLaunchSiteModel(): Promise<THREE.Group> {
           mesh.receiveShadow = true;
         });
 
-        model.scale.setScalar(ROCKET_VISUAL_METERS_TO_SCENE_UNITS);
+        model.scale.setScalar(ORBIT_METERS_TO_SCENE_UNITS);
 
         resolve(model);
       },
