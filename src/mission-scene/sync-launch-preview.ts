@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ORBIT_METERS_TO_SCENE_UNITS } from "../three/objects/constants";
+import { updateLaunchCloudField } from "../three/objects/earth/launch-clouds";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
@@ -51,4 +52,8 @@ export function syncLaunchPreview(
     Math.max(4, aimArrowLength * 0.22),
     Math.max(2, aimArrowLength * 0.11),
   );
+  updateLaunchCloudField(objects.launchCloudField, {
+    elapsedSeconds: frame.simState.t,
+    altitudeMeters: frame.telemetry.altitudeEarth,
+  });
 }

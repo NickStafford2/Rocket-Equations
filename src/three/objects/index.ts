@@ -3,6 +3,7 @@ import type { RocketModelVariant } from "./rocket/rocket";
 import { createRocketObjects } from "./rocket/rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
+import type { LaunchCloudField } from "./earth/launch-clouds";
 import { createEarthLaunchSite } from "./earth/launch-site";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon";
@@ -18,6 +19,7 @@ export type SceneObjects = {
   earthFresnel: THREE.Mesh;
   earthLabel: THREE.Sprite;
   earthLaunchSite: THREE.Group;
+  launchCloudField: LaunchCloudField;
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
   moonLabel: THREE.Sprite;
@@ -50,7 +52,8 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthLabel,
     satelliteSystem,
   } = createEarthObjects(loader);
-  const earthLaunchSite = createEarthLaunchSite();
+  const { root: earthLaunchSite, cloudField: launchCloudField } =
+    createEarthLaunchSite();
 
   const { moon, moonLabel, moonOrbit } = createMoonObjects(loader);
   const {
@@ -91,6 +94,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthFresnel,
     earthLabel,
     earthLaunchSite,
+    launchCloudField,
     satelliteSystem,
     moon,
     moonLabel,

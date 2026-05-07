@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import earthLaunchSiteUrl from "../../../assets/EarthLaunch/EarthLaunchSite.glb?url";
 import { REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS } from "../constants";
+import {
+  createLaunchCloudField,
+  type LaunchCloudField,
+} from "./launch-clouds";
 import { ROCKET_VISUAL_METERS_TO_SCENE_UNITS } from "../rocket/rocket-models";
 
 let launchSitePromise: Promise<THREE.Group> | null = null;
@@ -11,8 +15,16 @@ const LAUNCH_SITE_DEBUG_AXES_SIZE =
 const LAUNCH_SITE_DEBUG_SPHERE_RADIUS =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.6;
 
-export function createEarthLaunchSite(): THREE.Group {
+export type EarthLaunchSiteBundle = {
+  root: THREE.Group;
+  cloudField: LaunchCloudField;
+};
+
+export function createEarthLaunchSite(): EarthLaunchSiteBundle {
   const root = new THREE.Group();
+  const cloudField = createLaunchCloudField();
+  root.add(cloudField.root);
+
   if (SHOW_LAUNCH_SITE_DEBUG_MARKER) {
     root.add(createLaunchSiteDebugMarker());
   }
@@ -25,7 +37,10 @@ export function createEarthLaunchSite(): THREE.Group {
       console.error("Failed to load Earth launch site model.", error);
     });
 
-  return root;
+  return {
+    root,
+    cloudField,
+  };
 }
 
 function createLaunchSiteDebugMarker(): THREE.Group {
