@@ -53,6 +53,7 @@ export function syncLaunchPreview(
     Math.max(2, aimArrowLength * 0.11),
   );
   updateLaunchCloudField(objects.launchCloudField, {
+    cameraPosition: bundle.camera.position,
     elapsedSeconds: frame.simState.t,
     altitudeMeters: frame.telemetry.altitudeEarth,
   });
