@@ -8,6 +8,10 @@ export interface RocketPhysicalModelSpec {
   heightMeters: number;
   surfaceContactOffsetMeters: number;
   thrustAccelerationMetersPerSecondSquared: number;
+  earlyFlightThrustRamp?: {
+    initialScale: number;
+    rampDurationSeconds: number;
+  };
 }
 
 export interface RocketRenderModelSpec {
@@ -28,6 +32,10 @@ export const ROCKET_PHYSICAL_MODEL_SPECS: Record<
     heightMeters: 111,
     surfaceContactOffsetMeters: 55,
     thrustAccelerationMetersPerSecondSquared: 35,
+    earlyFlightThrustRamp: {
+      initialScale: 0.45,
+      rampDurationSeconds: 75,
+    },
   },
   "apollo-soyuz": {
     name: "Apollo Soyuz",

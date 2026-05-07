@@ -23,6 +23,7 @@ import {
   stepSimulation,
 } from "../physics/integrator";
 import { ROCKET_PHYSICAL_MODEL_SPECS } from "../rocket/definitions";
+import type { RocketPhysicalModelSpec } from "../rocket/definitions";
 import { getRocketModelVariantForState } from "../rocket/variant";
 import {
   PREDICTION_POINT_CAPACITY,
@@ -140,13 +141,13 @@ export class EarthMoonSimulation {
         this.state.rocket.position,
         moonPosition,
       );
+      const rocketSpec = ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant];
       this.state = stepSimulation(
         this.state,
         stepDt,
         input,
         this.config.launchSpeed,
-        ROCKET_PHYSICAL_MODEL_SPECS[rocketModelVariant]
-          .thrustAccelerationMetersPerSecondSquared,
+        getThrustAccelerationForTime(rocketSpec, this.state.t),
         this.config.turnRateDeg,
         this.getSurfaceContactOffsetMeters(moonPosition),
       );
@@ -345,4 +346,26 @@ export class EarthMoonSimulation {
       state.velocity.z,
     ].join("|");
   }
+}
+
+function getThrustAccelerationForTime(
+  rocketSpec: RocketPhysicalModelSpec,
+  elapsedSeconds: number,
+): number {
+  const ramp = rocketSpec.earlyFlightThrustRamp;
+  if (!ramp) {
+    return rocketSpec.thrustAccelerationMetersPerSecondSquared;
+  }
+
+  const normalizedRampTime = THREE.MathUtils.smoothstep(
+    Math.max(elapsedSeconds, 0),
+    0,
+    ramp.rampDurationSeconds,
+  );
+
+  return THREE.MathUtils.lerp(
+    rocketSpec.thrustAccelerationMetersPerSecondSquared * ramp.initialScale,
+    rocketSpec.thrustAccelerationMetersPerSecondSquared,
+    normalizedRampTime,
+  );
 }
