@@ -50,9 +50,9 @@ type MissionSceneRuntime = {
 };
 
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
-const MIN_CAMERA_NEAR = 0.01;
+const MIN_CAMERA_NEAR = 0.0001;
 const MAX_CAMERA_NEAR = 4;
-const CAMERA_NEAR_DISTANCE_FACTOR = 0.0015;
+const CAMERA_NEAR_DISTANCE_FACTOR = 0.00035;
 
 export function startMissionSceneRuntime({
   mount,

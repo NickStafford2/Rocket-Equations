@@ -21,16 +21,21 @@ const ROCKET_DEBUG_AXES_SIZE =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
 const ROCKET_DEBUG_SPHERE_RADIUS =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.6;
+const MIN_ROCKET_FOCUS_RADIUS =
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.8;
+const MIN_ROCKET_CAMERA_CLEARANCE =
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 0.18;
 
 export function createRocketObjects() {
   const rocket = new THREE.Group();
   rocket.userData.focusLabel = "Rocket";
   const fallbackBodyLength = REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 5.5;
   rocket.userData.focusRadius = fallbackBodyLength * 0.9;
+  rocket.userData.cameraCollisionClearance = MIN_ROCKET_CAMERA_CLEARANCE;
   rocket.userData.followMinDistance =
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 22;
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 6;
   rocket.userData.followDefaultDistance =
-    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 46;
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 16;
   rocket.userData.followMaxDistance =
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 72;
   if (SHOW_ROCKET_DEBUG_MARKER) {
@@ -52,10 +57,27 @@ export function createRocketObjects() {
 
   const rocketVisual = createRocketVisual({
     onLoaded: ({ definition, size: scaledSize }) => {
-      rocket.userData.focusRadius = Math.max(
+      const focusRadius = Math.max(
         scaledSize.y * 0.45,
         scaledSize.x * 0.6,
-        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 2.5,
+        MIN_ROCKET_FOCUS_RADIUS,
+      );
+      rocket.userData.focusRadius = focusRadius;
+      rocket.userData.cameraCollisionClearance = Math.max(
+        focusRadius * 0.14,
+        MIN_ROCKET_CAMERA_CLEARANCE,
+      );
+      rocket.userData.followMinDistance = Math.max(
+        focusRadius * 1.12,
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 3.2,
+      );
+      rocket.userData.followDefaultDistance = Math.max(
+        focusRadius * 3.8,
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 8.5,
+      );
+      rocket.userData.followMaxDistance = Math.max(
+        focusRadius * 18,
+        REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 38,
       );
       enginePlume.position.set(
         definition.nozzleLocalOffsetMeters.x *

@@ -428,7 +428,9 @@ function preventCameraBodyIntersection(
 ) {
   scene.traverse((object) => {
     const focusLabel = String(object.userData.focusLabel ?? "").toLowerCase();
-    if (focusLabel !== "earth" && focusLabel !== "moon") return;
+    if (focusLabel !== "earth" && focusLabel !== "moon" && focusLabel !== "rocket") {
+      return;
+    }
     if (focusLabel === "moon" && !preventMoonCameraIntersection) return;
 
     const focusRadius = Number(object.userData.focusRadius ?? 0);
