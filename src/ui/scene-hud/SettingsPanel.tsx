@@ -13,6 +13,7 @@ type SettingsPanelProps = Pick<
   | "showPrediction"
   | "showThrustDirectionArrow"
   | "showMoonLandingArrow"
+  | "preventMoonCameraIntersection"
   | "onLaunchSpeedChange"
   | "onLaunchAngleChange"
   | "onLaunchAzimuthChange"
@@ -20,6 +21,7 @@ type SettingsPanelProps = Pick<
   | "onShowTrailChange"
   | "onShowPredictionChange"
   | "onShowMoonLandingArrowChange"
+  | "onPreventMoonCameraIntersectionChange"
   | "onToggleThrustDirectionArrow"
 >;
 
@@ -32,6 +34,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   showPrediction,
   showThrustDirectionArrow,
   showMoonLandingArrow,
+  preventMoonCameraIntersection,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
@@ -39,6 +42,7 @@ export const SettingsPanel = memo(function SettingsPanel({
   onShowTrailChange,
   onShowPredictionChange,
   onShowMoonLandingArrowChange,
+  onPreventMoonCameraIntersectionChange,
   onToggleThrustDirectionArrow,
 }: SettingsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -117,6 +121,12 @@ export const SettingsPanel = memo(function SettingsPanel({
             description="Displays a bright arrow pointing at the Apollo 14 landing site."
             checked={showMoonLandingArrow}
             onChange={onShowMoonLandingArrowChange}
+          />
+          <CompactCheckbox
+            label="Moon camera collision"
+            description="Keeps the camera from intersecting the Moon surface. Disable this if close-up Moon navigation feels too restrictive."
+            checked={preventMoonCameraIntersection}
+            onChange={onPreventMoonCameraIntersectionChange}
           />
           <CompactCheckbox
             label="Show thrust arrow"

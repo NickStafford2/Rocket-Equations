@@ -41,6 +41,7 @@ type CameraRigUpdateOptions = {
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
   scene: THREE.Scene;
+  preventMoonCameraIntersection?: boolean;
 };
 
 const DEFAULT_TRANSITION_ALPHA = 0.12;
@@ -193,7 +194,12 @@ export function updateFromControlsChange(
 
 export function updateCameraRig(
   rig: CameraRigState,
-  { camera, controls, scene }: CameraRigUpdateOptions,
+  {
+    camera,
+    controls,
+    scene,
+    preventMoonCameraIntersection = true,
+  }: CameraRigUpdateOptions,
 ): string[] {
   syncMode(rig);
   scene.updateMatrixWorld(true);
@@ -231,7 +237,12 @@ export function updateCameraRig(
   const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
   camera.position.lerp(rig.desiredPosition, positionAlpha);
   controls.target.lerp(rig.desiredTarget, targetAlpha);
-  preventCameraBodyIntersection(scene, camera, controls.target);
+  preventCameraBodyIntersection(
+    scene,
+    camera,
+    controls.target,
+    preventMoonCameraIntersection,
+  );
   if (followPosition && !rig.positionTransitioning) {
     rig.offset.copy(camera.position).sub(followPosition);
   }
@@ -413,10 +424,12 @@ function preventCameraBodyIntersection(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
   target: THREE.Vector3,
+  preventMoonCameraIntersection: boolean,
 ) {
   scene.traverse((object) => {
     const focusLabel = String(object.userData.focusLabel ?? "").toLowerCase();
     if (focusLabel !== "earth" && focusLabel !== "moon") return;
+    if (focusLabel === "moon" && !preventMoonCameraIntersection) return;
 
     const focusRadius = Number(object.userData.focusRadius ?? 0);
     if (!Number.isFinite(focusRadius) || focusRadius <= 0) return;

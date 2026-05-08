@@ -28,6 +28,7 @@ type StartMissionSceneRuntimeParams = {
   showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
   showMoonLandingArrowRef: MutableRefObject<boolean>;
+  preventMoonCameraIntersectionRef: MutableRefObject<boolean>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
@@ -66,6 +67,7 @@ export function startMissionSceneRuntime({
   showPredictionRef,
   showThrustDirectionArrowRef,
   showMoonLandingArrowRef,
+  preventMoonCameraIntersectionRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
   lastCameraDebugSyncAtRef,
@@ -258,6 +260,7 @@ export function startMissionSceneRuntime({
       camera,
       controls,
       scene,
+      preventMoonCameraIntersection: preventMoonCameraIntersectionRef.current,
     });
     syncCameraClipPlanes();
     if (cameraStatuses.length > 0) {

@@ -23,6 +23,7 @@ export type UseMissionSceneParams = {
   showPrediction: boolean;
   showThrustDirectionArrow: boolean;
   showMoonLandingArrow: boolean;
+  preventMoonCameraIntersection: boolean;
 };
 
 export type CameraSelection = {

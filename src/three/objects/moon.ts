@@ -56,6 +56,7 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
   const moon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_RENDER_RADIUS_SCENE_UNITS, 256, 256),
     new THREE.MeshStandardMaterial({
+      color: 0xc2beb5,
       map: moonTexture,
       normalMap: moonNormal,
       normalScale: new THREE.Vector2(0.6, 0.6),

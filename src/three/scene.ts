@@ -14,9 +14,9 @@ import type {
 import { loadReferenceBackground } from "./skybox";
 import { createReferenceSun } from "./sun";
 
-const BLOOM_STRENGTH = 0.18;
-const BLOOM_RADIUS = 0.42;
-const BLOOM_THRESHOLD = 0.52;
+const BLOOM_STRENGTH = 0.1;
+const BLOOM_RADIUS = 0.32;
+const BLOOM_THRESHOLD = 0.68;
 const GRID_SIZE = 520 * 9;
 const GRID_MINOR_SPACING = 6;
 const GRID_MAJOR_SPACING = GRID_MINOR_SPACING * 4;
@@ -59,7 +59,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.05;
   container.appendChild(renderer.domElement);
 
   const composer = new EffectComposer(renderer);

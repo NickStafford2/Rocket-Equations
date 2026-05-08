@@ -26,6 +26,7 @@ export function SceneHud({
   showPrediction,
   showThrustDirectionArrow,
   showMoonLandingArrow,
+  preventMoonCameraIntersection,
   pressedControls,
   onOverview,
   onLockTarget,
@@ -39,6 +40,7 @@ export function SceneHud({
   onShowTrailChange,
   onShowPredictionChange,
   onShowMoonLandingArrowChange,
+  onPreventMoonCameraIntersectionChange,
   onToggleThrustDirectionArrow,
   onMissionControlPress,
   onMissionControlRelease,
@@ -66,6 +68,7 @@ export function SceneHud({
               showPrediction={showPrediction}
               showThrustDirectionArrow={showThrustDirectionArrow}
               showMoonLandingArrow={showMoonLandingArrow}
+              preventMoonCameraIntersection={preventMoonCameraIntersection}
               onLaunchSpeedChange={onLaunchSpeedChange}
               onLaunchAngleChange={onLaunchAngleChange}
               onLaunchAzimuthChange={onLaunchAzimuthChange}
@@ -73,6 +76,9 @@ export function SceneHud({
               onShowTrailChange={onShowTrailChange}
               onShowPredictionChange={onShowPredictionChange}
               onShowMoonLandingArrowChange={onShowMoonLandingArrowChange}
+              onPreventMoonCameraIntersectionChange={
+                onPreventMoonCameraIntersectionChange
+              }
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
             />
             <div className="pointer-events-none mt-3 min-w-[210px] rounded-[1.2rem] border border-white/12 bg-[#07111f]/28 px-3 py-2.5 text-xs text-slate-300 shadow-[0_16px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">

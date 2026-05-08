@@ -36,6 +36,7 @@ export type SceneHudProps = {
   showPrediction: boolean;
   showThrustDirectionArrow: boolean;
   showMoonLandingArrow: boolean;
+  preventMoonCameraIntersection: boolean;
   pressedControls: Record<MissionControlKey, boolean>;
   onOverview: () => void;
   onLockTarget: (target: CameraTarget) => void;
@@ -49,6 +50,7 @@ export type SceneHudProps = {
   onShowTrailChange: (value: boolean) => void;
   onShowPredictionChange: (value: boolean) => void;
   onShowMoonLandingArrowChange: (value: boolean) => void;
+  onPreventMoonCameraIntersectionChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;
   onMissionControlPress: (control: MissionControlKey) => void;
   onMissionControlRelease: (control: MissionControlKey) => void;

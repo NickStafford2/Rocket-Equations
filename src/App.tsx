@@ -34,6 +34,8 @@ export default function App() {
     setShowThrustDirectionArrow,
     showMoonLandingArrow,
     setShowMoonLandingArrow,
+    preventMoonCameraIntersection,
+    setPreventMoonCameraIntersection,
     status,
     setStatus,
     telemetry,
@@ -78,6 +80,7 @@ export default function App() {
     showPrediction,
     showThrustDirectionArrow,
     showMoonLandingArrow,
+    preventMoonCameraIntersection,
   });
 
   function focusScene() {
@@ -124,6 +127,7 @@ export default function App() {
         showPrediction={showPrediction}
         showThrustDirectionArrow={showThrustDirectionArrow}
         showMoonLandingArrow={showMoonLandingArrow}
+        preventMoonCameraIntersection={preventMoonCameraIntersection}
         pressedControls={pressedControls}
         onOverview={() => {
           applyOverviewCamera();
@@ -154,6 +158,9 @@ export default function App() {
         onShowTrailChange={setShowTrail}
         onShowPredictionChange={setShowPrediction}
         onShowMoonLandingArrowChange={setShowMoonLandingArrow}
+        onPreventMoonCameraIntersectionChange={
+          setPreventMoonCameraIntersection
+        }
         onToggleThrustDirectionArrow={() => {
           setShowThrustDirectionArrow((current) => !current);
           focusScene();

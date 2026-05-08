@@ -44,6 +44,7 @@ export function useMissionScene({
   showPrediction,
   showThrustDirectionArrow,
   showMoonLandingArrow,
+  preventMoonCameraIntersection,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
   const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
@@ -52,6 +53,9 @@ export function useMissionScene({
   const showPredictionRef = useRef(showPrediction);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
   const showMoonLandingArrowRef = useRef(showMoonLandingArrow);
+  const preventMoonCameraIntersectionRef = useRef(
+    preventMoonCameraIntersection,
+  );
   const lastUiSyncAtRef = useRef(0);
   const lastCameraDebugSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
@@ -113,6 +117,11 @@ export function useMissionScene({
   }, [showMoonLandingArrow]);
 
   useEffect(() => {
+    preventMoonCameraIntersectionRef.current = preventMoonCameraIntersection;
+    requestSceneRender();
+  }, [preventMoonCameraIntersection]);
+
+  useEffect(() => {
     requestSceneRender();
   }, [running, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
@@ -133,6 +142,7 @@ export function useMissionScene({
       showPredictionRef,
       showThrustDirectionArrowRef,
       showMoonLandingArrowRef,
+      preventMoonCameraIntersectionRef,
       previousTrailLengthRef,
       lastUiSyncAtRef,
       lastCameraDebugSyncAtRef,

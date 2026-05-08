@@ -57,6 +57,8 @@ export function useMissionSimulation() {
   const [showThrustDirectionArrow, setShowThrustDirectionArrow] =
     useState(true);
   const [showMoonLandingArrow, setShowMoonLandingArrow] = useState(true);
+  const [preventMoonCameraIntersection, setPreventMoonCameraIntersection] =
+    useState(true);
   const [status, setStatus] = useState(INITIAL_MISSION_STATUS);
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
@@ -144,6 +146,8 @@ export function useMissionSimulation() {
     setShowThrustDirectionArrow,
     showMoonLandingArrow,
     setShowMoonLandingArrow,
+    preventMoonCameraIntersection,
+    setPreventMoonCameraIntersection,
     status,
     setStatus,
     telemetry,
