@@ -169,7 +169,7 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
 
 export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
   EARTH_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
-    Array.from({ length: 20 }, (_, index) => ({
+    Array.from({ length: 200 }, (_, index) => ({
       id: `${template.id}-${index + 1}`,
       label: `${template.label} ${index + 1}`,
       modelUrl: template.modelUrl,
