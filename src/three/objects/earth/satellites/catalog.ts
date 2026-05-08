@@ -53,14 +53,18 @@ type MoonSatelliteTemplate = {
   orbit: Required<
     Pick<
       SatelliteOrbitDefinition,
-      "type" | "altitudeMeters" | "inclinationDeg" | "ascendingNodeDeg" | "phaseDeg"
+      | "type"
+      | "altitudeMeters"
+      | "inclinationDeg"
+      | "ascendingNodeDeg"
+      | "phaseDeg"
     >
   > &
     Pick<SatelliteOrbitDefinition, "direction">;
 };
 
 export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
-const LEO_MIN_ALTITUDE_METERS = 220_000;
+const LEO_MIN_ALTITUDE_METERS = 420_000;
 const LEO_CLUSTER_MAX_ALTITUDE_METERS = 1_850_000;
 const MEO_CLUSTER_MAX_ALTITUDE_METERS = 24_000_000;
 
@@ -188,7 +192,9 @@ export function geosynchronousOrbitRadiusMeters(
   primaryMassKg: number,
   periodSeconds: number,
 ): number {
-  return Math.cbrt(G * primaryMassKg * Math.pow(periodSeconds / (2 * Math.PI), 2));
+  return Math.cbrt(
+    G * primaryMassKg * Math.pow(periodSeconds / (2 * Math.PI), 2),
+  );
 }
 
 export function orbitalRadiusMeters(
@@ -248,11 +254,14 @@ export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
       orbit: {
         ...template.orbit,
         altitudeMeters:
-          template.orbit.altitudeMeters + index * 18_000 + templateIndex * 9_000,
+          template.orbit.altitudeMeters +
+          index * 18_000 +
+          templateIndex * 9_000,
         ascendingNodeDeg:
           (template.orbit.ascendingNodeDeg + index * 37 + templateIndex * 11) %
           360,
-        phaseDeg: (template.orbit.phaseDeg + index * 36 + templateIndex * 18) % 360,
+        phaseDeg:
+          (template.orbit.phaseDeg + index * 36 + templateIndex * 18) % 360,
       },
     })),
   );
@@ -275,7 +284,8 @@ function expandEarthOrbit(
   if (orbit.type === "earth-l2") {
     return {
       ...orbit,
-      distanceMeters: (orbit.distanceMeters ?? 1_500_000_000) + index * 9_000_000,
+      distanceMeters:
+        (orbit.distanceMeters ?? 1_500_000_000) + index * 9_000_000,
     };
   }
 
@@ -283,8 +293,10 @@ function expandEarthOrbit(
     return {
       ...orbit,
       distanceMeters:
-        (orbit.distanceMeters ?? EARTH_MOON_DISTANCE * 5.75) + index * 7_500_000,
-      longitudeDeg: ((orbit.longitudeDeg ?? 0) + index * 17 + templateIndex * 9) % 360,
+        (orbit.distanceMeters ?? EARTH_MOON_DISTANCE * 5.75) +
+        index * 7_500_000,
+      longitudeDeg:
+        ((orbit.longitudeDeg ?? 0) + index * 17 + templateIndex * 9) % 360,
       phaseDeg: ((orbit.phaseDeg ?? 0) + index * 18 + templateIndex * 7) % 360,
       inclinationDeg:
         ((orbit.inclinationDeg ?? 0) + ((index % 5) - 2) * 2.5 + 180) % 180,
@@ -309,8 +321,10 @@ function expandEarthOrbit(
     ascendingNodeDeg:
       ((orbit.ascendingNodeDeg ?? 0) + index * 19 + templateIndex * 13) % 360,
     phaseDeg: ((orbit.phaseDeg ?? 0) + index * 18 + templateIndex * 9) % 360,
-    inclinationDeg:
-      Math.max(0, Math.min(179, (orbit.inclinationDeg ?? 0) + ((index % 6) - 3) * 1.4)),
+    inclinationDeg: Math.max(
+      0,
+      Math.min(179, (orbit.inclinationDeg ?? 0) + ((index % 6) - 3) * 1.4),
+    ),
     direction: orbit.direction,
   };
 }
