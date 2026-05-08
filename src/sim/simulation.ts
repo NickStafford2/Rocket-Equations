@@ -28,6 +28,7 @@ import { getRocketModelVariantForState } from "../rocket/variant";
 import {
   PREDICTION_POINT_CAPACITY,
   PREDICTION_REFRESH_INTERVAL_MS,
+  PREDICTION_STEP_DT_SECONDS,
   type TrajectoryPredictionState,
   predictTrajectory,
 } from "./prediction";
@@ -61,6 +62,7 @@ export class EarthMoonSimulation {
     { length: TRAIL_POINT_CAPACITY },
     () => new THREE.Vector3(),
   );
+  private trailTimes = Array.from({ length: TRAIL_POINT_CAPACITY }, () => 0);
   private trailStart = 0;
   private trailCount = 0;
   private prediction = Array.from(
@@ -68,6 +70,7 @@ export class EarthMoonSimulation {
     () => new THREE.Vector3(),
   );
   private predictionCount = 0;
+  private predictionStartTime = 0;
   private predictionLastUpdatedAt = Number.NEGATIVE_INFINITY;
   private predictionKey = "";
   private peakAltitudeEarth = 0;
@@ -190,19 +193,23 @@ export class EarthMoonSimulation {
 
   copyTrailPositionsTo(
     target: Float32Array,
-    scale: number,
+    writePoint: (
+      target: Float32Array,
+      offset: number,
+      point: THREE.Vector3,
+      timeSeconds: number,
+    ) => void,
     startIndex: number = 0,
   ): number {
     const from = Math.max(0, Math.min(startIndex, this.trailCount));
 
     for (let index = from; index < this.trailCount; index += 1) {
-      const point =
-        this.trail[(this.trailStart + index) % TRAIL_POINT_CAPACITY];
+      const trailIndex = (this.trailStart + index) % TRAIL_POINT_CAPACITY;
+      const point = this.trail[trailIndex];
+      const timeSeconds = this.trailTimes[trailIndex];
       const offset = index * 3;
 
-      target[offset] = point.x * scale;
-      target[offset + 1] = point.y * scale;
-      target[offset + 2] = point.z * scale;
+      writePoint(target, offset, point, timeSeconds);
     }
 
     return this.trailCount;
@@ -242,20 +249,29 @@ export class EarthMoonSimulation {
       this.prediction[index].copy(nextPrediction[index]);
     }
 
+    this.predictionStartTime = sourceState.t;
     this.predictionKey = nextKey;
     this.predictionLastUpdatedAt = nowMs;
 
     return true;
   }
 
-  copyPredictionPositionsTo(target: Float32Array, scale: number): number {
+  copyPredictionPositionsTo(
+    target: Float32Array,
+    writePoint: (
+      target: Float32Array,
+      offset: number,
+      point: THREE.Vector3,
+      timeSeconds: number,
+    ) => void,
+  ): number {
     for (let index = 0; index < this.predictionCount; index += 1) {
       const point = this.prediction[index];
       const offset = index * 3;
+      const timeSeconds =
+        this.predictionStartTime + index * PREDICTION_STEP_DT_SECONDS;
 
-      target[offset] = point.x * scale;
-      target[offset + 1] = point.y * scale;
-      target[offset + 2] = point.z * scale;
+      writePoint(target, offset, point, timeSeconds);
     }
 
     return this.predictionCount;
@@ -313,16 +329,19 @@ export class EarthMoonSimulation {
     this.trailStart = 0;
     this.trailCount = 1;
     this.trail[0].copy(this.state.rocket.position);
+    this.trailTimes[0] = this.state.t;
   }
 
   private appendTrailPoint(position: THREE.Vector3): void {
     if (this.trailCount < TRAIL_POINT_CAPACITY) {
       this.trail[this.trailCount].copy(position);
+      this.trailTimes[this.trailCount] = this.state.t;
       this.trailCount += 1;
       return;
     }
 
     this.trail[this.trailStart].copy(position);
+    this.trailTimes[this.trailStart] = this.state.t;
     this.trailStart = (this.trailStart + 1) % TRAIL_POINT_CAPACITY;
   }
 

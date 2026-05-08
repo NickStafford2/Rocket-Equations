@@ -1,7 +1,7 @@
 import { EARTH_ANGULAR_SPEED } from "../physics/bodies";
-import { ORBIT_METERS_TO_SCENE_UNITS } from "../three/objects/constants";
 import { syncMoonVisual } from "../three/objects/moon";
 import { syncSatelliteSystem } from "../three/objects/earth/satellites";
+import { copyScenePositionFromMeters } from "../three/objects/position-scaling";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
@@ -23,7 +23,9 @@ export function syncCelestialBodies(
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
   syncMoonVisual(objects.moon, frame.telemetry.moonPosition);
 
-  objects.rocket.position
-    .copy(frame.simState.rocket.position)
-    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
+  copyScenePositionFromMeters(
+    objects.rocket.position,
+    frame.simState.rocket.position,
+    frame.telemetry.moonPosition,
+  );
 }

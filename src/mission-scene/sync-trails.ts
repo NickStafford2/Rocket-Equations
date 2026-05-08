@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { TRAIL_POINT_CAPACITY } from "../sim/trail";
-import { ORBIT_METERS_TO_SCENE_UNITS } from "../three/objects/constants";
+import { moonPositionMeters } from "../physics/bodies";
+import { writeScenePositionToArray } from "../three/objects/position-scaling";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { EarthMoonSimulation } from "../sim/simulation";
 import type { FrameState } from "./frame-state";
@@ -40,7 +41,14 @@ export function syncTrailDisplay({
 
   simulation.copyTrailPositionsTo(
     positionArray,
-    ORBIT_METERS_TO_SCENE_UNITS,
+    (target, offset, point, timeSeconds) => {
+      writeScenePositionToArray(
+        target,
+        offset,
+        point,
+        moonPositionMeters(timeSeconds),
+      );
+    },
     startIndex,
   );
   trailPositions.needsUpdate = true;
@@ -101,7 +109,14 @@ export function syncPredictionDisplay({
 
   simulation.copyPredictionPositionsTo(
     positionArray,
-    ORBIT_METERS_TO_SCENE_UNITS,
+    (target, offset, point, timeSeconds) => {
+      writeScenePositionToArray(
+        target,
+        offset,
+        point,
+        moonPositionMeters(timeSeconds),
+      );
+    },
   );
   predictionPositions.needsUpdate = true;
   bundle.objects.predictionLine.geometry.setDrawRange(0, predictionLength);
