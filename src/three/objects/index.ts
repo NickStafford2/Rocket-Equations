@@ -71,9 +71,9 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const predictionLine = createPredictionLine();
 
   const smokeTrail = createSmokeTrail();
-  system.add(smokeTrail);
 
   earthRotatingFrame.add(earthLaunchSite);
+  earthRotatingFrame.add(smokeTrail);
 
   // Add other objects
   system.add(earthGroup);

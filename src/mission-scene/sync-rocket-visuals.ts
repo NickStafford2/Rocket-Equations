@@ -11,6 +11,7 @@ const ROCKET_WORLD_UP = new THREE.Vector3(0, 1, 0);
 const ROCKET_WORLD_RIGHT = new THREE.Vector3();
 const ROCKET_ORIENTATION_MATRIX = new THREE.Matrix4();
 const SMOKE_WORLD_POSITION = new THREE.Vector3();
+const SMOKE_EARTH_LOCAL_POSITION = new THREE.Vector3();
 const DEFAULT_HEADING = new THREE.Vector3(0, 1, 0);
 const ATMOSPHERIC_SMOKE_MAX_ALTITUDE_METERS = R_EARTH * 0.05;
 
@@ -73,9 +74,11 @@ export function syncRocketVisuals(
 
   objects.rocket.updateMatrixWorld(true);
   objects.enginePlume.getWorldPosition(SMOKE_WORLD_POSITION);
+  SMOKE_EARTH_LOCAL_POSITION.copy(SMOKE_WORLD_POSITION);
+  objects.earthRotatingFrame.worldToLocal(SMOKE_EARTH_LOCAL_POSITION);
   objects.smokeTrail.visible = updateSmokeTrail(
     objects.smokeTrail,
-    SMOKE_WORLD_POSITION,
+    SMOKE_EARTH_LOCAL_POSITION,
     frame.simState.t,
     thrusting &&
       !frame.stagedLaunchPreviewVisible &&
