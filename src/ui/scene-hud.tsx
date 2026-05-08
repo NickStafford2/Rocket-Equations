@@ -25,6 +25,7 @@ export function SceneHud({
   showTrail,
   showPrediction,
   showThrustDirectionArrow,
+  showMoonLandingArrow,
   pressedControls,
   onOverview,
   onLockTarget,
@@ -37,6 +38,7 @@ export function SceneHud({
   onTimeWarpChange: onTimeWarpChange,
   onShowTrailChange,
   onShowPredictionChange,
+  onShowMoonLandingArrowChange,
   onToggleThrustDirectionArrow,
   onMissionControlPress,
   onMissionControlRelease,
@@ -63,12 +65,14 @@ export function SceneHud({
               showTrail={showTrail}
               showPrediction={showPrediction}
               showThrustDirectionArrow={showThrustDirectionArrow}
+              showMoonLandingArrow={showMoonLandingArrow}
               onLaunchSpeedChange={onLaunchSpeedChange}
               onLaunchAngleChange={onLaunchAngleChange}
               onLaunchAzimuthChange={onLaunchAzimuthChange}
               onTimeWarpChange={onTimeWarpChange}
               onShowTrailChange={onShowTrailChange}
               onShowPredictionChange={onShowPredictionChange}
+              onShowMoonLandingArrowChange={onShowMoonLandingArrowChange}
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
             />
             <div className="pointer-events-none mt-3 min-w-[210px] rounded-[1.2rem] border border-white/12 bg-[#07111f]/28 px-3 py-2.5 text-xs text-slate-300 shadow-[0_16px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">

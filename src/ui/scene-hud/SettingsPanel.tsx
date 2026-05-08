@@ -12,12 +12,14 @@ type SettingsPanelProps = Pick<
   | "showTrail"
   | "showPrediction"
   | "showThrustDirectionArrow"
+  | "showMoonLandingArrow"
   | "onLaunchSpeedChange"
   | "onLaunchAngleChange"
   | "onLaunchAzimuthChange"
   | "onTimeWarpChange"
   | "onShowTrailChange"
   | "onShowPredictionChange"
+  | "onShowMoonLandingArrowChange"
   | "onToggleThrustDirectionArrow"
 >;
 
@@ -29,12 +31,14 @@ export const SettingsPanel = memo(function SettingsPanel({
   showTrail,
   showPrediction,
   showThrustDirectionArrow,
+  showMoonLandingArrow,
   onLaunchSpeedChange,
   onLaunchAngleChange,
   onLaunchAzimuthChange,
   onTimeWarpChange: onTimeWarpChange,
   onShowTrailChange,
   onShowPredictionChange,
+  onShowMoonLandingArrowChange,
   onToggleThrustDirectionArrow,
 }: SettingsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -107,6 +111,12 @@ export const SettingsPanel = memo(function SettingsPanel({
             description="Displays the projected coasting path using Earth and Moon patched conics."
             checked={showPrediction}
             onChange={onShowPredictionChange}
+          />
+          <CompactCheckbox
+            label="Show Moon landing arrow"
+            description="Displays a bright arrow pointing at the Apollo 14 landing site."
+            checked={showMoonLandingArrow}
+            onChange={onShowMoonLandingArrowChange}
           />
           <CompactCheckbox
             label="Show thrust arrow"

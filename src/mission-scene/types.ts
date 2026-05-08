@@ -22,6 +22,7 @@ export type UseMissionSceneParams = {
   showTrail: boolean;
   showPrediction: boolean;
   showThrustDirectionArrow: boolean;
+  showMoonLandingArrow: boolean;
 };
 
 export type CameraSelection = {

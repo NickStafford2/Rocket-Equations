@@ -231,7 +231,7 @@ export function updateCameraRig(
   const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
   camera.position.lerp(rig.desiredPosition, positionAlpha);
   controls.target.lerp(rig.desiredTarget, targetAlpha);
-  preventCameraBodyIntersection(scene, camera);
+  preventCameraBodyIntersection(scene, camera, controls.target);
   if (followPosition && !rig.positionTransitioning) {
     rig.offset.copy(camera.position).sub(followPosition);
   }
@@ -412,6 +412,7 @@ function getCameraCollisionClearance(object: THREE.Object3D, focusRadius: number
 function preventCameraBodyIntersection(
   scene: THREE.Scene,
   camera: THREE.PerspectiveCamera,
+  target: THREE.Vector3,
 ) {
   scene.traverse((object) => {
     const focusLabel = String(object.userData.focusLabel ?? "").toLowerCase();
@@ -432,6 +433,27 @@ function preventCameraBodyIntersection(
       getCameraCollisionClearance(object, focusRadius);
 
     if (CAMERA_COLLISION_OFFSET.length() >= minimumDistance) return;
+
+    const targetOffset = target.clone().sub(CAMERA_COLLISION_CENTER);
+    if (targetOffset.lengthSq() > 1e-9) {
+      const targetDistance = targetOffset.length();
+      const targetNormal = targetOffset.normalize();
+      const cameraOffsetFromTarget = camera.position.clone().sub(target);
+      const tangentialOffset = cameraOffsetFromTarget
+        .clone()
+        .sub(
+          targetNormal.clone().multiplyScalar(
+            cameraOffsetFromTarget.dot(targetNormal),
+          ),
+        );
+      const minimumRadialOffset = minimumDistance - targetDistance;
+
+      camera.position
+        .copy(target)
+        .add(tangentialOffset)
+        .addScaledVector(targetNormal, minimumRadialOffset);
+      return;
+    }
 
     camera.position
       .copy(CAMERA_COLLISION_CENTER)

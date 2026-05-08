@@ -26,6 +26,7 @@ type SyncMissionSceneParams = {
   showTrailRef: MutableRefObject<boolean>;
   showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
+  showMoonLandingArrowRef: MutableRefObject<boolean>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
@@ -48,6 +49,7 @@ export function syncMissionScene({
   showTrailRef,
   showPredictionRef,
   showThrustDirectionArrowRef,
+  showMoonLandingArrowRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
   lastCameraDebugSyncAtRef,
@@ -67,6 +69,7 @@ export function syncMissionScene({
   });
 
   syncCelestialBodies(bundle, frame);
+  bundle.objects.moonLandingSiteArrow.visible = showMoonLandingArrowRef.current;
   syncRocketVisuals(bundle, frame, {
     thrusting: frame.simState.thrusting,
     showThrustDirectionArrow: showThrustDirectionArrowRef.current,

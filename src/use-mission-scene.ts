@@ -43,6 +43,7 @@ export function useMissionScene({
   showTrail,
   showPrediction,
   showThrustDirectionArrow,
+  showMoonLandingArrow,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
   const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
@@ -50,6 +51,7 @@ export function useMissionScene({
   const showTrailRef = useRef(showTrail);
   const showPredictionRef = useRef(showPrediction);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
+  const showMoonLandingArrowRef = useRef(showMoonLandingArrow);
   const lastUiSyncAtRef = useRef(0);
   const lastCameraDebugSyncAtRef = useRef(0);
   const lastTelemetryTimeRef = useRef<number | null>(null);
@@ -106,6 +108,11 @@ export function useMissionScene({
   }, [showThrustDirectionArrow]);
 
   useEffect(() => {
+    showMoonLandingArrowRef.current = showMoonLandingArrow;
+    requestSceneRender();
+  }, [showMoonLandingArrow]);
+
+  useEffect(() => {
     requestSceneRender();
   }, [running, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
@@ -125,6 +132,7 @@ export function useMissionScene({
       showTrailRef,
       showPredictionRef,
       showThrustDirectionArrowRef,
+      showMoonLandingArrowRef,
       previousTrailLengthRef,
       lastUiSyncAtRef,
       lastCameraDebugSyncAtRef,

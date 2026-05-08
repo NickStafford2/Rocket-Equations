@@ -56,6 +56,7 @@ export function useMissionSimulation() {
   const [showPrediction, setShowPrediction] = useState(true);
   const [showThrustDirectionArrow, setShowThrustDirectionArrow] =
     useState(true);
+  const [showMoonLandingArrow, setShowMoonLandingArrow] = useState(true);
   const [status, setStatus] = useState(INITIAL_MISSION_STATUS);
   const [telemetry, setTelemetry] = useState(() => simulation.getTelemetry());
 
@@ -141,6 +142,8 @@ export function useMissionSimulation() {
     setShowPrediction,
     showThrustDirectionArrow,
     setShowThrustDirectionArrow,
+    showMoonLandingArrow,
+    setShowMoonLandingArrow,
     status,
     setStatus,
     telemetry,

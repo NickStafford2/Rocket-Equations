@@ -35,6 +35,7 @@ export type SceneHudProps = {
   showTrail: boolean;
   showPrediction: boolean;
   showThrustDirectionArrow: boolean;
+  showMoonLandingArrow: boolean;
   pressedControls: Record<MissionControlKey, boolean>;
   onOverview: () => void;
   onLockTarget: (target: CameraTarget) => void;
@@ -47,6 +48,7 @@ export type SceneHudProps = {
   onTimeWarpChange: (value: number) => void;
   onShowTrailChange: (value: boolean) => void;
   onShowPredictionChange: (value: boolean) => void;
+  onShowMoonLandingArrowChange: (value: boolean) => void;
   onToggleThrustDirectionArrow: () => void;
   onMissionControlPress: (control: MissionControlKey) => void;
   onMissionControlRelease: (control: MissionControlKey) => void;

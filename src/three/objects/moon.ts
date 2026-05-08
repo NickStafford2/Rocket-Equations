@@ -22,18 +22,24 @@ const APOLLO_14_LONGITUDE_DEGREES = 180;
 const MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS =
   MOON_RENDER_RADIUS_SCENE_UNITS * 0.024;
 const MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS =
-  MOON_RENDER_RADIUS_SCENE_UNITS * 0.006;
+  MOON_RENDER_RADIUS_SCENE_UNITS * 0.0012;
 const MOON_LANDING_SITE_ORIENTATION_OFFSET = Math.PI * 0.14;
-const MOON_LANDING_SITE_MARKER_HEIGHT = MOON_RENDER_RADIUS_SCENE_UNITS * 0.55;
+const MOON_LANDING_SITE_MARKER_HEIGHT = MOON_RENDER_RADIUS_SCENE_UNITS * 0.18;
+const MOON_LANDING_SITE_ARROW_LENGTH = MOON_RENDER_RADIUS_SCENE_UNITS * 0.28;
+const MOON_LANDING_SITE_ARROW_START_HEIGHT =
+  MOON_LANDING_SITE_MARKER_HEIGHT + MOON_RENDER_RADIUS_SCENE_UNITS * 0.12;
 const MOON_LANDING_SITE_BEACON_RADIUS =
-  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6;
+  REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.05;
+const MOON_LANDING_SITE_BEACON_COLOR = 0xd8d0a3;
+const MOON_LANDING_SITE_ARROW_COLOR = 0x8fbcca;
 const MOON_LANDING_SITE_MATERIAL = new THREE.MeshStandardMaterial({
-  color: 0xd5d0c4,
-  emissive: 0x6a5d34,
-  emissiveIntensity: 0.38,
-  roughness: 0.92,
+  color: 0xbdb5a4,
+  emissive: 0x231c10,
+  emissiveIntensity: 0.08,
+  roughness: 0.96,
   metalness: 0.0,
 });
+const MOON_LANDING_SITE_ARROW_DIRECTION = new THREE.Vector3(0, -1, 0);
 
 let moonLandingSitePromise: Promise<THREE.Group> | null = null;
 
@@ -65,7 +71,9 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
   syncMoonVisual(moon, new THREE.Vector3(EARTH_MOON_DISTANCE, 0, 0));
 
-  moon.add(createMoonLandingSiteAnchor());
+  const { anchor: moonLandingSiteAnchor, arrow: moonLandingSiteArrow } =
+    createMoonLandingSiteAnchor();
+  moon.add(moonLandingSiteAnchor);
 
   const moonLabel = createBodyLabelSprite("Moon");
   moonLabel.position.set(0, MOON_RENDER_RADIUS_SCENE_UNITS * 3.25, 0);
@@ -96,6 +104,7 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
   return {
     moon,
     moonLabel,
+    moonLandingSiteArrow,
     moonOrbit,
   };
 }
@@ -111,7 +120,10 @@ export function syncMoonVisual(
   moon.quaternion.multiply(MOON_TEXTURE_ALIGNMENT);
 }
 
-function createMoonLandingSiteAnchor(): THREE.Group {
+function createMoonLandingSiteAnchor(): {
+  anchor: THREE.Group;
+  arrow: THREE.ArrowHelper;
+} {
   const anchor = new THREE.Group();
   const surfaceNormal = latLonToMoonLocalDirection(
     APOLLO_14_LATITUDE_DEGREES,
@@ -125,7 +137,8 @@ function createMoonLandingSiteAnchor(): THREE.Group {
         MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS,
     );
   anchor.quaternion.setFromUnitVectors(MOON_LOCAL_UP, surfaceNormal);
-  anchor.add(createMoonLandingSiteMarker());
+  const { marker, arrow } = createMoonLandingSiteMarker();
+  anchor.add(marker);
 
   void loadMoonLandingSiteModel()
     .then((model) => {
@@ -135,16 +148,21 @@ function createMoonLandingSiteAnchor(): THREE.Group {
       console.error("Failed to load Moon landing site model.", error);
     });
 
-  return anchor;
+  return { anchor, arrow };
 }
 
-function createMoonLandingSiteMarker(): THREE.Group {
+function createMoonLandingSiteMarker(): {
+  marker: THREE.Group;
+  arrow: THREE.ArrowHelper;
+} {
   const marker = new THREE.Group();
 
   const beacon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_LANDING_SITE_BEACON_RADIUS, 18, 18),
     new THREE.MeshBasicMaterial({
-      color: 0xfff17a,
+      color: MOON_LANDING_SITE_BEACON_COLOR,
+      transparent: true,
+      opacity: 0.52,
       depthTest: false,
       depthWrite: false,
     }),
@@ -153,7 +171,20 @@ function createMoonLandingSiteMarker(): THREE.Group {
   beacon.renderOrder = 20;
   marker.add(beacon);
 
-  return marker;
+  const arrow = new THREE.ArrowHelper(
+    MOON_LANDING_SITE_ARROW_DIRECTION,
+    new THREE.Vector3(0, MOON_LANDING_SITE_ARROW_START_HEIGHT, 0),
+    MOON_LANDING_SITE_ARROW_LENGTH,
+    MOON_LANDING_SITE_ARROW_COLOR,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 5.4,
+    REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 3.1,
+  );
+  arrow.renderOrder = 24;
+  configureArrowOverlayMaterial(arrow.line.material);
+  configureArrowOverlayMaterial(arrow.cone.material);
+  marker.add(arrow);
+
+  return { marker, arrow };
 }
 
 function loadMoonLandingSiteModel(): Promise<THREE.Group> {
@@ -216,4 +247,27 @@ function latLonToMoonLocalDirection(
     Math.sin(latitudeRadians),
     cosLatitude * Math.sin(longitudeRadians),
   ).normalize();
+}
+
+function configureArrowOverlayMaterial(
+  material: THREE.Material | THREE.Material[],
+) {
+  const materials = Array.isArray(material) ? material : [material];
+
+  for (const entry of materials) {
+    const overlayMaterial = entry as THREE.Material & {
+      color?: THREE.Color;
+      transparent?: boolean;
+      opacity?: number;
+      depthTest?: boolean;
+      depthWrite?: boolean;
+      toneMapped?: boolean;
+    };
+    overlayMaterial.depthTest = false;
+    overlayMaterial.depthWrite = false;
+    overlayMaterial.transparent = true;
+    overlayMaterial.opacity = 0.58;
+    overlayMaterial.toneMapped = false;
+    overlayMaterial.color?.setHex(MOON_LANDING_SITE_ARROW_COLOR);
+  }
 }

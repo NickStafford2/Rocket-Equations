@@ -32,6 +32,8 @@ export default function App() {
     setShowPrediction,
     showThrustDirectionArrow,
     setShowThrustDirectionArrow,
+    showMoonLandingArrow,
+    setShowMoonLandingArrow,
     status,
     setStatus,
     telemetry,
@@ -75,6 +77,7 @@ export default function App() {
     showTrail,
     showPrediction,
     showThrustDirectionArrow,
+    showMoonLandingArrow,
   });
 
   function focusScene() {
@@ -120,6 +123,7 @@ export default function App() {
         showTrail={showTrail}
         showPrediction={showPrediction}
         showThrustDirectionArrow={showThrustDirectionArrow}
+        showMoonLandingArrow={showMoonLandingArrow}
         pressedControls={pressedControls}
         onOverview={() => {
           applyOverviewCamera();
@@ -149,6 +153,7 @@ export default function App() {
         onTimeWarpChange={setTimeWarp}
         onShowTrailChange={setShowTrail}
         onShowPredictionChange={setShowPrediction}
+        onShowMoonLandingArrowChange={setShowMoonLandingArrow}
         onToggleThrustDirectionArrow={() => {
           setShowThrustDirectionArrow((current) => !current);
           focusScene();

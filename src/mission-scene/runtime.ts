@@ -27,6 +27,7 @@ type StartMissionSceneRuntimeParams = {
   showTrailRef: MutableRefObject<boolean>;
   showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
+  showMoonLandingArrowRef: MutableRefObject<boolean>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
@@ -64,6 +65,7 @@ export function startMissionSceneRuntime({
   showTrailRef,
   showPredictionRef,
   showThrustDirectionArrowRef,
+  showMoonLandingArrowRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
   lastCameraDebugSyncAtRef,
@@ -240,6 +242,7 @@ export function startMissionSceneRuntime({
       showTrailRef,
       showPredictionRef,
       showThrustDirectionArrowRef,
+      showMoonLandingArrowRef,
       previousTrailLengthRef,
       lastUiSyncAtRef,
       lastCameraDebugSyncAtRef,
