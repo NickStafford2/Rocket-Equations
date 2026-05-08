@@ -10,6 +10,7 @@ export function SceneHud({
   currentLockTarget,
   currentLookTarget,
   cameraDebug,
+  earthLodDebug,
   running,
   elapsedMissionTime,
   currentSpeed,
@@ -70,6 +71,14 @@ export function SceneHud({
               onShowPredictionChange={onShowPredictionChange}
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
             />
+            <div className="pointer-events-none mt-3 min-w-[210px] rounded-[1.2rem] border border-white/12 bg-[#07111f]/28 px-3 py-2.5 text-xs text-slate-300 shadow-[0_16px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">
+              <div className="tracking-[0.18em] text-[0.68rem] text-slate-400 uppercase">
+                Earth LOD
+              </div>
+              <div className="mt-1 text-sm font-medium text-cyan-100">
+                {earthLodDebug}
+              </div>
+            </div>
           </div>
         </div>
       </div>

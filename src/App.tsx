@@ -52,6 +52,7 @@ export default function App() {
     currentLockTarget,
     currentLookTarget,
     cameraDebug,
+    earthLodDebug,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
@@ -104,6 +105,7 @@ export default function App() {
         currentLockTarget={currentLockTarget}
         currentLookTarget={currentLookTarget}
         cameraDebug={cameraDebug}
+        earthLodDebug={earthLodDebug}
         running={running}
         elapsedMissionTime={formatElapsed(telemetry.hours)}
         currentSpeed={formatSpeed(telemetry.speed)}

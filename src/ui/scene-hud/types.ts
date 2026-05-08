@@ -20,6 +20,7 @@ export type SceneHudProps = {
   currentLockTarget: CameraTarget | null;
   currentLookTarget: CameraTarget | null;
   cameraDebug: CameraDebugProps;
+  earthLodDebug: string;
   running: boolean;
   elapsedMissionTime: string;
   currentSpeed: string;

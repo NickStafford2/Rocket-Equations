@@ -63,6 +63,7 @@ export function useMissionScene({
   const [cameraDebug, setCameraDebug] = useState<CameraDebugState>(
     createInitialCameraDebugState,
   );
+  const [earthLodDebug, setEarthLodDebug] = useState("LOD 0 · 8K · near");
 
   function syncCameraSelectionFromRig() {
     setCameraSelection(toCameraSelection(syncSelection(cameraRigRef.current)));
@@ -133,6 +134,7 @@ export function useMissionScene({
       setStatus,
       setTelemetry,
       setCameraDebug,
+      setEarthLodDebug,
       onFollowSelection: applyFollowSelection,
       onSyncCameraSelection: syncCameraSelectionFromRig,
     });
@@ -207,6 +209,7 @@ export function useMissionScene({
     currentLockTarget: cameraSelection.lockTarget,
     currentLookTarget: cameraSelection.lookTarget,
     cameraDebug,
+    earthLodDebug,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,

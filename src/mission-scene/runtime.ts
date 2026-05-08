@@ -36,6 +36,7 @@ type StartMissionSceneRuntimeParams = {
   setStatus: (value: string) => void;
   setTelemetry: (value: SimulationTelemetry) => void;
   setCameraDebug: (value: CameraDebugState) => void;
+  setEarthLodDebug: (value: string) => void;
   onFollowSelection: (target: CameraRigTarget) => void;
   onSyncCameraSelection: () => void;
 };
@@ -72,6 +73,7 @@ export function startMissionSceneRuntime({
   setStatus,
   setTelemetry,
   setCameraDebug,
+  setEarthLodDebug,
   onFollowSelection,
   onSyncCameraSelection,
 }: StartMissionSceneRuntimeParams): MissionSceneRuntime {
@@ -84,6 +86,7 @@ export function startMissionSceneRuntime({
   let controlsInteracting = false;
   let renderRequested = false;
   let previousFrameTimeMs: number | null = null;
+  let lastEarthLodDebug: string | null = null;
 
   previousTrailLengthRef.current = 0;
 
@@ -180,6 +183,23 @@ export function startMissionSceneRuntime({
     startFrameLoop();
   }
 
+  function syncEarthLodDebug() {
+    const earth = bundle.objects.earth;
+    const levelIndex = earth.getCurrentLevel();
+    const detail =
+      levelIndex === 0 ? "8K" : "2K";
+    const range =
+      levelIndex === 0 ? "near" : levelIndex === 1 ? "mid" : "far";
+    const nextDebug = `LOD ${levelIndex} · ${detail} · ${range}`;
+
+    if (nextDebug === lastEarthLodDebug) {
+      return;
+    }
+
+    lastEarthLodDebug = nextDebug;
+    setEarthLodDebug(nextDebug);
+  }
+
   function onVisibilityChange() {
     if (document.visibilityState === "hidden") {
       stopFrameLoop();
@@ -241,6 +261,7 @@ export function startMissionSceneRuntime({
       setStatus(cameraStatuses.join(" "));
     }
 
+    syncEarthLodDebug();
     render();
     if (shouldKeepRendering()) {
       startFrameLoop();
