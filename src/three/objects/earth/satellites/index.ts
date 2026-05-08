@@ -28,6 +28,7 @@ type SatelliteSystemBody = {
   renderRadiusSceneUnits: number;
   primaryMassKg: number;
   defaultOrbitPeriodSeconds?: number;
+  targetSizeSceneUnits?: number;
 };
 
 type CreateSatelliteSystemOptions = {
@@ -96,7 +97,7 @@ function createSatellite(
 
   const modelRoot = new THREE.Group();
   satellite.add(modelRoot);
-  loadSatelliteModel(modelRoot, definition);
+  loadSatelliteModel(modelRoot, definition, body);
 
   // const label = createBodyLabelSprite(definition.label, {
   //   borderColor: "rgba(125, 211, 252, 0.9)",
@@ -112,6 +113,7 @@ function createSatellite(
 function loadSatelliteModel(
   modelRoot: THREE.Group,
   definition: SatelliteDefinition,
+  body: SatelliteSystemBody,
 ) {
   const loader = new GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
@@ -138,7 +140,9 @@ function loadSatelliteModel(
       const bounds = new THREE.Box3().setFromObject(modelRoot);
       const size = bounds.getSize(MODEL_SIZE);
       const maxDimension = Math.max(size.x, size.y, size.z, 1e-6);
-      const scale = SATELLITE_TARGET_SIZE_SCENE_UNITS / maxDimension;
+      const targetSize =
+        body.targetSizeSceneUnits ?? SATELLITE_TARGET_SIZE_SCENE_UNITS;
+      const scale = targetSize / maxDimension;
       modelRoot.scale.setScalar(scale);
 
       modelRoot.rotation.x = Math.PI * 0.5;

@@ -39,6 +39,19 @@ export type SatelliteDefinition = {
   orbit: SatelliteOrbitDefinition;
 };
 
+type MoonSatelliteTemplate = {
+  id: string;
+  label: string;
+  modelUrl: string;
+  orbit: Required<
+    Pick<
+      SatelliteOrbitDefinition,
+      "type" | "altitudeMeters" | "inclinationDeg" | "ascendingNodeDeg" | "phaseDeg"
+    >
+  > &
+    Pick<SatelliteOrbitDefinition, "direction">;
+};
+
 export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
 
 export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
@@ -174,7 +187,7 @@ export function orbitalRadiusMeters(
   );
 }
 
-export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+const MOON_SATELLITE_TEMPLATES: MoonSatelliteTemplate[] = [
   {
     id: "lro",
     label: "LRO",
@@ -201,6 +214,24 @@ export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
     },
   },
 ];
+
+export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
+  MOON_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
+    Array.from({ length: 10 }, (_, index) => ({
+      id: `${template.id}-${index + 1}`,
+      label: `${template.label} ${index + 1}`,
+      modelUrl: template.modelUrl,
+      orbit: {
+        ...template.orbit,
+        altitudeMeters:
+          template.orbit.altitudeMeters + index * 18_000 + templateIndex * 9_000,
+        ascendingNodeDeg:
+          (template.orbit.ascendingNodeDeg + index * 37 + templateIndex * 11) %
+          360,
+        phaseDeg: (template.orbit.phaseDeg + index * 36 + templateIndex * 18) % 360,
+      },
+    })),
+  );
 
 export const EARTH_SATELLITE_BODY = {
   radiusMeters: R_EARTH,

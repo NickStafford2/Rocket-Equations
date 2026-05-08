@@ -69,6 +69,7 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
     body: {
       ...MOON_SATELLITE_BODY,
       renderRadiusSceneUnits: MOON_RENDER_RADIUS_SCENE_UNITS,
+      targetSizeSceneUnits: 0.042,
     },
     definitions: MOON_SATELLITE_DEFINITIONS,
   });
