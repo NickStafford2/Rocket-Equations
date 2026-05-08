@@ -50,9 +50,13 @@ type MissionSceneRuntime = {
 };
 
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
-const MIN_CAMERA_NEAR = 0.0001;
+const DEFAULT_MIN_CAMERA_NEAR = 0.01;
+const CLOSE_ROCKET_MIN_CAMERA_NEAR = 0.00012;
 const MAX_CAMERA_NEAR = 4;
-const CAMERA_NEAR_DISTANCE_FACTOR = 0.00035;
+const DEFAULT_CAMERA_NEAR_DISTANCE_FACTOR = 0.0015;
+const CLOSE_ROCKET_CAMERA_NEAR_DISTANCE_FACTOR = 0.08;
+const DEFAULT_CAMERA_FAR = 10000;
+const CLOSE_ROCKET_CAMERA_FAR = 5000;
 
 export function startMissionSceneRuntime({
   mount,
@@ -142,18 +146,34 @@ export function startMissionSceneRuntime({
   }
 
   function syncCameraClipPlanes() {
+    const followKey = cameraRigRef.current.follow?.key ?? null;
+    const lookKey = cameraRigRef.current.look?.key ?? null;
+    const closeRocketView = followKey === "rocket" || lookKey === "rocket";
     const distanceToTarget = camera.position.distanceTo(controls.target);
+    const nearDistanceFactor = closeRocketView
+      ? CLOSE_ROCKET_CAMERA_NEAR_DISTANCE_FACTOR
+      : DEFAULT_CAMERA_NEAR_DISTANCE_FACTOR;
+    const minNear = closeRocketView
+      ? CLOSE_ROCKET_MIN_CAMERA_NEAR
+      : DEFAULT_MIN_CAMERA_NEAR;
     const nextNear = THREE.MathUtils.clamp(
-      distanceToTarget * CAMERA_NEAR_DISTANCE_FACTOR,
-      MIN_CAMERA_NEAR,
+      distanceToTarget * nearDistanceFactor,
+      minNear,
       MAX_CAMERA_NEAR,
     );
+    const nextFar = closeRocketView
+      ? CLOSE_ROCKET_CAMERA_FAR
+      : DEFAULT_CAMERA_FAR;
 
-    if (Math.abs(camera.near - nextNear) <= 1e-6) {
+    if (
+      Math.abs(camera.near - nextNear) <= 1e-6 &&
+      Math.abs(camera.far - nextFar) <= 1e-3
+    ) {
       return;
     }
 
     camera.near = nextNear;
+    camera.far = nextFar;
     camera.updateProjectionMatrix();
   }
 
