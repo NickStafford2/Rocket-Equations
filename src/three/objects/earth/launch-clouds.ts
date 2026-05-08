@@ -7,6 +7,7 @@ const CLOUD_COLOR = 0xe6eaee;
 const CLOUD_FADE_START_ALTITUDE_METERS = 12_000;
 const CLOUD_FADE_END_ALTITUDE_METERS = 42_000;
 const CLOUD_TEXTURE_SIZE = 64;
+const CLOUD_HEIGHT_OFFSET_METERS = 1_500;
 const CLOUD_POSITION_METERS: [number, number, number] = [0, 2_800, 0];
 const CLOUD_SIZE_METERS: [number, number, number] = [16_000, 5_500, 16_000];
 const CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER = 6;
@@ -349,7 +350,10 @@ function createCloudVolumeMesh(): THREE.Mesh<
 
   const volume = new THREE.Mesh(geometry, material);
   volume.position.copy(
-    toSceneVector(CLOUD_POSITION_METERS, CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER),
+    toSceneVector(
+      offsetCloudHeight(CLOUD_POSITION_METERS),
+      CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER,
+    ),
   );
   volume.scale.copy(
     toSceneVector(CLOUD_SIZE_METERS, CLOUD_VOLUME_VISUAL_SCALE_MULTIPLIER),
@@ -376,7 +380,7 @@ function createLaunchCloudPuff(
   const sprite = new THREE.Sprite(material);
   sprite.position.copy(
     toSceneVector(
-      descriptor.positionMeters,
+      offsetCloudHeight(descriptor.positionMeters),
       CLOUD_PUFF_VISUAL_SCALE_MULTIPLIER,
     ),
   );
@@ -473,6 +477,12 @@ function getCloudTexture(): THREE.Data3DTexture {
 
   cachedCloudTexture = texture;
   return texture;
+}
+
+function offsetCloudHeight(
+  [x, y, z]: [number, number, number],
+): [number, number, number] {
+  return [x, y + CLOUD_HEIGHT_OFFSET_METERS, z];
 }
 
 function getCloudSpriteTexture(): THREE.Texture {
