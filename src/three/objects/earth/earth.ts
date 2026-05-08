@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { EARTH_ROTATION_PERIOD } from "../../../physics/bodies";
 import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
@@ -12,6 +13,10 @@ import {
 import { loadEarthTextureVariants } from "./textures";
 import { createBodyLabelSprite } from "../labels";
 import { createSatelliteSystem } from "./satellites";
+import {
+  EARTH_SATELLITE_BODY,
+  EARTH_SATELLITE_DEFINITIONS,
+} from "./satellites/catalog";
 
 const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
 const SHOW_PLANETARY_CLOUDS = true;
@@ -72,7 +77,14 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
   earthLabel.visible = false;
   earthGroup.add(earthLabel);
 
-  const { satelliteSystem } = createSatelliteSystem();
+  const { satelliteSystem } = createSatelliteSystem({
+    body: {
+      ...EARTH_SATELLITE_BODY,
+      renderRadiusSceneUnits: EARTH_RENDER_RADIUS_SCENE_UNITS,
+      defaultOrbitPeriodSeconds: EARTH_ROTATION_PERIOD,
+    },
+    definitions: EARTH_SATELLITE_DEFINITIONS,
+  });
   earthGroup.add(satelliteSystem);
 
   return {

@@ -23,6 +23,7 @@ export type SceneObjects = {
   satelliteSystem: THREE.Group;
   moon: THREE.Mesh;
   moonLabel: THREE.Sprite;
+  moonSatelliteSystem: THREE.Group;
   moonLandingSiteArrow: THREE.ArrowHelper;
   rocket: THREE.Group;
   enginePlume: THREE.Mesh;
@@ -56,7 +57,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const { root: earthLaunchSite, cloudField: launchCloudField } =
     createEarthLaunchSite();
 
-  const { moon, moonLabel, moonLandingSiteArrow, moonOrbit } =
+  const { moon, moonLabel, moonSatelliteSystem, moonLandingSiteArrow, moonOrbit } =
     createMoonObjects(loader);
   const {
     rocket,
@@ -101,6 +102,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     satelliteSystem,
     moon,
     moonLabel,
+    moonSatelliteSystem,
     moonLandingSiteArrow,
     rocket,
     enginePlume,

@@ -10,6 +10,11 @@ import {
 import { createBodyLabelSprite } from "../labels";
 import { createMoonOrbit } from "./moonOrbit";
 import { createMoonLandingSiteAnchor } from "./moonLandingSite";
+import { createSatelliteSystem } from "../earth/satellites";
+import {
+  MOON_SATELLITE_BODY,
+  MOON_SATELLITE_DEFINITIONS,
+} from "../earth/satellites/catalog";
 
 const MOON_WORLD_ORIGIN = new THREE.Vector3();
 
@@ -59,11 +64,22 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
   moonLabel.visible = false;
   moon.add(moonLabel);
 
+  const { satelliteSystem: moonSatelliteSystem } = createSatelliteSystem({
+    name: "moon-satellite-system",
+    body: {
+      ...MOON_SATELLITE_BODY,
+      renderRadiusSceneUnits: MOON_RENDER_RADIUS_SCENE_UNITS,
+    },
+    definitions: MOON_SATELLITE_DEFINITIONS,
+  });
+  moon.add(moonSatelliteSystem);
+
   const moonOrbit = createMoonOrbit();
 
   return {
     moon,
     moonLabel,
+    moonSatelliteSystem,
     moonLandingSiteArrow,
     moonOrbit,
   };

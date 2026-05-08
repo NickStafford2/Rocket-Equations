@@ -22,6 +22,7 @@ export function syncCelestialBodies(
 
   syncSatelliteSystem(objects.satelliteSystem, frame.simState.t);
   syncMoonVisual(objects.moon, frame.telemetry.moonPosition);
+  syncSatelliteSystem(objects.moonSatelliteSystem, frame.simState.t);
 
   copyScenePositionFromMeters(
     objects.rocket.position,

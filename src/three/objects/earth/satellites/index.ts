@@ -1,14 +1,13 @@
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { EARTH_ROTATION_PERIOD, G, M_EARTH } from "../../../../physics/bodies";
+import { EARTH_ROTATION_PERIOD, G } from "../../../../physics/bodies";
 import dracoDecoderJsUrl from "three/examples/jsm/libs/draco/gltf/draco_decoder.js?url";
 import { ORBIT_METERS_TO_SCENE_UNITS } from "../../constants";
 import {
   orbitalRadiusMeters,
   geosynchronousOrbitRadiusMeters,
   SATELLITE_TARGET_SIZE_SCENE_UNITS,
-  SATELLITE_DEFINITIONS,
   type SatelliteDefinition,
 } from "./catalog";
 import { SUN_POSITION } from "../../../sun";
@@ -24,16 +23,34 @@ const DRACO_DECODER_PATH = dracoDecoderJsUrl.replace(
   "",
 );
 
+type SatelliteSystemBody = {
+  radiusMeters: number;
+  renderRadiusSceneUnits: number;
+  primaryMassKg: number;
+  defaultOrbitPeriodSeconds?: number;
+};
+
+type CreateSatelliteSystemOptions = {
+  name?: string;
+  body: SatelliteSystemBody;
+  definitions: SatelliteDefinition[];
+};
+
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderConfig({ type: "js" });
 dracoLoader.setDecoderPath(DRACO_DECODER_PATH);
 
-export function createSatelliteSystem() {
+export function createSatelliteSystem({
+  name = "satellite-system",
+  body,
+  definitions,
+}: CreateSatelliteSystemOptions) {
   const satelliteSystem = new THREE.Group();
-  satelliteSystem.name = "satellite-system";
+  satelliteSystem.name = name;
+  satelliteSystem.userData.satelliteBody = body;
 
-  for (const definition of SATELLITE_DEFINITIONS) {
-    satelliteSystem.add(createSatellite(definition));
+  for (const definition of definitions) {
+    satelliteSystem.add(createSatellite(definition, body));
   }
 
   return {
@@ -55,16 +72,27 @@ export function syncSatelliteSystem(
       continue;
     }
 
-    satellite.position.copy(resolveSatellitePosition(definition, timeSeconds));
+    const body = satelliteSystem.userData.satelliteBody as
+      | SatelliteSystemBody
+      | undefined;
+
+    if (!body) {
+      continue;
+    }
+
+    satellite.position.copy(resolveSatellitePosition(definition, body, timeSeconds));
   }
 }
 
-function createSatellite(definition: SatelliteDefinition): THREE.Group {
+function createSatellite(
+  definition: SatelliteDefinition,
+  body: SatelliteSystemBody,
+): THREE.Group {
   const satellite = new THREE.Group();
   satellite.name = definition.id;
   satellite.userData.focusLabel = definition.label;
   satellite.userData.satelliteDefinition = definition;
-  satellite.position.copy(resolveSatellitePosition(definition, 0));
+  satellite.position.copy(resolveSatellitePosition(definition, body, 0));
 
   const modelRoot = new THREE.Group();
   satellite.add(modelRoot);
@@ -128,21 +156,31 @@ function loadSatelliteModel(
 
 function resolveSatellitePosition(
   definition: SatelliteDefinition,
+  body: SatelliteSystemBody,
   timeSeconds: number,
 ): THREE.Vector3 {
   const { orbit } = definition;
 
   if (orbit.type === "earth-l2") {
     const distanceSceneUnits =
-      (orbit.distanceMeters ?? 1_500_000_000) * ORBIT_METERS_TO_SCENE_UNITS;
+      orbitalDistanceToSceneUnits(
+        orbit.distanceMeters ?? 1_500_000_000,
+        body,
+      );
 
     return ANTI_SUN_DIRECTION.clone().multiplyScalar(distanceSceneUnits);
   }
 
   if (orbit.type === "deep-space") {
     const distanceSceneUnits =
-      (orbit.distanceMeters ?? geosynchronousOrbitRadiusMeters()) *
-      ORBIT_METERS_TO_SCENE_UNITS;
+      orbitalDistanceToSceneUnits(
+        orbit.distanceMeters ??
+          geosynchronousOrbitRadiusMeters(
+            body.primaryMassKg,
+            body.defaultOrbitPeriodSeconds ?? EARTH_ROTATION_PERIOD,
+          ),
+        body,
+      );
     const longitudeRad = THREE.MathUtils.degToRad(orbit.longitudeDeg ?? 0);
     const inclinationRad = THREE.MathUtils.degToRad(orbit.inclinationDeg ?? 0);
     const phaseRad = THREE.MathUtils.degToRad(orbit.phaseDeg ?? 0);
@@ -163,22 +201,40 @@ function resolveSatellitePosition(
   }
 
   const radiusSceneUnits =
-    orbitalRadiusMeters(orbit) * ORBIT_METERS_TO_SCENE_UNITS;
+    orbitalDistanceToSceneUnits(
+      orbitalRadiusMeters(
+        orbit,
+        body.radiusMeters,
+        body.primaryMassKg,
+        body.defaultOrbitPeriodSeconds,
+      ),
+      body,
+    );
   const inclinationRad = THREE.MathUtils.degToRad(orbit.inclinationDeg ?? 0);
   const ascendingNodeRad = THREE.MathUtils.degToRad(
     orbit.ascendingNodeDeg ?? 0,
   );
   const direction = orbit.direction ?? 1;
-  const orbitRadius = orbitalRadiusMeters(orbit);
+  const orbitRadius = orbitalRadiusMeters(
+    orbit,
+    body.radiusMeters,
+    body.primaryMassKg,
+    body.defaultOrbitPeriodSeconds,
+  );
   let angularSpeed = 0;
 
   if (orbit.type === "geosynchronous") {
     angularSpeed =
-      (2 * Math.PI) / (orbit.periodSeconds ?? EARTH_ROTATION_PERIOD);
+      (2 * Math.PI) /
+      (orbit.periodSeconds ??
+        body.defaultOrbitPeriodSeconds ??
+        EARTH_ROTATION_PERIOD);
   } else {
     const periodSeconds =
       orbit.periodSeconds ??
-      2 * Math.PI * Math.sqrt(Math.pow(orbitRadius, 3) / (G * M_EARTH));
+      2 *
+        Math.PI *
+        Math.sqrt(Math.pow(orbitRadius, 3) / (G * body.primaryMassKg));
     angularSpeed = (2 * Math.PI) / periodSeconds;
   }
 
@@ -198,4 +254,14 @@ function resolveSatellitePosition(
     .applyAxisAngle(ORBIT_X_AXIS, inclinationRad)
     .applyAxisAngle(ORBIT_Y_AXIS, ascendingNodeRad)
     .clone();
+}
+
+function orbitalDistanceToSceneUnits(
+  orbitalDistanceMeters: number,
+  body: SatelliteSystemBody,
+) {
+  return (
+    body.renderRadiusSceneUnits +
+    (orbitalDistanceMeters - body.radiusMeters) * ORBIT_METERS_TO_SCENE_UNITS
+  );
 }

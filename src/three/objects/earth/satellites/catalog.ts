@@ -3,7 +3,9 @@ import {
   EARTH_ROTATION_PERIOD,
   G,
   M_EARTH,
+  M_MOON,
   R_EARTH,
+  R_MOON,
 } from "../../../../physics/bodies";
 import acrimSatModelUrl from "../../../../assets/satellites/Active Cavity Irradiance Monitor Satellite (AcrimSAT) (A).glb?url";
 import auraModelUrl from "../../../../assets/satellites/Aura (B).glb?url";
@@ -12,6 +14,7 @@ import clementineModelUrl from "../../../../assets/satellites/Clementine.glb?url
 import hubbleModelUrl from "../../../../assets/satellites/Hubble Space Telescope (A).glb?url";
 // import issModelUrl from "../../../../assets/satellites/International Space Station (ISS).glb?url";
 import jwstModelUrl from "../../../../assets/satellites/James Webb Space Telescope (B).glb?url";
+import lroModelUrl from "../../../../assets/satellites/Lunar Reconnaissance Orbiter (A).glb?url";
 import tessModelUrl from "../../../../assets/satellites/Transiting Exoplanet Survey Satellite (TESS) (B).glb?url";
 import vanAllenModelUrl from "../../../../assets/satellites/Van Allen Probes.glb?url";
 import voyagerModelUrl from "../../../../assets/satellites/Voyager Probe (A).glb?url";
@@ -38,7 +41,7 @@ export type SatelliteDefinition = {
 
 export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
 
-export const SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
   {
     id: "acrimsat",
     label: "AcrimSAT",
@@ -70,18 +73,6 @@ export const SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
       inclinationDeg: 17,
       ascendingNodeDeg: 228,
       phaseDeg: 142,
-    },
-  },
-  {
-    id: "clementine",
-    label: "Clementine",
-    modelUrl: clementineModelUrl,
-    orbit: {
-      type: "circular",
-      altitudeMeters: 92_000_000,
-      inclinationDeg: 32,
-      ascendingNodeDeg: 284,
-      phaseDeg: 286,
     },
   },
   {
@@ -157,19 +148,66 @@ export const SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
 ];
 
 export function geosynchronousOrbitRadiusMeters(
-  periodSeconds: number = EARTH_ROTATION_PERIOD,
+  primaryMassKg: number,
+  periodSeconds: number,
 ): number {
-  return Math.cbrt(G * M_EARTH * Math.pow(periodSeconds / (2 * Math.PI), 2));
+  return Math.cbrt(G * primaryMassKg * Math.pow(periodSeconds / (2 * Math.PI), 2));
 }
 
-export function orbitalRadiusMeters(orbit: SatelliteOrbitDefinition): number {
+export function orbitalRadiusMeters(
+  orbit: SatelliteOrbitDefinition,
+  bodyRadiusMeters: number,
+  primaryMassKg: number,
+  defaultPeriodSeconds?: number,
+): number {
   if (orbit.altitudeMeters != null) {
-    return R_EARTH + orbit.altitudeMeters;
+    return bodyRadiusMeters + orbit.altitudeMeters;
   }
 
   if (orbit.periodSeconds != null) {
-    return geosynchronousOrbitRadiusMeters(orbit.periodSeconds);
+    return geosynchronousOrbitRadiusMeters(primaryMassKg, orbit.periodSeconds);
   }
 
-  return geosynchronousOrbitRadiusMeters();
+  return geosynchronousOrbitRadiusMeters(
+    primaryMassKg,
+    defaultPeriodSeconds ?? EARTH_ROTATION_PERIOD,
+  );
 }
+
+export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+  {
+    id: "lro",
+    label: "LRO",
+    modelUrl: lroModelUrl,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 220_000,
+      inclinationDeg: 86.5,
+      ascendingNodeDeg: 24,
+      phaseDeg: 42,
+    },
+  },
+  {
+    id: "clementine",
+    label: "Clementine",
+    modelUrl: clementineModelUrl,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 420_000,
+      inclinationDeg: 112,
+      ascendingNodeDeg: 148,
+      phaseDeg: 214,
+      direction: -1,
+    },
+  },
+];
+
+export const EARTH_SATELLITE_BODY = {
+  radiusMeters: R_EARTH,
+  primaryMassKg: M_EARTH,
+};
+
+export const MOON_SATELLITE_BODY = {
+  radiusMeters: R_MOON,
+  primaryMassKg: M_MOON,
+};
