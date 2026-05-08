@@ -12,9 +12,9 @@ void main( void ) {
     float cosAngleSunToNormal = dot(vNormal, sunDirUnit); // Compute cosine sun to normal
     float mixAmount = 1. / (1. + exp(-7. * (cosAngleSunToNormal + 0.1))); // Sharpen the edge beween the transition
 
-    // Atmosphere
-    float raw_intensity = 3. * max(dot(vPosition, vNormalView), 0.);
-    float intensity = pow(raw_intensity, 3.);
+    vec3 viewDir = normalize(-vPosition);
+    float rim = 1.0 - clamp(abs(dot(normalize(vNormalView), viewDir)), 0.0, 1.0);
+    float intensity = pow(rim, 2.6);
 
     gl_FragColor = vec4(u_color, intensity) * mixAmount;
 }

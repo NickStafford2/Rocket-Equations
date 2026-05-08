@@ -12,8 +12,9 @@ void main() {
     // Day and night texture with eclipse
     float cosAngleSunToNormal = dot(vNormal, sunDirUnit); // Compute cosine sun to normal
     float mixAmount = 1. / (1. + exp(-7. * (cosAngleSunToNormal + 0.1))); // Sharpen the edge beween the transition
-    float fresnelTerm = (1. + dot(normalize(vPosition), normalize(vNormalView)));
-    fresnelTerm = pow(fresnelTerm, 2.0);
+    vec3 viewDir = normalize(-vPosition);
+    float fresnelTerm = 1.0 - clamp(dot(normalize(vNormalView), viewDir), 0.0, 1.0);
+    fresnelTerm = pow(fresnelTerm, 3.0);
 
-    gl_FragColor = vec4( u_color, 1. ) * fresnelTerm * mixAmount;
+    gl_FragColor = vec4(u_color, fresnelTerm * mixAmount);
 }
