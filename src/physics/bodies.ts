@@ -160,9 +160,9 @@ export function getLaunchFrame(
   );
   const radialHat = position.clone().normalize();
   const tangentHat = new THREE.Vector3(
-    -Math.sin(azimuthRad),
+    Math.sin(azimuthRad),
     0,
-    Math.cos(azimuthRad),
+    -Math.cos(azimuthRad),
   );
 
   return {
@@ -179,7 +179,7 @@ function getSurfaceRotationVelocity({
   const radiusFromAxisMeters = Math.hypot(position.x, position.z);
   return tangentHat
     .clone()
-    .multiplyScalar(-EARTH_ANGULAR_SPEED * radiusFromAxisMeters);
+    .multiplyScalar(EARTH_ANGULAR_SPEED * radiusFromAxisMeters);
 }
 
 export function makeInitialSimulationState(
