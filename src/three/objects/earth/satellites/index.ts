@@ -3,7 +3,7 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { EARTH_ROTATION_PERIOD, G } from "../../../../physics/bodies";
 import dracoDecoderJsUrl from "three/examples/jsm/libs/draco/gltf/draco_decoder.js?url";
-import lowPolySatelliteModelUrl from "../../../../assets/satellites/low_poly_satellite.glb?url";
+import lowPolySatelliteModelUrl from "../../../../assets/satellites/satellite_generic_lod1.glb?url";
 import { ORBIT_METERS_TO_SCENE_UNITS } from "../../constants";
 import {
   orbitalRadiusMeters,
