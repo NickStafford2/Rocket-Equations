@@ -1,5 +1,5 @@
 import { EARTH_ANGULAR_SPEED } from "../physics/bodies";
-import { syncMoonVisual } from "../three/objects/moon";
+import { syncMoonVisual } from "../three/objects/moon/moon";
 import { syncSatelliteSystem } from "../three/objects/earth/satellites";
 import { copyScenePositionFromMeters } from "../three/objects/position-scaling";
 import type { ThreeSceneBundle } from "../three/scene";

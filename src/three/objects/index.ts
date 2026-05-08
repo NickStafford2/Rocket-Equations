@@ -6,7 +6,7 @@ import { createEarthObjects } from "./earth/earth";
 import type { LaunchCloudField } from "./earth/launch-clouds";
 import { createEarthLaunchSite } from "./earth/launch-site";
 // import { createReferenceEarthObjects } from "./earthReference/object";
-import { createMoonObjects } from "./moon";
+import { createMoonObjects } from "./moon/moon";
 import { createSmokeTrail } from "./rocket/smoke-trail";
 
 export type SceneObjects = {
