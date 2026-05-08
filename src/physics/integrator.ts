@@ -16,6 +16,10 @@ import { rotateHeadingTowardTargetInPlane } from "./launch-guidance";
 
 const GUIDANCE_ANGLE_TOLERANCE_DEG = 0.75;
 const GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND = 10;
+const PITCH_HOLD_ALTITUDE_METERS = 12_000;
+const PITCH_BLEND_END_ALTITUDE_METERS = 140_000;
+const PROGRAMMED_TARGET_DIRECTION = new THREE.Vector3();
+const RADIAL_DIRECTION = new THREE.Vector3();
 
 function rotateHeadingFromManualInput(
   heading: THREE.Vector3,
@@ -42,6 +46,24 @@ function rotateHeadingFromManualInput(
     .normalize();
 }
 
+function getProgrammedTargetDirection(
+  position: THREE.Vector3,
+  targetDirection: THREE.Vector3,
+): THREE.Vector3 {
+  const altitudeEarth = altitudeAboveEarth(position, R_EARTH);
+  const blend = THREE.MathUtils.smoothstep(
+    altitudeEarth,
+    PITCH_HOLD_ALTITUDE_METERS,
+    PITCH_BLEND_END_ALTITUDE_METERS,
+  );
+
+  RADIAL_DIRECTION.copy(position).normalize();
+  return PROGRAMMED_TARGET_DIRECTION
+    .copy(RADIAL_DIRECTION)
+    .lerp(targetDirection, blend)
+    .normalize();
+}
+
 export function stepSimulation(
   state: SimulationState,
   timeWarp: number,
@@ -58,10 +80,14 @@ export function stepSimulation(
     MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
   );
   const autopilotActive = !state.guidanceComplete;
+  const programmedTargetDirection = getProgrammedTargetDirection(
+    state.rocket.position,
+    state.targetDirection,
+  );
   const heading = autopilotActive
     ? rotateHeadingTowardTargetInPlane(
         state.rocket.heading,
-        state.targetDirection,
+        programmedTargetDirection,
         turnRateDeg * timeWarp,
       )
     : rotateHeadingFromManualInput(
