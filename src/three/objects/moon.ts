@@ -34,10 +34,10 @@ const MOON_LANDING_SITE_BEACON_RADIUS =
 const MOON_LANDING_SITE_BEACON_COLOR = 0xd8d0a3;
 const MOON_LANDING_SITE_ARROW_COLOR = 0x8fbcca;
 const MOON_LANDING_SITE_MATERIAL = new THREE.MeshStandardMaterial({
-  color: 0xbdb5a4,
-  emissive: 0x231c10,
-  emissiveIntensity: 0.08,
-  roughness: 0.96,
+  color: 0x7f7b76,
+  emissive: 0x000000,
+  emissiveIntensity: 0.0,
+  roughness: 1.0,
   metalness: 0.0,
 });
 const MOON_LANDING_SITE_ARROW_DIRECTION = new THREE.Vector3(0, -1, 0);
