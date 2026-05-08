@@ -3,7 +3,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { EARTH_MOON_DISTANCE } from "../../physics/bodies";
 import moonTextureUrl from "../../assets/Nasa Moon/moon_color.png";
 import moonNormalUrl from "../../assets/Nasa Moon/moon_normal_clean2.png";
-import moonLandingSiteUrl from "../../assets/MoonSurface/Apollo 14 - Landing Site.glb?url";
+import moonPetaviusCraterUrl from "../../assets/MoonSurface/moon_petavius_crater.glb?url";
+import moonPetaviusCraterSmallUrl from "../../assets/MoonSurface/moon_petavius_crater_small.glb?url";
 import {
   ORBIT_METERS_TO_SCENE_UNITS,
   MOON_RENDER_RADIUS_SCENE_UNITS,
@@ -19,8 +20,8 @@ const MOON_TEXTURE_ALIGNMENT = new THREE.Quaternion().setFromAxisAngle(
 );
 const APOLLO_14_LATITUDE_DEGREES = 0;
 const APOLLO_14_LONGITUDE_DEGREES = 180;
-const MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS =
-  MOON_RENDER_RADIUS_SCENE_UNITS * 0.024;
+const MOON_SURFACE_FEATURE_TARGET_FOOTPRINT_SCENE_UNITS =
+  MOON_RENDER_RADIUS_SCENE_UNITS * 0.082;
 const MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS =
   MOON_RENDER_RADIUS_SCENE_UNITS * 0.0012;
 const MOON_LANDING_SITE_ORIENTATION_OFFSET = Math.PI * 0.14;
@@ -40,8 +41,10 @@ const MOON_LANDING_SITE_MATERIAL = new THREE.MeshStandardMaterial({
   metalness: 0.0,
 });
 const MOON_LANDING_SITE_ARROW_DIRECTION = new THREE.Vector3(0, -1, 0);
+const MOON_SURFACE_FEATURE_MID_LOD_DISTANCE =
+  MOON_RENDER_RADIUS_SCENE_UNITS * 3.8;
 
-let moonLandingSitePromise: Promise<THREE.Group> | null = null;
+let moonSurfaceFeaturePromise: Promise<THREE.LOD> | null = null;
 
 export function createMoonObjects(loader: THREE.TextureLoader) {
   const moonTexture = loader.load(moonTextureUrl);
@@ -141,12 +144,12 @@ function createMoonLandingSiteAnchor(): {
   const { marker, arrow } = createMoonLandingSiteMarker();
   anchor.add(marker);
 
-  void loadMoonLandingSiteModel()
-    .then((model) => {
-      anchor.add(model);
+  void loadMoonSurfaceFeatureModel()
+    .then((feature) => {
+      anchor.add(feature);
     })
     .catch((error) => {
-      console.error("Failed to load Moon landing site model.", error);
+      console.error("Failed to load Moon surface feature model.", error);
     });
 
   return { anchor, arrow };
@@ -188,51 +191,30 @@ function createMoonLandingSiteMarker(): {
   return { marker, arrow };
 }
 
-function loadMoonLandingSiteModel(): Promise<THREE.Group> {
-  if (moonLandingSitePromise) {
-    return moonLandingSitePromise.then((model) => model.clone(true));
+function loadMoonSurfaceFeatureModel(): Promise<THREE.LOD> {
+  if (moonSurfaceFeaturePromise) {
+    return moonSurfaceFeaturePromise.then((model) => model.clone(true));
   }
 
   const loader = new GLTFLoader();
-  moonLandingSitePromise = new Promise<THREE.Group>((resolve, reject) => {
-    loader.load(
-      moonLandingSiteUrl,
-      (gltf) => {
-        const model = gltf.scene;
-        const bounds = new THREE.Box3().setFromObject(model);
-        const center = bounds.getCenter(new THREE.Vector3());
-        const size = bounds.getSize(new THREE.Vector3());
-        const footprintMeters = Math.max(size.x, size.z, 1e-6);
-        const scale =
-          MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS / footprintMeters;
-
-        model.traverse((object) => {
-          const mesh = object as THREE.Mesh;
-          if (!mesh.isMesh) {
-            return;
-          }
-
-          mesh.material = MOON_LANDING_SITE_MATERIAL.clone();
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-        });
-
-        model.scale.setScalar(scale);
-        model.position.set(
-          -center.x * scale,
-          -bounds.min.y * scale,
-          -center.z * scale,
-        );
-        model.rotation.y = MOON_LANDING_SITE_ORIENTATION_OFFSET;
-
-        resolve(model);
-      },
-      undefined,
-      reject,
+  moonSurfaceFeaturePromise = Promise.all([
+    loadGltfScene(loader, moonPetaviusCraterUrl),
+    loadGltfScene(loader, moonPetaviusCraterSmallUrl),
+  ]).then(([highDetailModel, lowDetailModel]) => {
+    const lod = new THREE.LOD();
+    lod.autoUpdate = true;
+    lod.addLevel(
+      prepareMoonSurfaceFeatureModel(highDetailModel),
+      0,
     );
+    lod.addLevel(
+      prepareMoonSurfaceFeatureModel(lowDetailModel),
+      MOON_SURFACE_FEATURE_MID_LOD_DISTANCE,
+    );
+    return lod;
   });
 
-  return moonLandingSitePromise.then((model) => model.clone(true));
+  return moonSurfaceFeaturePromise.then((model) => model.clone(true));
 }
 
 function latLonToMoonLocalDirection(
@@ -271,4 +253,49 @@ function configureArrowOverlayMaterial(
     overlayMaterial.toneMapped = false;
     overlayMaterial.color?.setHex(MOON_LANDING_SITE_ARROW_COLOR);
   }
+}
+
+function loadGltfScene(
+  loader: GLTFLoader,
+  url: string,
+): Promise<THREE.Group> {
+  return new Promise<THREE.Group>((resolve, reject) => {
+    loader.load(
+      url,
+      (gltf) => resolve(gltf.scene),
+      undefined,
+      reject,
+    );
+  });
+}
+
+function prepareMoonSurfaceFeatureModel(source: THREE.Group): THREE.Group {
+  const model = source.clone(true);
+  const bounds = new THREE.Box3().setFromObject(model);
+  const center = bounds.getCenter(new THREE.Vector3());
+  const size = bounds.getSize(new THREE.Vector3());
+  const footprintMeters = Math.max(size.x, size.z, 1e-6);
+  const scale =
+    MOON_SURFACE_FEATURE_TARGET_FOOTPRINT_SCENE_UNITS / footprintMeters;
+
+  model.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) {
+      return;
+    }
+
+    mesh.material = MOON_LANDING_SITE_MATERIAL.clone();
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  });
+
+  model.scale.setScalar(scale);
+  model.position.set(
+    -center.x * scale,
+    -bounds.min.y * scale,
+    -center.z * scale,
+  );
+  model.rotation.y = MOON_LANDING_SITE_ORIENTATION_OFFSET;
+
+  return model;
 }
