@@ -18,7 +18,7 @@ const MOON_TEXTURE_ALIGNMENT = new THREE.Quaternion().setFromAxisAngle(
   Math.PI * 1.55,
 );
 const APOLLO_14_LATITUDE_DEGREES = -3.65;
-const APOLLO_14_LONGITUDE_DEGREES = -17.47;
+const APOLLO_14_LONGITUDE_DEGREES = -17.47 + 220;
 const MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS =
   MOON_RENDER_RADIUS_SCENE_UNITS * 0.24;
 const MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS =
@@ -136,7 +136,8 @@ function createMoonLandingSiteAnchor(): THREE.Group {
   anchor.position
     .copy(surfaceNormal)
     .multiplyScalar(
-      MOON_RENDER_RADIUS_SCENE_UNITS + MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS,
+      MOON_RENDER_RADIUS_SCENE_UNITS +
+        MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS,
     );
   anchor.quaternion.setFromUnitVectors(MOON_LOCAL_UP, surfaceNormal);
   anchor.add(createMoonLandingSitePad());
@@ -217,9 +218,7 @@ function createMoonLandingSiteMarker(): THREE.Group {
   return marker;
 }
 
-function configureOverlayMaterial(
-  material: THREE.Material | THREE.Material[],
-) {
+function configureOverlayMaterial(material: THREE.Material | THREE.Material[]) {
   const materials = Array.isArray(material) ? material : [material];
   for (const entry of materials) {
     entry.depthTest = false;
