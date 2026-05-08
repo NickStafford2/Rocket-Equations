@@ -3,6 +3,7 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { EARTH_ROTATION_PERIOD, G } from "../../../../physics/bodies";
 import dracoDecoderJsUrl from "three/examples/jsm/libs/draco/gltf/draco_decoder.js?url";
+import lowPolySatelliteModelUrl from "../../../../assets/satellites/low_poly_satellite.glb?url";
 import { ORBIT_METERS_TO_SCENE_UNITS } from "../../constants";
 import {
   orbitalRadiusMeters,
@@ -37,9 +38,15 @@ type CreateSatelliteSystemOptions = {
   definitions: SatelliteDefinition[];
 };
 
+const SATELLITE_LOW_DETAIL_MIN_DISTANCE = 4;
+const SATELLITE_LOW_DETAIL_DISTANCE_MULTIPLIER = 20;
+
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderConfig({ type: "js" });
 dracoLoader.setDecoderPath(DRACO_DECODER_PATH);
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+const sceneCache = new Map<string, Promise<THREE.Group>>();
 
 export function createSatelliteSystem({
   name = "satellite-system",
@@ -115,46 +122,79 @@ function loadSatelliteModel(
   definition: SatelliteDefinition,
   body: SatelliteSystemBody,
 ) {
-  const loader = new GLTFLoader();
-  loader.setDRACOLoader(dracoLoader);
-
-  loader.load(
-    definition.modelUrl,
-    (gltf) => {
-      const satelliteModel = gltf.scene;
-
-      satelliteModel.traverse((object) => {
-        const mesh = object as THREE.Mesh;
-        if (!mesh.isMesh) {
-          return;
-        }
-
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-      });
+  Promise.all([
+    loadGltfScene(definition.modelUrl),
+    loadGltfScene(lowPolySatelliteModelUrl),
+  ]).then(
+    ([highDetailSource, lowDetailSource]) => {
+      const lod = new THREE.LOD();
+      lod.autoUpdate = true;
+      lod.addLevel(prepareSatelliteModel(highDetailSource, body), 0);
+      lod.addLevel(
+        prepareSatelliteModel(lowDetailSource, body),
+        getSatelliteLodDistance(body),
+      );
 
       modelRoot.clear();
-      modelRoot.add(satelliteModel);
-
-      modelRoot.updateMatrixWorld(true);
-      const bounds = new THREE.Box3().setFromObject(modelRoot);
-      const size = bounds.getSize(MODEL_SIZE);
-      const maxDimension = Math.max(size.x, size.y, size.z, 1e-6);
-      const targetSize =
-        body.targetSizeSceneUnits ?? SATELLITE_TARGET_SIZE_SCENE_UNITS;
-      const scale = targetSize / maxDimension;
-      modelRoot.scale.setScalar(scale);
-
-      modelRoot.rotation.x = Math.PI * 0.5;
-      modelRoot.rotation.z = Math.PI;
+      modelRoot.add(lod);
     },
-    undefined,
     (error) => {
       console.error(
         `Failed to load satellite model "${definition.label}".`,
         error,
       );
     },
+  );
+}
+
+function loadGltfScene(url: string): Promise<THREE.Group> {
+  let scenePromise = sceneCache.get(url);
+
+  if (!scenePromise) {
+    scenePromise = new Promise<THREE.Group>((resolve, reject) => {
+      gltfLoader.load(url, (gltf) => resolve(gltf.scene), undefined, reject);
+    });
+    sceneCache.set(url, scenePromise);
+  }
+
+  return scenePromise.then((scene) => scene.clone(true));
+}
+
+function prepareSatelliteModel(
+  source: THREE.Group,
+  body: SatelliteSystemBody,
+): THREE.Group {
+  const satelliteModel = source.clone(true);
+
+  satelliteModel.traverse((object) => {
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) {
+      return;
+    }
+
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  });
+
+  const bounds = new THREE.Box3().setFromObject(satelliteModel);
+  const size = bounds.getSize(MODEL_SIZE);
+  const maxDimension = Math.max(size.x, size.y, size.z, 1e-6);
+  const targetSize = body.targetSizeSceneUnits ?? SATELLITE_TARGET_SIZE_SCENE_UNITS;
+  const scale = targetSize / maxDimension;
+
+  satelliteModel.scale.setScalar(scale);
+  satelliteModel.rotation.x = Math.PI * 0.5;
+  satelliteModel.rotation.z = Math.PI;
+
+  return satelliteModel;
+}
+
+function getSatelliteLodDistance(body: SatelliteSystemBody) {
+  const targetSize = body.targetSizeSceneUnits ?? SATELLITE_TARGET_SIZE_SCENE_UNITS;
+
+  return Math.max(
+    SATELLITE_LOW_DETAIL_MIN_DISTANCE,
+    targetSize * SATELLITE_LOW_DETAIL_DISTANCE_MULTIPLIER,
   );
 }
 

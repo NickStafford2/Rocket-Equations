@@ -39,6 +39,13 @@ export type SatelliteDefinition = {
   orbit: SatelliteOrbitDefinition;
 };
 
+type EarthSatelliteTemplate = {
+  id: string;
+  label: string;
+  modelUrl: string;
+  orbit: SatelliteOrbitDefinition;
+};
+
 type MoonSatelliteTemplate = {
   id: string;
   label: string;
@@ -54,7 +61,7 @@ type MoonSatelliteTemplate = {
 
 export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
 
-export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
   {
     id: "acrimsat",
     label: "AcrimSAT",
@@ -160,6 +167,16 @@ export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
   },
 ];
 
+export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
+  EARTH_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
+    Array.from({ length: 20 }, (_, index) => ({
+      id: `${template.id}-${index + 1}`,
+      label: `${template.label} ${index + 1}`,
+      modelUrl: template.modelUrl,
+      orbit: expandEarthOrbit(template.orbit, index, templateIndex),
+    })),
+  );
+
 export function geosynchronousOrbitRadiusMeters(
   primaryMassKg: number,
   periodSeconds: number,
@@ -242,3 +259,46 @@ export const MOON_SATELLITE_BODY = {
   radiusMeters: R_MOON,
   primaryMassKg: M_MOON,
 };
+
+function expandEarthOrbit(
+  orbit: SatelliteOrbitDefinition,
+  index: number,
+  templateIndex: number,
+): SatelliteOrbitDefinition {
+  if (orbit.type === "earth-l2") {
+    return {
+      ...orbit,
+      distanceMeters: (orbit.distanceMeters ?? 1_500_000_000) + index * 9_000_000,
+    };
+  }
+
+  if (orbit.type === "deep-space") {
+    return {
+      ...orbit,
+      distanceMeters:
+        (orbit.distanceMeters ?? EARTH_MOON_DISTANCE * 5.75) + index * 7_500_000,
+      longitudeDeg: ((orbit.longitudeDeg ?? 0) + index * 17 + templateIndex * 9) % 360,
+      phaseDeg: ((orbit.phaseDeg ?? 0) + index * 18 + templateIndex * 7) % 360,
+      inclinationDeg:
+        ((orbit.inclinationDeg ?? 0) + ((index % 5) - 2) * 2.5 + 180) % 180,
+    };
+  }
+
+  if (orbit.type === "geosynchronous") {
+    return {
+      ...orbit,
+      longitudeDeg:
+        ((orbit.longitudeDeg ?? 0) + index * 18 + templateIndex * 11) % 360,
+    };
+  }
+
+  return {
+    ...orbit,
+    altitudeMeters: (orbit.altitudeMeters ?? 0) + index * 45_000 + templateIndex * 9_000,
+    ascendingNodeDeg:
+      ((orbit.ascendingNodeDeg ?? 0) + index * 19 + templateIndex * 13) % 360,
+    phaseDeg: ((orbit.phaseDeg ?? 0) + index * 18 + templateIndex * 9) % 360,
+    inclinationDeg:
+      Math.max(0, Math.min(179, (orbit.inclinationDeg ?? 0) + ((index % 6) - 3) * 1.4)),
+  };
+}
