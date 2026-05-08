@@ -15,6 +15,7 @@ import { createSatelliteSystem } from "./satellites";
 
 const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
 const SHOW_PLANETARY_CLOUDS = true;
+const SHOW_EARTH_FRESNEL = false;
 const EARTH_NEAR_SEGMENTS = 128;
 const EARTH_MID_SEGMENTS = 64;
 const EARTH_FAR_SEGMENTS = 24;
@@ -61,8 +62,10 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
   const earthAtmosphere = createEarthAtmosphereMesh();
   const earthFresnel = createEarthFresnelMesh();
   earthRotatingFrame.add(earthAtmosphere);
-  earthFresnel.rotation.y = EARTH_BASE_ROTATION_Y;
-  earthRotatingFrame.add(earthFresnel);
+  if (SHOW_EARTH_FRESNEL) {
+    earthFresnel.rotation.y = EARTH_BASE_ROTATION_Y;
+    earthRotatingFrame.add(earthFresnel);
+  }
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
