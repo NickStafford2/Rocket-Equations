@@ -98,7 +98,8 @@ export function makeInitialRocketState(
   launchAzimuthDeg: number = ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
   altitude: number = ROCKET_DEFAULT_EARTH_ALTITUDE,
 ): BodyState {
-  const { position } = getLaunchFrame(altitude, launchAzimuthDeg);
+  const launchFrame = getLaunchFrame(altitude, launchAzimuthDeg);
+  const { position } = launchFrame;
   const direction = getTargetLaunchDirection(
     angleDeg,
     launchAzimuthDeg,
@@ -107,7 +108,9 @@ export function makeInitialRocketState(
 
   return {
     position,
-    velocity: direction.clone().multiplyScalar(speed),
+    velocity: getSurfaceRotationVelocity(launchFrame).add(
+      direction.clone().multiplyScalar(speed),
+    ),
     acceleration: new THREE.Vector3(),
     heading: direction,
   };
@@ -117,11 +120,12 @@ export function makeVerticalLaunchRocketState(
   launchAzimuthDeg: number = ROCKET_DEFAULT_LAUNCH_AZIMUTH_DEG,
   altitude: number = ROCKET_DEFAULT_EARTH_ALTITUDE,
 ): BodyState {
-  const { position, radialHat } = getLaunchFrame(altitude, launchAzimuthDeg);
+  const launchFrame = getLaunchFrame(altitude, launchAzimuthDeg);
+  const { position, radialHat } = launchFrame;
 
   return {
     position,
-    velocity: new THREE.Vector3(),
+    velocity: getSurfaceRotationVelocity(launchFrame),
     acceleration: new THREE.Vector3(),
     heading: radialHat,
   };
@@ -166,6 +170,16 @@ export function getLaunchFrame(
     radialHat,
     tangentHat,
   };
+}
+
+function getSurfaceRotationVelocity({
+  position,
+  tangentHat,
+}: LaunchFrame): THREE.Vector3 {
+  const radiusFromAxisMeters = Math.hypot(position.x, position.z);
+  return tangentHat
+    .clone()
+    .multiplyScalar(-EARTH_ANGULAR_SPEED * radiusFromAxisMeters);
 }
 
 export function makeInitialSimulationState(
