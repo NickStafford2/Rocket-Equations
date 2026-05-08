@@ -40,8 +40,8 @@ type CreateSatelliteSystemOptions = {
   definitions: SatelliteDefinition[];
 };
 
-const SATELLITE_LOW_DETAIL_MIN_DISTANCE = 4;
-const SATELLITE_LOW_DETAIL_DISTANCE_MULTIPLIER = 20;
+const SATELLITE_LOW_DETAIL_MIN_DISTANCE = 12;
+const SATELLITE_LOW_DETAIL_DISTANCE_MULTIPLIER = 64;
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderConfig({ type: "js" });

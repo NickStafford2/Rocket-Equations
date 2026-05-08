@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {
+  DEFAULT_TIME_WARP,
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
   MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
@@ -18,13 +19,15 @@ const GUIDANCE_ANGLE_TOLERANCE_DEG = 0.75;
 const GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND = 10;
 const PITCH_HOLD_ALTITUDE_METERS = 12_000;
 const PITCH_BLEND_END_ALTITUDE_METERS = 140_000;
+const MANUAL_TURN_RATE_WARP_NORMALIZER = DEFAULT_TIME_WARP;
+const MANUAL_TURN_RATE_MULTIPLIER = 5;
 const PROGRAMMED_TARGET_DIRECTION = new THREE.Vector3();
 const RADIAL_DIRECTION = new THREE.Vector3();
 
 function rotateHeadingFromManualInput(
   heading: THREE.Vector3,
   turn: ManeuverInput["turn"],
-  timeWarp: number,
+  elapsedControlSeconds: number,
   turnRateDeg: number,
 ): THREE.Vector3 {
   const planarHeading = heading.clone().setY(0);
@@ -41,7 +44,13 @@ function rotateHeadingFromManualInput(
   return planarHeading
     .applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
-      THREE.MathUtils.degToRad(turn * turnRateDeg * timeWarp),
+      THREE.MathUtils.degToRad(
+        turn *
+          turnRateDeg *
+          MANUAL_TURN_RATE_WARP_NORMALIZER *
+          MANUAL_TURN_RATE_MULTIPLIER *
+          elapsedControlSeconds,
+      ),
     )
     .normalize();
 }
@@ -66,14 +75,20 @@ function getProgrammedTargetDirection(
 
 export function stepSimulation(
   state: SimulationState,
-  timeWarp: number,
+  timeStepSeconds: number,
   input: ManeuverInput,
   targetSpeed: number,
   thrustAcceleration: number = DEFAULT_THRUST_ACCELERATION,
   turnRateDeg: number = DEFAULT_TURN_RATE_DEG,
   surfaceContactOffsetMeters: number = 0,
+  controlTimeWarp: number = 1,
 ): SimulationState {
   if (state.impact) return state;
+
+  const elapsedControlSeconds =
+    Number.isFinite(controlTimeWarp) && controlTimeWarp > 0
+      ? timeStepSeconds / controlTimeWarp
+      : timeStepSeconds;
 
   const requiredGuidanceSpeed = Math.max(
     targetSpeed,
@@ -88,12 +103,12 @@ export function stepSimulation(
     ? rotateHeadingTowardTargetInPlane(
         state.rocket.heading,
         programmedTargetDirection,
-        turnRateDeg * timeWarp,
+        turnRateDeg * timeStepSeconds,
       )
     : rotateHeadingFromManualInput(
         state.rocket.heading,
         input.turn,
-        timeWarp,
+        elapsedControlSeconds,
         turnRateDeg,
       );
   const directionReached =
@@ -129,10 +144,14 @@ export function stepSimulation(
   ).add(thrustVector.clone());
 
   next.rocket.position
-    .add(next.rocket.velocity.clone().multiplyScalar(timeWarp))
-    .add(initialAcceleration.clone().multiplyScalar(0.5 * timeWarp * timeWarp));
+    .add(next.rocket.velocity.clone().multiplyScalar(timeStepSeconds))
+    .add(
+      initialAcceleration
+        .clone()
+        .multiplyScalar(0.5 * timeStepSeconds * timeStepSeconds),
+    );
 
-  const nextTime = next.t + timeWarp;
+  const nextTime = next.t + timeStepSeconds;
   const nextMoonPos = moonPositionMeters(nextTime);
   const nextAcceleration = gravitationalAccelerationMeters(
     next.rocket.position,
@@ -140,7 +159,9 @@ export function stepSimulation(
   ).add(thrustVector);
 
   next.rocket.velocity.add(
-    initialAcceleration.add(nextAcceleration).multiplyScalar(0.5 * timeWarp),
+    initialAcceleration
+      .add(nextAcceleration)
+      .multiplyScalar(0.5 * timeStepSeconds),
   );
   next.rocket.acceleration.copy(nextAcceleration);
   next.t = nextTime;

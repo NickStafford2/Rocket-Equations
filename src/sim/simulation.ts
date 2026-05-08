@@ -153,6 +153,7 @@ export class EarthMoonSimulation {
         getThrustAccelerationForTime(rocketSpec, this.state.t),
         this.config.turnRateDeg,
         this.getSurfaceContactOffsetMeters(moonPosition),
+        this.config.timeWarp,
       );
       this.appendTrailPoint(this.state.rocket.position);
       this.updateFlightExtrema();
