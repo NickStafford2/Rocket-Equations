@@ -44,6 +44,7 @@ type EarthSatelliteTemplate = {
   label: string;
   modelUrl: string;
   orbit: SatelliteOrbitDefinition;
+  instanceCount?: number;
 };
 
 type MoonSatelliteTemplate = {
@@ -130,6 +131,7 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     id: "jwst",
     label: "JWST",
     modelUrl: jwstModelUrl,
+    instanceCount: 12,
     orbit: {
       type: "circular",
       altitudeMeters: 1_500_000_000 - R_EARTH,
@@ -180,7 +182,7 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
 
 export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
   EARTH_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
-    Array.from({ length: 200 }, (_, index) => ({
+    Array.from({ length: template.instanceCount ?? 200 }, (_, index) => ({
       id: `${template.id}-${index + 1}`,
       label: `${template.label} ${index + 1}`,
       modelUrl: template.modelUrl,
