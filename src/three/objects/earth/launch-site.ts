@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import earthLaunchSiteUrl from "../../../assets/EarthLaunch/EarthLaunchSite.glb?url";
+import earthIslandUrl from "../../../assets/EarthLaunch/island.glb?url";
 import {
   ORBIT_METERS_TO_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
@@ -11,6 +12,7 @@ import {
 } from "./launch-clouds";
 
 let launchSitePromise: Promise<THREE.Group> | null = null;
+let islandPromise: Promise<THREE.Group> | null = null;
 const SHOW_LAUNCH_SITE_DEBUG_MARKER = false;
 const LAUNCH_SITE_DEBUG_AXES_SIZE =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
@@ -37,6 +39,14 @@ export function createEarthLaunchSite(): EarthLaunchSiteBundle {
     })
     .catch((error) => {
       console.error("Failed to load Earth launch site model.", error);
+    });
+
+  void loadIslandModel()
+    .then((model) => {
+      root.add(model);
+    })
+    .catch((error) => {
+      console.error("Failed to load Earth island model.", error);
     });
 
   return {
@@ -82,10 +92,27 @@ function loadLaunchSiteModel(): Promise<THREE.Group> {
     return launchSitePromise.then((model) => model.clone(true));
   }
 
+  launchSitePromise = loadScaledSceneModel(earthLaunchSiteUrl);
+
+  return launchSitePromise.then((model) => model.clone(true));
+}
+
+function loadIslandModel(): Promise<THREE.Group> {
+  if (islandPromise) {
+    return islandPromise.then((model) => model.clone(true));
+  }
+
+  islandPromise = loadScaledSceneModel(earthIslandUrl);
+
+  return islandPromise.then((model) => model.clone(true));
+}
+
+function loadScaledSceneModel(url: string): Promise<THREE.Group> {
   const loader = new GLTFLoader();
-  launchSitePromise = new Promise<THREE.Group>((resolve, reject) => {
+
+  return new Promise<THREE.Group>((resolve, reject) => {
     loader.load(
-      earthLaunchSiteUrl,
+      url,
       (gltf) => {
         const model = gltf.scene;
 
@@ -107,6 +134,4 @@ function loadLaunchSiteModel(): Promise<THREE.Group> {
       reject,
     );
   });
-
-  return launchSitePromise.then((model) => model.clone(true));
 }
