@@ -17,6 +17,8 @@ const MODEL_SIZE = new THREE.Vector3();
 const ORBIT_POSITION = new THREE.Vector3();
 const ORBIT_X_AXIS = new THREE.Vector3(1, 0, 0);
 const ORBIT_Y_AXIS = new THREE.Vector3(0, 1, 0);
+const RANDOM_FORWARD = new THREE.Vector3(0, 0, 1);
+const RANDOM_TARGET = new THREE.Vector3();
 const SUN_DIRECTION = SUN_POSITION.clone().normalize();
 const ANTI_SUN_DIRECTION = SUN_DIRECTION.clone().multiplyScalar(-1);
 const DRACO_DECODER_PATH = dracoDecoderJsUrl.replace(
@@ -103,6 +105,7 @@ function createSatellite(
   satellite.position.copy(resolveSatellitePosition(definition, body, 0));
 
   const modelRoot = new THREE.Group();
+  modelRoot.quaternion.copy(createDeterministicSatelliteQuaternion(definition.id));
   satellite.add(modelRoot);
   loadSatelliteModel(modelRoot, definition, body);
 
@@ -196,6 +199,48 @@ function getSatelliteLodDistance(body: SatelliteSystemBody) {
     SATELLITE_LOW_DETAIL_MIN_DISTANCE,
     targetSize * SATELLITE_LOW_DETAIL_DISTANCE_MULTIPLIER,
   );
+}
+
+function createDeterministicSatelliteQuaternion(id: string) {
+  const baseSeed = hashString(id);
+  const x = pseudoRandomSigned(baseSeed + 1);
+  const y = pseudoRandomSigned(baseSeed + 2);
+  const z = pseudoRandomSigned(baseSeed + 3);
+  const roll = pseudoRandom01(baseSeed + 4) * Math.PI * 2;
+  const direction = RANDOM_TARGET.set(x, y, z).normalize();
+
+  if (direction.lengthSq() < 1e-6) {
+    direction.set(0, 1, 0);
+  }
+
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(
+    RANDOM_FORWARD,
+    direction,
+  );
+
+  return quaternion.multiply(
+    new THREE.Quaternion().setFromAxisAngle(direction, roll),
+  );
+}
+
+function hashString(value: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function pseudoRandom01(seed: number) {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453123;
+  return value - Math.floor(value);
+}
+
+function pseudoRandomSigned(seed: number) {
+  return pseudoRandom01(seed) * 2 - 1;
 }
 
 function resolveSatellitePosition(
