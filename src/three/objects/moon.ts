@@ -20,34 +20,19 @@ const MOON_TEXTURE_ALIGNMENT = new THREE.Quaternion().setFromAxisAngle(
 const APOLLO_14_LATITUDE_DEGREES = -3.65;
 const APOLLO_14_LONGITUDE_DEGREES = -17.47 + 220;
 const MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS =
-  MOON_RENDER_RADIUS_SCENE_UNITS * 0.24;
+  MOON_RENDER_RADIUS_SCENE_UNITS * 0.024;
 const MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS =
   MOON_RENDER_RADIUS_SCENE_UNITS * 0.006;
 const MOON_LANDING_SITE_ORIENTATION_OFFSET = Math.PI * 0.14;
 const MOON_LANDING_SITE_MARKER_HEIGHT = MOON_RENDER_RADIUS_SCENE_UNITS * 0.55;
 const MOON_LANDING_SITE_BEACON_RADIUS =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6;
-const MOON_LANDING_SITE_PAD_RADIUS =
-  MOON_LANDING_SITE_TARGET_FOOTPRINT_SCENE_UNITS * 0.62;
 const MOON_LANDING_SITE_MATERIAL = new THREE.MeshStandardMaterial({
   color: 0xd5d0c4,
   emissive: 0x6a5d34,
   emissiveIntensity: 0.38,
   roughness: 0.92,
   metalness: 0.0,
-});
-const MOON_LANDING_SITE_PAD_MATERIAL = new THREE.MeshBasicMaterial({
-  color: 0xffb347,
-  transparent: true,
-  opacity: 0.34,
-  depthWrite: false,
-});
-const MOON_LANDING_SITE_RING_MATERIAL = new THREE.MeshBasicMaterial({
-  color: 0xfff3b0,
-  transparent: true,
-  opacity: 0.92,
-  depthWrite: false,
-  side: THREE.DoubleSide,
 });
 
 let moonLandingSitePromise: Promise<THREE.Group> | null = null;
@@ -140,7 +125,6 @@ function createMoonLandingSiteAnchor(): THREE.Group {
         MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS,
     );
   anchor.quaternion.setFromUnitVectors(MOON_LOCAL_UP, surfaceNormal);
-  anchor.add(createMoonLandingSitePad());
   anchor.add(createMoonLandingSiteMarker());
 
   void loadMoonLandingSiteModel()
@@ -152,33 +136,6 @@ function createMoonLandingSiteAnchor(): THREE.Group {
     });
 
   return anchor;
-}
-
-function createMoonLandingSitePad(): THREE.Group {
-  const pad = new THREE.Group();
-
-  const filledDisk = new THREE.Mesh(
-    new THREE.CircleGeometry(MOON_LANDING_SITE_PAD_RADIUS, 64),
-    MOON_LANDING_SITE_PAD_MATERIAL,
-  );
-  filledDisk.rotation.x = -Math.PI / 2;
-  filledDisk.renderOrder = 12;
-  pad.add(filledDisk);
-
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(
-      MOON_LANDING_SITE_PAD_RADIUS * 0.78,
-      MOON_LANDING_SITE_PAD_RADIUS,
-      64,
-    ),
-    MOON_LANDING_SITE_RING_MATERIAL,
-  );
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.002;
-  ring.renderOrder = 13;
-  pad.add(ring);
-
-  return pad;
 }
 
 function createMoonLandingSiteMarker(): THREE.Group {
