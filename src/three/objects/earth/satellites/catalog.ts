@@ -60,6 +60,9 @@ type MoonSatelliteTemplate = {
 };
 
 export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
+const LEO_MIN_ALTITUDE_METERS = 220_000;
+const LEO_CLUSTER_MAX_ALTITUDE_METERS = 1_850_000;
+const MEO_CLUSTER_MAX_ALTITUDE_METERS = 24_000_000;
 
 const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
   {
@@ -124,8 +127,11 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     label: "JWST",
     modelUrl: jwstModelUrl,
     orbit: {
-      type: "earth-l2",
-      distanceMeters: 1_500_000_000,
+      type: "circular",
+      altitudeMeters: 1_500_000_000 - R_EARTH,
+      inclinationDeg: 5.2,
+      ascendingNodeDeg: 210,
+      phaseDeg: 12,
     },
   },
   {
@@ -134,7 +140,8 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     modelUrl: tessModelUrl,
     orbit: {
       type: "circular",
-      periodSeconds: 13.7 * 24 * 3600,
+      altitudeMeters:
+        geosynchronousOrbitRadiusMeters(M_EARTH, 13.7 * 24 * 3600) - R_EARTH,
       inclinationDeg: 40,
       ascendingNodeDeg: 156,
       phaseDeg: 18,
@@ -146,7 +153,8 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     modelUrl: vanAllenModelUrl,
     orbit: {
       type: "circular",
-      periodSeconds: 9 * 3600,
+      altitudeMeters:
+        geosynchronousOrbitRadiusMeters(M_EARTH, 9 * 3600) - R_EARTH,
       inclinationDeg: 11,
       ascendingNodeDeg: 318,
       phaseDeg: 248,
@@ -157,11 +165,10 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     label: "Voyager",
     modelUrl: voyagerModelUrl,
     orbit: {
-      type: "deep-space",
-      distanceMeters: EARTH_MOON_DISTANCE * 5.75,
+      type: "circular",
+      altitudeMeters: EARTH_MOON_DISTANCE * 5.75 - R_EARTH,
       inclinationDeg: 24,
-      longitudeDeg: 304,
-      driftPeriodSeconds: 36 * 24 * 3600,
+      ascendingNodeDeg: 304,
       phaseDeg: 0,
     },
   },
@@ -293,12 +300,88 @@ function expandEarthOrbit(
   }
 
   return {
-    ...orbit,
-    altitudeMeters: (orbit.altitudeMeters ?? 0) + index * 45_000 + templateIndex * 9_000,
+    type: "circular",
+    altitudeMeters: sampleClusteredEarthAltitudeMeters(
+      orbit,
+      index,
+      templateIndex,
+    ),
     ascendingNodeDeg:
       ((orbit.ascendingNodeDeg ?? 0) + index * 19 + templateIndex * 13) % 360,
     phaseDeg: ((orbit.phaseDeg ?? 0) + index * 18 + templateIndex * 9) % 360,
     inclinationDeg:
       Math.max(0, Math.min(179, (orbit.inclinationDeg ?? 0) + ((index % 6) - 3) * 1.4)),
+    direction: orbit.direction,
   };
+}
+
+function circularBaseAltitudeMeters(
+  orbit: SatelliteOrbitDefinition,
+  bodyRadiusMeters: number,
+  primaryMassKg: number,
+  defaultPeriodSeconds: number,
+) {
+  if (orbit.altitudeMeters != null) {
+    return orbit.altitudeMeters;
+  }
+
+  if (orbit.distanceMeters != null) {
+    return orbit.distanceMeters - bodyRadiusMeters;
+  }
+
+  if (orbit.periodSeconds != null) {
+    return (
+      geosynchronousOrbitRadiusMeters(primaryMassKg, orbit.periodSeconds) -
+      bodyRadiusMeters
+    );
+  }
+
+  return (
+    geosynchronousOrbitRadiusMeters(primaryMassKg, defaultPeriodSeconds) -
+    bodyRadiusMeters
+  );
+}
+
+function sampleClusteredEarthAltitudeMeters(
+  orbit: SatelliteOrbitDefinition,
+  index: number,
+  templateIndex: number,
+) {
+  const seed = templateIndex * 10_000 + index * 97 + 17;
+  const bandRoll = pseudoRandom01(seed);
+  const offsetRoll = pseudoRandom01(seed + 1);
+  const jitterRoll = pseudoRandom01(seed + 2) - 0.5;
+
+  if (bandRoll < 0.86) {
+    const altitude =
+      LEO_MIN_ALTITUDE_METERS +
+      Math.pow(offsetRoll, 2.9) *
+        (LEO_CLUSTER_MAX_ALTITUDE_METERS - LEO_MIN_ALTITUDE_METERS);
+    return Math.max(LEO_MIN_ALTITUDE_METERS, altitude + jitterRoll * 36_000);
+  }
+
+  if (bandRoll < 0.97) {
+    const altitude =
+      LEO_CLUSTER_MAX_ALTITUDE_METERS +
+      Math.pow(offsetRoll, 1.8) *
+        (MEO_CLUSTER_MAX_ALTITUDE_METERS - LEO_CLUSTER_MAX_ALTITUDE_METERS);
+    return Math.max(LEO_MIN_ALTITUDE_METERS, altitude + jitterRoll * 180_000);
+  }
+
+  const baseAltitude = circularBaseAltitudeMeters(
+    orbit,
+    R_EARTH,
+    M_EARTH,
+    EARTH_ROTATION_PERIOD,
+  );
+
+  return Math.max(
+    LEO_MIN_ALTITUDE_METERS,
+    baseAltitude * (1 + jitterRoll * 0.08),
+  );
+}
+
+function pseudoRandom01(seed: number) {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453123;
+  return value - Math.floor(value);
 }
