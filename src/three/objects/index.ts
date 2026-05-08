@@ -73,9 +73,10 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const smokeTrail = createSmokeTrail();
   system.add(smokeTrail);
 
+  earthRotatingFrame.add(earthLaunchSite);
+
   // Add other objects
   system.add(earthGroup);
-  system.add(earthLaunchSite);
   system.add(moon);
   system.add(rocket);
   system.add(launchRing);
