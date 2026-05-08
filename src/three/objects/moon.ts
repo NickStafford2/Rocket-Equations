@@ -25,8 +25,6 @@ const MOON_LANDING_SITE_SURFACE_LIFT_SCENE_UNITS =
   MOON_RENDER_RADIUS_SCENE_UNITS * 0.006;
 const MOON_LANDING_SITE_ORIENTATION_OFFSET = Math.PI * 0.14;
 const MOON_LANDING_SITE_MARKER_HEIGHT = MOON_RENDER_RADIUS_SCENE_UNITS * 0.55;
-const MOON_LANDING_SITE_LABEL_HIDE_DISTANCE =
-  MOON_RENDER_RADIUS_SCENE_UNITS * 2.1;
 const MOON_LANDING_SITE_BEACON_RADIUS =
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 1.6;
 const MOON_LANDING_SITE_MATERIAL = new THREE.MeshStandardMaterial({
@@ -142,7 +140,6 @@ function createMoonLandingSiteAnchor(): THREE.Group {
 
 function createMoonLandingSiteMarker(): THREE.Group {
   const marker = new THREE.Group();
-  const markerWorldPosition = new THREE.Vector3();
 
   const beacon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_LANDING_SITE_BEACON_RADIUS, 18, 18),
@@ -155,24 +152,6 @@ function createMoonLandingSiteMarker(): THREE.Group {
   beacon.position.y = MOON_LANDING_SITE_MARKER_HEIGHT;
   beacon.renderOrder = 20;
   marker.add(beacon);
-
-  const label = createBodyLabelSprite("Apollo 14 Site", {
-    borderColor: "rgba(90, 242, 255, 0.95)",
-  });
-  label.position.set(0, MOON_LANDING_SITE_MARKER_HEIGHT + 2.3, 0);
-  label.scale.set(12, 4.5, 1);
-  marker.add(label);
-
-  marker.onBeforeRender = (
-    _renderer,
-    _scene,
-    camera,
-  ) => {
-    marker.getWorldPosition(markerWorldPosition);
-    label.visible =
-      camera.position.distanceTo(markerWorldPosition) >=
-      MOON_LANDING_SITE_LABEL_HIDE_DISTANCE;
-  };
 
   return marker;
 }
