@@ -141,18 +141,6 @@ function createMoonLandingSiteAnchor(): THREE.Group {
 function createMoonLandingSiteMarker(): THREE.Group {
   const marker = new THREE.Group();
 
-  const arrow = new THREE.ArrowHelper(
-    new THREE.Vector3(0, -1, 0),
-    new THREE.Vector3(0, MOON_LANDING_SITE_MARKER_HEIGHT, 0),
-    MOON_LANDING_SITE_MARKER_HEIGHT,
-    0x5af2ff,
-    MOON_LANDING_SITE_MARKER_HEIGHT * 0.28,
-    MOON_LANDING_SITE_MARKER_HEIGHT * 0.14,
-  );
-  configureOverlayMaterial(arrow.line.material);
-  configureOverlayMaterial(arrow.cone.material);
-  marker.add(arrow);
-
   const beacon = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_LANDING_SITE_BEACON_RADIUS, 18, 18),
     new THREE.MeshBasicMaterial({
@@ -173,14 +161,6 @@ function createMoonLandingSiteMarker(): THREE.Group {
   marker.add(label);
 
   return marker;
-}
-
-function configureOverlayMaterial(material: THREE.Material | THREE.Material[]) {
-  const materials = Array.isArray(material) ? material : [material];
-  for (const entry of materials) {
-    entry.depthTest = false;
-    entry.depthWrite = false;
-  }
 }
 
 function loadMoonLandingSiteModel(): Promise<THREE.Group> {
