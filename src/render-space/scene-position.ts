@@ -1,21 +1,14 @@
 import * as THREE from "three";
 import { R_EARTH, R_MOON } from "../physics/bodies";
+import type {
+  RenderSpaceAnchor,
+  RenderSpaceContext,
+} from "./frame";
 import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   MOON_RENDER_RADIUS_SCENE_UNITS,
   ORBIT_METERS_TO_SCENE_UNITS,
 } from "../three/objects/constants";
-
-export type RenderSpaceAnchor = "earth" | "moon";
-export type RenderSpacePolicy = "focus-anchor";
-
-export type RenderSpaceContext = {
-  mode: "body-surface-local";
-  policy: RenderSpacePolicy;
-  anchor: RenderSpaceAnchor;
-  focusPositionMeters: THREE.Vector3;
-  moonPositionMeters: THREE.Vector3 | null;
-};
 
 type BodyRenderFrame = {
   centerMeters: THREE.Vector3;
@@ -26,39 +19,6 @@ type BodyRenderFrame = {
 const EARTH_CENTER_METERS = new THREE.Vector3();
 const BODY_RELATIVE_POSITION = new THREE.Vector3();
 const SCENE_POSITION = new THREE.Vector3();
-
-export function createRenderSpaceContext({
-  focusPositionMeters,
-  moonPositionMeters,
-}: {
-  focusPositionMeters: THREE.Vector3;
-  moonPositionMeters: THREE.Vector3 | null;
-}): RenderSpaceContext {
-  const nextMoonPosition = moonPositionMeters?.clone() ?? null;
-  const nextFocusPosition = focusPositionMeters.clone();
-
-  return {
-    mode: "body-surface-local",
-    policy: "focus-anchor",
-    anchor: selectRenderSpaceAnchor(nextFocusPosition, nextMoonPosition),
-    focusPositionMeters: nextFocusPosition,
-    moonPositionMeters: nextMoonPosition,
-  };
-}
-
-export function selectRenderSpaceAnchor(
-  focusPositionMeters: THREE.Vector3,
-  moonPositionMeters: THREE.Vector3 | null,
-): RenderSpaceAnchor {
-  if (!moonPositionMeters) {
-    return "earth";
-  }
-
-  const altitudeEarth = focusPositionMeters.length() - R_EARTH;
-  const altitudeMoon = focusPositionMeters.distanceTo(moonPositionMeters) - R_MOON;
-
-  return altitudeMoon < altitudeEarth ? "moon" : "earth";
-}
 
 export function getRenderSpaceAnchorForPosition(
   renderSpace: RenderSpaceContext,

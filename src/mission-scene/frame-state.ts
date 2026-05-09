@@ -3,7 +3,7 @@ import { makeInitialRocketState, R_EARTH } from "../physics/bodies";
 import {
   createRenderSpaceContext,
   type RenderSpaceContext,
-} from "../render-space/scene-position";
+} from "../render-space/frame";
 import type { EarthMoonSimulation } from "../sim/simulation";
 
 const MIN_PREVIEW_SPEED_METERS_PER_SECOND = 7800;
