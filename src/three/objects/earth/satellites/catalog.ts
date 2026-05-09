@@ -32,48 +32,43 @@ export type SatelliteOrbitDefinition = {
   driftPeriodSeconds?: number;
 };
 
+export type SatelliteVisualKind = "hero" | "swarm";
+
 export type SatelliteDefinition = {
   id: string;
   label: string;
-  modelUrl: string;
   orbit: SatelliteOrbitDefinition;
+  visualKind?: SatelliteVisualKind;
+  modelUrl?: string;
+  targetSizeSceneUnits?: number;
 };
 
-type EarthSatelliteTemplate = {
+type SatelliteTemplate = {
   id: string;
   label: string;
-  modelUrl: string;
   orbit: SatelliteOrbitDefinition;
+  visualKind?: SatelliteVisualKind;
+  modelUrl?: string;
+  targetSizeSceneUnits?: number;
   instanceCount?: number;
 };
 
-type MoonSatelliteTemplate = {
-  id: string;
-  label: string;
-  modelUrl: string;
-  orbit: Required<
-    Pick<
-      SatelliteOrbitDefinition,
-      | "type"
-      | "altitudeMeters"
-      | "inclinationDeg"
-      | "ascendingNodeDeg"
-      | "phaseDeg"
-    >
-  > &
-    Pick<SatelliteOrbitDefinition, "direction">;
-};
+export const SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS = 0.42;
+export const SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS = 0.16;
+export const SATELLITE_TARGET_SIZE_SCENE_UNITS =
+  SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS;
 
-export const SATELLITE_TARGET_SIZE_SCENE_UNITS = 0.42;
 const LEO_MIN_ALTITUDE_METERS = 420_000;
 const LEO_CLUSTER_MAX_ALTITUDE_METERS = 1_850_000;
 const MEO_CLUSTER_MAX_ALTITUDE_METERS = 24_000_000;
 
-const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
+const EARTH_HERO_SATELLITE_TEMPLATES: SatelliteTemplate[] = [
   {
     id: "acrimsat",
     label: "AcrimSAT",
     modelUrl: acrimSatModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "geosynchronous",
       longitudeDeg: 128,
@@ -83,6 +78,8 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     id: "aura",
     label: "Aura",
     modelUrl: auraModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "circular",
       altitudeMeters: 705_000,
@@ -92,21 +89,11 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     },
   },
   {
-    id: "cassini",
-    label: "Cassini",
-    modelUrl: cassiniModelUrl,
-    orbit: {
-      type: "circular",
-      altitudeMeters: 68_000_000,
-      inclinationDeg: 17,
-      ascendingNodeDeg: 228,
-      phaseDeg: 142,
-    },
-  },
-  {
     id: "hubble",
     label: "Hubble",
     modelUrl: hubbleModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "circular",
       altitudeMeters: 540_000,
@@ -119,6 +106,8 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
   //   id: "iss",
   //   label: "ISS",
   //   modelUrl: issModelUrl,
+  //   visualKind: "hero",
+  //   targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
   //   orbit: {
   //     type: "circular",
   //     altitudeMeters: 420_000,
@@ -131,19 +120,19 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     id: "jwst",
     label: "JWST",
     modelUrl: jwstModelUrl,
-    instanceCount: 12,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS * 1.35,
     orbit: {
-      type: "circular",
-      altitudeMeters: 1_500_000_000 - R_EARTH,
-      inclinationDeg: 5.2,
-      ascendingNodeDeg: 210,
-      phaseDeg: 12,
+      type: "earth-l2",
+      distanceMeters: 1_500_000_000,
     },
   },
   {
     id: "tess",
     label: "TESS",
     modelUrl: tessModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "circular",
       altitudeMeters:
@@ -157,6 +146,8 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     id: "van-allen",
     label: "Van Allen",
     modelUrl: vanAllenModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "circular",
       altitudeMeters:
@@ -167,28 +158,161 @@ const EARTH_SATELLITE_TEMPLATES: EarthSatelliteTemplate[] = [
     },
   },
   {
+    id: "cassini",
+    label: "Cassini",
+    modelUrl: cassiniModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
+    orbit: {
+      type: "deep-space",
+      distanceMeters: EARTH_MOON_DISTANCE * 3.4,
+      inclinationDeg: 17,
+      longitudeDeg: 228,
+      phaseDeg: 142,
+      driftPeriodSeconds: 460 * 24 * 3600,
+    },
+  },
+  {
     id: "voyager",
     label: "Voyager",
     modelUrl: voyagerModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
+    orbit: {
+      type: "deep-space",
+      distanceMeters: EARTH_MOON_DISTANCE * 5.75,
+      inclinationDeg: 24,
+      longitudeDeg: 304,
+      phaseDeg: 0,
+      driftPeriodSeconds: 900 * 24 * 3600,
+    },
+  },
+];
+
+const EARTH_SWARM_TEMPLATES: SatelliteTemplate[] = [
+  {
+    id: "leo-swarm",
+    label: "LEO Satellite",
+    visualKind: "swarm",
+    instanceCount: 720,
+    targetSizeSceneUnits: SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS,
     orbit: {
       type: "circular",
-      altitudeMeters: EARTH_MOON_DISTANCE * 5.75 - R_EARTH,
-      inclinationDeg: 24,
-      ascendingNodeDeg: 304,
+      altitudeMeters: 550_000,
+      inclinationDeg: 53,
+      ascendingNodeDeg: 0,
+      phaseDeg: 0,
+    },
+  },
+  {
+    id: "polar-swarm",
+    label: "Polar Satellite",
+    visualKind: "swarm",
+    instanceCount: 180,
+    targetSizeSceneUnits: SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS * 0.95,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 800_000,
+      inclinationDeg: 97.6,
+      ascendingNodeDeg: 24,
+      phaseDeg: 18,
+    },
+  },
+  {
+    id: "meo-swarm",
+    label: "MEO Satellite",
+    visualKind: "swarm",
+    instanceCount: 120,
+    targetSizeSceneUnits: SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS * 1.05,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 20_200_000,
+      inclinationDeg: 55,
+      ascendingNodeDeg: 72,
+      phaseDeg: 36,
+    },
+  },
+  {
+    id: "geo-belt",
+    label: "GEO Satellite",
+    visualKind: "swarm",
+    instanceCount: 120,
+    targetSizeSceneUnits: SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS * 1.1,
+    orbit: {
+      type: "geosynchronous",
+      longitudeDeg: 0,
+    },
+  },
+];
+
+const MOON_HERO_SATELLITE_TEMPLATES: SatelliteTemplate[] = [
+  {
+    id: "lro",
+    label: "LRO",
+    modelUrl: lroModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 220_000,
+      inclinationDeg: 86.5,
+      ascendingNodeDeg: 24,
+      phaseDeg: 42,
+    },
+  },
+  {
+    id: "clementine",
+    label: "Clementine",
+    modelUrl: clementineModelUrl,
+    visualKind: "hero",
+    targetSizeSceneUnits: SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 420_000,
+      inclinationDeg: 112,
+      ascendingNodeDeg: 148,
+      phaseDeg: 214,
+      direction: -1,
+    },
+  },
+];
+
+const MOON_SWARM_TEMPLATES: SatelliteTemplate[] = [
+  {
+    id: "moon-orbiter-swarm",
+    label: "Moon Orbiter",
+    visualKind: "swarm",
+    instanceCount: 16,
+    targetSizeSceneUnits: SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS,
+    orbit: {
+      type: "circular",
+      altitudeMeters: 260_000,
+      inclinationDeg: 86.5,
+      ascendingNodeDeg: 0,
       phaseDeg: 0,
     },
   },
 ];
 
-export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
-  EARTH_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
-    Array.from({ length: template.instanceCount ?? 200 }, (_, index) => ({
-      id: `${template.id}-${index + 1}`,
-      label: `${template.label} ${index + 1}`,
-      modelUrl: template.modelUrl,
-      orbit: expandEarthOrbit(template.orbit, index, templateIndex),
-    })),
-  );
+export const EARTH_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+  ...EARTH_HERO_SATELLITE_TEMPLATES.map(createSingleSatelliteDefinition),
+  ...EARTH_SWARM_TEMPLATES.flatMap(expandEarthSwarmTemplate),
+];
+
+export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] = [
+  ...MOON_HERO_SATELLITE_TEMPLATES.map(createSingleSatelliteDefinition),
+  ...MOON_SWARM_TEMPLATES.flatMap(expandMoonSwarmTemplate),
+];
+
+export const EARTH_SATELLITE_BODY = {
+  radiusMeters: R_EARTH,
+  primaryMassKg: M_EARTH,
+};
+
+export const MOON_SATELLITE_BODY = {
+  radiusMeters: R_MOON,
+  primaryMassKg: M_MOON,
+};
 
 export function geosynchronousOrbitRadiusMeters(
   primaryMassKg: number,
@@ -209,6 +333,10 @@ export function orbitalRadiusMeters(
     return bodyRadiusMeters + orbit.altitudeMeters;
   }
 
+  if (orbit.distanceMeters != null) {
+    return orbit.distanceMeters;
+  }
+
   if (orbit.periodSeconds != null) {
     return geosynchronousOrbitRadiusMeters(primaryMassKg, orbit.periodSeconds);
   }
@@ -219,64 +347,59 @@ export function orbitalRadiusMeters(
   );
 }
 
-const MOON_SATELLITE_TEMPLATES: MoonSatelliteTemplate[] = [
-  {
-    id: "lro",
-    label: "LRO",
-    modelUrl: lroModelUrl,
+function createSingleSatelliteDefinition(
+  template: SatelliteTemplate,
+): SatelliteDefinition {
+  return {
+    id: template.id,
+    label: template.label,
+    modelUrl: template.modelUrl,
+    visualKind: template.visualKind ?? "hero",
+    targetSizeSceneUnits:
+      template.targetSizeSceneUnits ?? SATELLITE_HERO_TARGET_SIZE_SCENE_UNITS,
+    orbit: template.orbit,
+  };
+}
+
+function expandEarthSwarmTemplate(
+  template: SatelliteTemplate,
+  templateIndex: number,
+): SatelliteDefinition[] {
+  return Array.from({ length: template.instanceCount ?? 1 }, (_, index) => ({
+    id: `${template.id}-${index + 1}`,
+    label: `${template.label} ${index + 1}`,
+    visualKind: "swarm",
+    targetSizeSceneUnits:
+      template.targetSizeSceneUnits ?? SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS,
+    orbit: expandEarthOrbit(template.orbit, index, templateIndex),
+  }));
+}
+
+function expandMoonSwarmTemplate(
+  template: SatelliteTemplate,
+  templateIndex: number,
+): SatelliteDefinition[] {
+  return Array.from({ length: template.instanceCount ?? 1 }, (_, index) => ({
+    id: `${template.id}-${index + 1}`,
+    label: `${template.label} ${index + 1}`,
+    visualKind: "swarm",
+    targetSizeSceneUnits:
+      template.targetSizeSceneUnits ?? SATELLITE_SWARM_TARGET_SIZE_SCENE_UNITS,
     orbit: {
-      type: "circular",
-      altitudeMeters: 220_000,
-      inclinationDeg: 86.5,
-      ascendingNodeDeg: 24,
-      phaseDeg: 42,
+      ...template.orbit,
+      altitudeMeters:
+        (template.orbit.altitudeMeters ?? 260_000) + index * 9_000,
+      ascendingNodeDeg:
+        ((template.orbit.ascendingNodeDeg ?? 0) +
+          index * 37 +
+          templateIndex * 13) %
+        360,
+      phaseDeg:
+        ((template.orbit.phaseDeg ?? 0) + index * 41 + templateIndex * 17) %
+        360,
     },
-  },
-  {
-    id: "clementine",
-    label: "Clementine",
-    modelUrl: clementineModelUrl,
-    orbit: {
-      type: "circular",
-      altitudeMeters: 420_000,
-      inclinationDeg: 112,
-      ascendingNodeDeg: 148,
-      phaseDeg: 214,
-      direction: -1,
-    },
-  },
-];
-
-export const MOON_SATELLITE_DEFINITIONS: SatelliteDefinition[] =
-  MOON_SATELLITE_TEMPLATES.flatMap((template, templateIndex) =>
-    Array.from({ length: 10 }, (_, index) => ({
-      id: `${template.id}-${index + 1}`,
-      label: `${template.label} ${index + 1}`,
-      modelUrl: template.modelUrl,
-      orbit: {
-        ...template.orbit,
-        altitudeMeters:
-          template.orbit.altitudeMeters +
-          index * 18_000 +
-          templateIndex * 9_000,
-        ascendingNodeDeg:
-          (template.orbit.ascendingNodeDeg + index * 37 + templateIndex * 11) %
-          360,
-        phaseDeg:
-          (template.orbit.phaseDeg + index * 36 + templateIndex * 18) % 360,
-      },
-    })),
-  );
-
-export const EARTH_SATELLITE_BODY = {
-  radiusMeters: R_EARTH,
-  primaryMassKg: M_EARTH,
-};
-
-export const MOON_SATELLITE_BODY = {
-  radiusMeters: R_MOON,
-  primaryMassKg: M_MOON,
-};
+  }));
+}
 
 function expandEarthOrbit(
   orbit: SatelliteOrbitDefinition,
@@ -309,7 +432,8 @@ function expandEarthOrbit(
     return {
       ...orbit,
       longitudeDeg:
-        ((orbit.longitudeDeg ?? 0) + index * 18 + templateIndex * 11) % 360,
+        ((orbit.longitudeDeg ?? 0) + (index * 360) / 120 + templateIndex * 11) %
+        360,
     };
   }
 
@@ -373,6 +497,7 @@ function sampleClusteredEarthAltitudeMeters(
       LEO_MIN_ALTITUDE_METERS +
       Math.pow(offsetRoll, 2.9) *
         (LEO_CLUSTER_MAX_ALTITUDE_METERS - LEO_MIN_ALTITUDE_METERS);
+
     return Math.max(LEO_MIN_ALTITUDE_METERS, altitude + jitterRoll * 36_000);
   }
 
@@ -381,6 +506,7 @@ function sampleClusteredEarthAltitudeMeters(
       LEO_CLUSTER_MAX_ALTITUDE_METERS +
       Math.pow(offsetRoll, 1.8) *
         (MEO_CLUSTER_MAX_ALTITUDE_METERS - LEO_CLUSTER_MAX_ALTITUDE_METERS);
+
     return Math.max(LEO_MIN_ALTITUDE_METERS, altitude + jitterRoll * 180_000);
   }
 
