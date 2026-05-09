@@ -40,6 +40,19 @@ type MissionCameraClipPlaneOptions = {
   lookTarget: CameraTarget | null;
 };
 
+const CAMERA_CONTROL_SETTINGS = {
+  smoothTime: 0.25,
+  draggingSmoothTime: 0.125,
+  azimuthRotateSpeed: 0.55,
+  polarRotateSpeed: 0.55,
+  dollySpeed: 0.9,
+  truckSpeed: 0.75,
+  minDistance: 0.0002,
+  maxDistance: 5600,
+  minPolarAngle: 0.08,
+  maxPolarAngle: Math.PI - 0.08,
+} as const;
+
 export function createMissionCameraController({
   camera,
   domElement,
@@ -49,16 +62,7 @@ export function createMissionCameraController({
 }): MissionCameraController {
   const controls = new CameraControls(camera, domElement);
 
-  controls.smoothTime = 0.25;
-  controls.draggingSmoothTime = 0.125;
-  controls.azimuthRotateSpeed = 0.55;
-  controls.polarRotateSpeed = 0.55;
-  controls.dollySpeed = 0.9;
-  controls.truckSpeed = 0.75;
-  controls.minDistance = 0.0002;
-  controls.maxDistance = 5600;
-  controls.minPolarAngle = 0.08;
-  controls.maxPolarAngle = Math.PI - 0.08;
+  Object.assign(controls, CAMERA_CONTROL_SETTINGS);
   controls.setLookAt(
     camera.position.x,
     camera.position.y,
