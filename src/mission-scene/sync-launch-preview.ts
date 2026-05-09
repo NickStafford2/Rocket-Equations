@@ -18,11 +18,18 @@ export function syncLaunchPreview(
     stagedLaunchPreviewVisible,
     aimArrowLength,
   } = frame;
+  const showLaunchPreview =
+    stagedLaunchPreviewVisible && frame.renderSpace.mode === "earth-local";
 
-  objects.launchRing.visible = stagedLaunchPreviewVisible;
-  objects.launchLocationArrow.visible = stagedLaunchPreviewVisible;
-  objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
-  objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
+  objects.launchRing.visible = showLaunchPreview;
+  objects.launchLocationArrow.visible = showLaunchPreview;
+  objects.launchTangentArrow.visible = showLaunchPreview;
+  objects.launchAimArrow.visible = showLaunchPreview;
+
+  if (!showLaunchPreview) {
+    objects.launchCloudField.root.visible = false;
+    return;
+  }
 
   const launchOrigin = copyRenderPositionFromMeters(
     new THREE.Vector3(),
