@@ -34,6 +34,7 @@ type MissionCameraInteractionHandlers = {
   onControl?: () => void;
   onControlEnd?: () => void;
   onControlStart?: () => void;
+  onUpdate?: () => void;
 };
 
 type MissionCameraClipPlaneOptions = {
@@ -76,6 +77,7 @@ export function createMissionCameraController({
     onControl,
     onControlEnd,
     onControlStart,
+    onUpdate,
   }: MissionCameraInteractionHandlers) {
     if (onControlStart) {
       controls.addEventListener("controlstart", onControlStart);
@@ -85,6 +87,9 @@ export function createMissionCameraController({
     }
     if (onControlEnd) {
       controls.addEventListener("controlend", onControlEnd);
+    }
+    if (onUpdate) {
+      controls.addEventListener("update", onUpdate);
     }
 
     return () => {
@@ -96,6 +101,9 @@ export function createMissionCameraController({
       }
       if (onControlEnd) {
         controls.removeEventListener("controlend", onControlEnd);
+      }
+      if (onUpdate) {
+        controls.removeEventListener("update", onUpdate);
       }
     };
   }

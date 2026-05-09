@@ -262,6 +262,7 @@ export function startMissionSceneRuntime({
     onControlStart: onControlsStart,
     onControl: onControlsChange,
     onControlEnd: onControlsEnd,
+    onUpdate: requestRender,
   });
   renderer.domElement.addEventListener("dblclick", onDoubleClick);
 

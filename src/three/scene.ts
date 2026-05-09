@@ -53,9 +53,6 @@ export function createThreeSceneBundle({
 
   scene.background = background;
   scene.fog = new THREE.Fog(0x000814, 180, 2500);
-  camera.up.set(0, 1, 0);
-  camera.position.set(-840, 480, 840);
-  camera.lookAt(0, 0, 0);
 
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
