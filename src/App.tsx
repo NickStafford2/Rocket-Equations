@@ -13,10 +13,12 @@ import {
   useMissionSimulation,
 } from "./use-mission-simulation";
 import { SceneHud } from "./ui/scene-hud";
+import { TakramAtmospherePrototype } from "./three/takram/TakramAtmospherePrototype";
 
 export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [sceneBundle, setSceneBundle] = useState<ThreeSceneBundle | null>(null);
+  const [sceneMode, setSceneMode] = useState<"mission" | "takram">("mission");
   const {
     simulation,
     running,
@@ -110,73 +112,92 @@ export default function App() {
         tabIndex={0}
         className="h-full w-full focus:outline-none"
       >
-        <MissionSceneCanvas
-          className="h-full w-full"
-          onBundleChange={setSceneBundle}
-        />
+        {sceneMode === "mission" ? (
+          <MissionSceneCanvas
+            className="h-full w-full"
+            onBundleChange={setSceneBundle}
+          />
+        ) : (
+          <TakramAtmospherePrototype className="h-full w-full" />
+        )}
       </div>
-      <SceneHud
-        isOverviewActive={isOverviewActive}
-        currentLockTarget={currentLockTarget}
-        currentLookTarget={currentLookTarget}
-        cameraDebug={cameraDebug}
-        earthLodDebug={earthLodDebug}
-        running={running}
-        elapsedMissionTime={formatElapsed(telemetry.hours)}
-        currentSpeed={formatSpeed(telemetry.speed)}
-        moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
-        earthAltitude={formatDistance(currentAltitudeEarth)}
-        moonAltitude={formatDistance(currentAltitudeMoon)}
-        status={status}
-        launchSpeed={launchSpeed}
-        launchAngleDeg={launchAngleDeg}
-        launchAzimuthDeg={launchAzimuthDeg}
-        timeWarp={timeWarp}
-        showTrail={showTrail}
-        showPrediction={showPrediction}
-        showThrustDirectionArrow={showThrustDirectionArrow}
-        showMoonLandingArrow={showMoonLandingArrow}
-        preventMoonCameraIntersection={preventMoonCameraIntersection}
-        pressedControls={pressedControls}
-        onOverview={() => {
-          applyOverviewCamera();
-          focusScene();
-        }}
-        onLockTarget={(target) => {
-          applyLockTarget(target);
-          focusScene();
-        }}
-        onLookAtTarget={(target) => {
-          applyLookAtTarget(target);
-          focusScene();
-        }}
-        onToggleRunning={() => {
-          toggleRunning();
-          requestSceneRender();
-          focusScene();
-        }}
-        onReset={() => {
-          resetSimulation();
-          requestSceneRender();
-          focusScene();
-        }}
-        onLaunchSpeedChange={setLaunchSpeed}
-        onLaunchAngleChange={setLaunchAngleDeg}
-        onLaunchAzimuthChange={setLaunchAzimuthDeg}
-        onTimeWarpChange={setTimeWarp}
-        onShowTrailChange={setShowTrail}
-        onShowPredictionChange={setShowPrediction}
-        onShowMoonLandingArrowChange={setShowMoonLandingArrow}
-        onPreventMoonCameraIntersectionChange={
-          setPreventMoonCameraIntersection
-        }
-        onToggleThrustDirectionArrow={() => {
-          setShowThrustDirectionArrow((current) => !current);
-          focusScene();
-        }}
-        onMissionControlPress={handleMissionControlPress}
-        onMissionControlRelease={handleMissionControlRelease}
-      />
+      <div className="absolute top-4 left-4 z-30 flex gap-2">
+        <button
+          type="button"
+          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
+          onClick={() =>
+            setSceneMode((current) =>
+              current === "mission" ? "takram" : "mission",
+            )
+          }
+        >
+          {sceneMode === "mission" ? "Test Takram" : "Back to Mission"}
+        </button>
+      </div>
+      {sceneMode === "mission" && (
+        <SceneHud
+          isOverviewActive={isOverviewActive}
+          currentLockTarget={currentLockTarget}
+          currentLookTarget={currentLookTarget}
+          cameraDebug={cameraDebug}
+          earthLodDebug={earthLodDebug}
+          running={running}
+          elapsedMissionTime={formatElapsed(telemetry.hours)}
+          currentSpeed={formatSpeed(telemetry.speed)}
+          moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}
+          earthAltitude={formatDistance(currentAltitudeEarth)}
+          moonAltitude={formatDistance(currentAltitudeMoon)}
+          status={status}
+          launchSpeed={launchSpeed}
+          launchAngleDeg={launchAngleDeg}
+          launchAzimuthDeg={launchAzimuthDeg}
+          timeWarp={timeWarp}
+          showTrail={showTrail}
+          showPrediction={showPrediction}
+          showThrustDirectionArrow={showThrustDirectionArrow}
+          showMoonLandingArrow={showMoonLandingArrow}
+          preventMoonCameraIntersection={preventMoonCameraIntersection}
+          pressedControls={pressedControls}
+          onOverview={() => {
+            applyOverviewCamera();
+            focusScene();
+          }}
+          onLockTarget={(target) => {
+            applyLockTarget(target);
+            focusScene();
+          }}
+          onLookAtTarget={(target) => {
+            applyLookAtTarget(target);
+            focusScene();
+          }}
+          onToggleRunning={() => {
+            toggleRunning();
+            requestSceneRender();
+            focusScene();
+          }}
+          onReset={() => {
+            resetSimulation();
+            requestSceneRender();
+            focusScene();
+          }}
+          onLaunchSpeedChange={setLaunchSpeed}
+          onLaunchAngleChange={setLaunchAngleDeg}
+          onLaunchAzimuthChange={setLaunchAzimuthDeg}
+          onTimeWarpChange={setTimeWarp}
+          onShowTrailChange={setShowTrail}
+          onShowPredictionChange={setShowPrediction}
+          onShowMoonLandingArrowChange={setShowMoonLandingArrow}
+          onPreventMoonCameraIntersectionChange={
+            setPreventMoonCameraIntersection
+          }
+          onToggleThrustDirectionArrow={() => {
+            setShowThrustDirectionArrow((current) => !current);
+            focusScene();
+          }}
+          onMissionControlPress={handleMissionControlPress}
+          onMissionControlRelease={handleMissionControlRelease}
+        />
+      )}
     </div>
   );
 }
