@@ -12,6 +12,9 @@ export const CameraDebugPanel = memo(function CameraDebugPanel({
         Camera
       </div>
       <div className="mt-1 font-medium text-cyan-100">{cameraDebug.mode}</div>
+      <div className="mt-1 text-[0.62rem] font-medium uppercase tracking-[0.14em] text-amber-200">
+        {cameraDebug.renderSpaceMode} · {cameraDebug.renderSpaceAnchor}
+      </div>
       <div className="mt-1 font-mono text-slate-300">
         cam {cameraDebug.position.x}, {cameraDebug.position.y},{" "}
         {cameraDebug.position.z}

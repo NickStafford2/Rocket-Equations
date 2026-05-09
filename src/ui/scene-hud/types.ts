@@ -3,6 +3,8 @@ import type { MissionControlKey } from "../../use-mission-simulation";
 
 export type CameraDebugProps = {
   mode: string;
+  renderSpaceMode: string;
+  renderSpaceAnchor: string;
   position: {
     x: string;
     y: string;

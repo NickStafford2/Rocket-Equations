@@ -104,6 +104,7 @@ export function syncMissionScene({
   syncCameraDebug({
     bundle,
     cameraRigRef,
+    frame,
     frameNow: frame.now,
     lastCameraDebugSyncAtRef,
     setCameraDebug,

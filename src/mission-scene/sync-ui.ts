@@ -134,12 +134,14 @@ function stopAndSyncImpact({
 export function syncCameraDebug({
   bundle,
   cameraRigRef,
+  frame,
   frameNow,
   lastCameraDebugSyncAtRef,
   setCameraDebug,
 }: {
   bundle: ThreeSceneBundle;
   cameraRigRef: MutableRefObject<CameraRigState>;
+  frame: FrameState;
   frameNow: number;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
   setCameraDebug: (value: CameraDebugState) => void;
@@ -149,11 +151,14 @@ export function syncCameraDebug({
   }
 
   lastCameraDebugSyncAtRef.current = frameNow;
-  setCameraDebug(
-    getCameraDebugSnapshot(
-      cameraRigRef.current,
-      bundle.camera,
-      bundle.controls,
-    ),
+  const snapshot = getCameraDebugSnapshot(
+    cameraRigRef.current,
+    bundle.camera,
+    bundle.controls,
   );
+  setCameraDebug({
+    ...snapshot,
+    renderSpaceMode: frame.renderSpace.mode,
+    renderSpaceAnchor: frame.renderSpace.anchor,
+  });
 }

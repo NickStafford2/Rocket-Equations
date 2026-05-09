@@ -22,6 +22,8 @@ export function createInitialCameraRig(): CameraRigState {
 export function createInitialCameraDebugState(): CameraDebugState {
   return {
     mode: "overview",
+    renderSpaceMode: "earth-local",
+    renderSpaceAnchor: "earth",
     position: {
       x: OVERVIEW_CAMERA_POSITION.x.toFixed(1),
       y: OVERVIEW_CAMERA_POSITION.y.toFixed(1),

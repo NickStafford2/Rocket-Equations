@@ -1,8 +1,11 @@
 import type { MutableRefObject, RefObject } from "react";
 import type { ManeuverInput } from "../physics/bodies";
 import type { CameraTarget } from "../mission";
+import type {
+  RenderSpaceAnchor,
+  RenderSpaceMode,
+} from "../render-space/frame";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
-import type { CameraRigDebugSnapshot } from "../three/camera-rig";
 
 export type UseMissionSceneParams = {
   mountRef: RefObject<HTMLDivElement | null>;
@@ -32,4 +35,18 @@ export type CameraSelection = {
   lookTarget: CameraTarget | null;
 };
 
-export type CameraDebugState = CameraRigDebugSnapshot;
+export type CameraDebugState = {
+  mode: string;
+  renderSpaceMode: RenderSpaceMode;
+  renderSpaceAnchor: RenderSpaceAnchor;
+  position: {
+    x: string;
+    y: string;
+    z: string;
+  };
+  target: {
+    x: string;
+    y: string;
+    z: string;
+  };
+};
