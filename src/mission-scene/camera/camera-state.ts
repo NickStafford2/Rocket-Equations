@@ -5,7 +5,6 @@ import {
   preventCameraBodyIntersection,
 } from "./camera-collisions";
 import {
-  drainCameraRigStatuses,
   getControlsStartStatus,
   getFollowTargetStatus,
   getLookTargetStatus,
