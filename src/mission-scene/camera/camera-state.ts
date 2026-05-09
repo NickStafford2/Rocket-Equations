@@ -4,6 +4,13 @@ import {
   FALLBACK_VIEW_DIRECTION,
   preventCameraBodyIntersection,
 } from "./camera-collisions";
+import {
+  drainCameraRigStatuses,
+  getControlsStartStatus,
+  getFollowTargetStatus,
+  getLookTargetStatus,
+  getModeSummary,
+} from "./camera-status";
 
 export type CameraRigMode = "free" | "overview" | "tracking";
 
@@ -142,7 +149,7 @@ export function setFollowTarget(
   rig.follow = target;
   rig.offset.copy(getInitialFollowOffset(target.object, camera, controls));
   rig.positionTransitioning = true;
-  rig.pendingPositionStatus = `Locked on ${getTargetLabel(target)}.`;
+  rig.pendingPositionStatus = getFollowTargetStatus(target);
   rig.pendingOverviewStatus = null;
 }
 
@@ -150,7 +157,7 @@ export function setLookTarget(rig: CameraRigState, target: CameraRigTarget) {
   rig.mode = "tracking";
   rig.look = target;
   rig.targetTransitioning = true;
-  rig.pendingTargetStatus = `Looking at ${getTargetLabel(target)}.`;
+  rig.pendingTargetStatus = getLookTargetStatus(target);
   rig.pendingOverviewStatus = null;
 }
 
@@ -188,17 +195,10 @@ export function syncSelection(rig: CameraRigState): CameraRigSelection {
 }
 
 export function updateFromControlsStart(rig: CameraRigState): string | null {
-  if (rig.mode === "free") {
-    return null;
+  const status = getControlsStartStatus(rig);
+  if (status) {
+    clearAllTracking(rig);
   }
-
-  const status =
-    rig.mode === "overview"
-      ? rig.positionTransitioning || rig.targetTransitioning
-        ? "Overview transition canceled."
-        : "Free camera enabled."
-      : "Camera tracking canceled.";
-  clearAllTracking(rig);
   return status;
 }
 
@@ -366,21 +366,6 @@ function syncMode(rig: CameraRigState) {
 
   rig.pendingOverviewStatus = null;
   rig.mode = "tracking";
-}
-
-function getModeSummary(rig: CameraRigState): string {
-  if (rig.mode === "overview") return "overview";
-  if (!rig.follow && !rig.look) return "free";
-  if (rig.follow && rig.look) {
-    return `follow:${rig.follow.key} look:${rig.look.key}`;
-  }
-  if (rig.follow) return `follow:${rig.follow.key}`;
-  if (rig.look) return `look:${rig.look.key}`;
-  return "free";
-}
-
-function getTargetLabel(target: CameraRigTarget): string {
-  return String(target.object.userData.focusLabel ?? target.key);
 }
 
 function getInitialFollowOffset(
