@@ -1,13 +1,11 @@
-import { getMissionPhase, describeMoonLanding, formatSpeed } from "../mission";
-import {
-  getCameraDebugSnapshot,
-  type CameraRigState,
-} from "./camera/camera-state";
-import type { CameraDebugState } from "./types";
-import type { ThreeSceneBundle } from "../three/scene";
 import type { MutableRefObject } from "react";
-import type { FrameState } from "./frame-state";
+import { describeMoonLanding, formatSpeed, getMissionPhase } from "../mission";
 import type { SimulationTelemetry } from "../sim/simulation";
+import type { ThreeSceneBundle } from "../three/scene";
+import { getCameraDebugSnapshot } from "./camera/camera-state";
+import type { CameraRigState } from "./camera/camera-types";
+import type { FrameState } from "./frame-state";
+import type { CameraDebugState } from "./types";
 
 const UI_SYNC_INTERVAL_MS = 100;
 
