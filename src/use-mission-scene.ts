@@ -14,7 +14,7 @@ import type { ThreeSceneBundle } from "./three/scene";
 import {
   findFocusableByPreset,
   getFocusLabel,
-} from "./mission-scene/camera/camera";
+} from "./mission-scene/camera/camera-target";
 
 import {
   createInitialCameraDebugState,

@@ -13,7 +13,7 @@ import {
   type CameraRigState,
   type CameraRigTarget,
 } from "./camera/camera-rig";
-import { findFocusableObject } from "./camera/camera";
+import { findFocusableObject } from "./camera/camera-target";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
 
