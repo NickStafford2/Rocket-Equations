@@ -2,10 +2,10 @@ import type { MutableRefObject } from "react";
 import { describeMoonLanding, formatSpeed, getMissionPhase } from "../mission";
 import type { SimulationTelemetry } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
-import { getCameraDebugSnapshot } from "./camera/camera-state";
 import type { CameraRigState } from "./camera/camera-types";
 import type { FrameState } from "./frame-state";
 import type { CameraDebugState } from "./types";
+import { getCameraDebugSnapshot } from "./camera/camera-update";
 
 const UI_SYNC_INTERVAL_MS = 100;
 

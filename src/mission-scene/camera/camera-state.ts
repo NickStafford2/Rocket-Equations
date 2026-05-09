@@ -17,8 +17,6 @@ import type {
   CameraRigTarget,
 } from "./camera-types";
 
-export { getCameraDebugSnapshot, updateCameraRig } from "./camera-update";
-
 const DEFAULT_TRANSITION_ALPHA = 0.12;
 const DEFAULT_POSITION_EPSILON = 0.8;
 const DEFAULT_TARGET_EPSILON = 0.35;

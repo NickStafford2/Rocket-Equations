@@ -4,7 +4,7 @@ import type {
   SimulationTelemetry,
 } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
-import { type CameraRigState } from "./camera/camera-state";
+import { type CameraRigState } from "./camera/camera-types";
 import { createFrameState } from "./frame-state";
 import { syncCameraDebug, syncMissionUi } from "./sync-ui";
 import { syncCelestialBodies } from "./sync-celestial-bodies";
