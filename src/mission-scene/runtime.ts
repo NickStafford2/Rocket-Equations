@@ -7,6 +7,7 @@ import type {
 } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
 import {
+  isCameraRigAnimating,
   updateCameraRig,
   updateFromControlsChange,
   updateFromControlsStart,
@@ -158,8 +159,7 @@ export function startMissionSceneRuntime({
       renderRequested ||
       runningRef.current ||
       controlsInteracting ||
-      cameraRigRef.current.positionTransitioning ||
-      cameraRigRef.current.targetTransitioning
+      isCameraRigAnimating(cameraRigRef.current)
     );
   }
 

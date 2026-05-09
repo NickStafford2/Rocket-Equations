@@ -446,3 +446,7 @@ function getFollowDistanceSetting(
   const value = Number(object.userData[key]);
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
+
+export function isCameraRigAnimating(rig: CameraRigState): boolean {
+  return rig.positionTransitioning || rig.targetTransitioning;
+}
