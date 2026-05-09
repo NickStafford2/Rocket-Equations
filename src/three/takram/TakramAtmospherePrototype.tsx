@@ -18,13 +18,11 @@ import {
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
-  Points,
   Scene,
   Timer,
   TorusKnotGeometry,
   Vector3,
   WebGLRenderer,
-  type Object3D,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -36,16 +34,9 @@ import {
   PrecomputedTexturesGenerator,
   SkyLightProbe,
   SkyMaterial,
-  StarsGeometry,
-  StarsMaterial,
   SunDirectionalLight,
 } from "@takram/three-atmosphere";
-import {
-  ArrayBufferLoader,
-  Ellipsoid,
-  Geodetic,
-  radians,
-} from "@takram/three-geospatial";
+import { Ellipsoid, Geodetic, radians } from "@takram/three-geospatial";
 import {
   DitheringEffect,
   LensFlareEffect,
@@ -75,8 +66,6 @@ export function TakramAtmospherePrototype() {
     let timer: Timer;
     let scene: Scene;
     let skyMaterial: SkyMaterial;
-    // let starsMaterial: StarsMaterial;
-    // let stars: Object3D;
     let skyLight: SkyLightProbe;
     let sunLight: SunDirectionalLight;
     let aerialPerspective: AerialPerspectiveEffect;
@@ -140,19 +129,6 @@ export function TakramAtmospherePrototype() {
       torusKnot.receiveShadow = true;
       group.add(torusKnot);
 
-      // starsMaterial = new StarsMaterial();
-      // starsMaterial.intensity = 10;
-      //
-      // stars = new Points(
-      //   new StarsGeometry(
-      //     await new ArrayBufferLoader().loadAsync("/atmosphere/stars.bin"),
-      //   ),
-      //   starsMaterial,
-      // );
-      //
-      // stars.frustumCulled = false;
-      // scene.add(stars);
-
       skyMaterial = new SkyMaterial();
 
       const sky = new Mesh(new PlaneGeometry(2, 2), skyMaterial);
@@ -204,7 +180,6 @@ export function TakramAtmospherePrototype() {
       Object.assign(skyMaterial, textures);
       sunLight.transmittanceTexture = textures.transmittanceTexture;
       skyLight.irradianceTexture = textures.irradianceTexture;
-      // Object.assign(starsMaterial, textures);
       Object.assign(aerialPerspective, textures);
 
       container.appendChild(renderer.domElement);
@@ -240,13 +215,9 @@ export function TakramAtmospherePrototype() {
         skyMaterial.sunDirection.copy(sunDirection);
         skyMaterial.moonDirection.copy(moonDirection);
 
-        // starsMaterial.sunDirection.copy(sunDirection);
-
         sunLight.sunDirection.copy(sunDirection);
         skyLight.sunDirection.copy(sunDirection);
         aerialPerspective.sunDirection.copy(sunDirection);
-
-        // stars.setRotationFromMatrix(inertialToECEFMatrix);
 
         sunLight.update();
         skyLight.update();
