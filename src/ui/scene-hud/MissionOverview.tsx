@@ -12,7 +12,7 @@ export function MissionOverview() {
         </h1>
         <p>Goal: touch down below {landingTargetSpeed} Moon-relative speed.</p>
       </div>
-      <SoundtrackPanel />
+      {/* <SoundtrackPanel /> */}
     </div>
   );
 }

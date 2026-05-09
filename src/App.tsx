@@ -13,7 +13,7 @@ import {
   useMissionSimulation,
 } from "./use-mission-simulation";
 import { SceneHud } from "./ui/scene-hud";
-import { TakramAtmospherePrototype } from "./three/takram/TakramAtmospherePrototype";
+import { TakramAtmospherePrototype } from "./three/takram/TakramAtmospherePrototyp3";
 
 export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null);

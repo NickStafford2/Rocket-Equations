@@ -15,8 +15,8 @@ export function EarthSurface() {
   }, [dayTexture]);
 
   return (
-    <mesh>
-      <sphereGeometry args={[EARTH_RADIUS_METERS, 256, 128]} />
+    <mesh renderOrder={0}>
+      <sphereGeometry args={[EARTH_RADIUS_METERS * 0.95, 256, 128]} />
       <meshBasicMaterial map={dayTexture} />
     </mesh>
   );

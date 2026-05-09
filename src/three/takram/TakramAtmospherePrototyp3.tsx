@@ -38,6 +38,7 @@ import {
   DitheringEffect,
   LensFlareEffect,
 } from "@takram/three-geospatial-effects";
+import { EarthSurface } from "./EarthSurface";
 
 const referenceDate = new Date("2000-06-01T10:00:00Z");
 
@@ -221,10 +222,11 @@ function TakramAtmosphereScene() {
 
   return (
     <>
+      <EarthSurface />
+
       <primitive object={sunLight} />
       <primitive object={sunLight.target} />
       <primitive object={skyLight} />
-
       <primitive object={localFrame}>
         <mesh
           geometry={torusGeometry}
@@ -233,13 +235,11 @@ function TakramAtmosphereScene() {
           receiveShadow
         />
       </primitive>
-
       <mesh
         geometry={skyGeometry}
         material={skyMaterial}
         frustumCulled={false}
       />
-
       <OrbitControls
         enableDamping
         minDistance={1000}
