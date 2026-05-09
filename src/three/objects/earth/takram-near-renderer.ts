@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 export type EarthTakramNearRendererBundle = {
   root: THREE.Group;
+  elapsedSeconds: number;
 };
 
 export function createEarthTakramNearRenderer(): EarthTakramNearRendererBundle {
@@ -10,5 +11,13 @@ export function createEarthTakramNearRenderer(): EarthTakramNearRendererBundle {
 
   return {
     root,
+    elapsedSeconds: 0,
   };
+}
+
+export function updateEarthTakramNearRenderer(
+  renderer: EarthTakramNearRendererBundle,
+  elapsedSeconds: number,
+): void {
+  renderer.elapsedSeconds = elapsedSeconds;
 }

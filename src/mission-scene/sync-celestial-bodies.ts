@@ -3,6 +3,7 @@ import { EARTH_ANGULAR_SPEED } from "../physics/bodies";
 import { copyRenderPositionFromMeters } from "../render-space/scene-position";
 import { syncMoonVisual } from "../three/objects/moon/moon";
 import { updateEarthNearAtmosphereRenderer } from "../three/objects/earth/near-atmosphere-renderer";
+import { updateEarthTakramNearRenderer } from "../three/objects/earth/takram-near-renderer";
 import { syncSatelliteSystem } from "../three/objects/earth/satellites";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
@@ -25,6 +26,7 @@ export function syncCelestialBodies(
     objects.earthRenderers.nearAtmosphere,
     frame.simState.t,
   );
+  updateEarthTakramNearRenderer(objects.earthRenderers.takramNear, frame.simState.t);
   // objects.referenceEarthRotatingFrame.rotation.y =
   //   EARTH_ANGULAR_SPEED * frame.simState.t;
 

@@ -1,6 +1,5 @@
 import type { SceneObjects } from "../index";
 import { EarthNearAtmosphereHost } from "./earth-near-atmosphere-host";
-import { EarthTakramNearHost } from "./earth-takram-near-host";
 
 type EarthObjectsHostProps = {
   objects: SceneObjects;
@@ -13,7 +12,6 @@ export function EarthObjectsHost({ objects }: EarthObjectsHostProps) {
         <primitive object={objects.earthRenderers.far.root} dispose={null} />
         <EarthNearAtmosphereHost renderer={objects.earthRenderers.nearAtmosphere} />
       </primitive>
-      <EarthTakramNearHost renderer={objects.earthRenderers.takramNear} />
       <primitive object={objects.earthLabel} dispose={null} />
       <primitive object={objects.satelliteSystem} dispose={null} />
     </primitive>
