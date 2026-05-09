@@ -39,9 +39,8 @@ export type SceneObjects = {
   predictionLine: THREE.Line;
 };
 
-export function createSceneObjects(scene: THREE.Scene): SceneObjects {
+export function createSceneObjects(): SceneObjects {
   const system = new THREE.Group();
-  scene.add(system);
 
   const loader = new THREE.TextureLoader();
   const {
@@ -82,16 +81,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const smokeTrail = createSmokeTrail();
 
   earthRotatingFrame.add(smokeTrail);
-
-  // Add other objects
-  system.add(earthGroup);
-  system.add(moon);
-  system.add(rocket);
-  system.add(launchRing);
-  system.add(launchAimArrow);
-  system.add(moonOrbit);
-  system.add(trailLine);
-  system.add(predictionLine);
 
   return {
     system,

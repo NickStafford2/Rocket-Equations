@@ -4,7 +4,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import type { MissionCameraController } from "../mission-scene/camera/camera-controller";
-import { createSceneObjects } from "./objects";
+import type { SceneObjects } from "./objects";
 import {
   createOrientationIndicator,
   createVectorIndicator,
@@ -26,7 +26,7 @@ export type ThreeSceneBundle = {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   cameraController: MissionCameraController;
-  objects: ReturnType<typeof createSceneObjects>;
+  objects: SceneObjects;
   orientationIndicator: OrientationIndicatorBundle;
   relativeVelocityIndicator: VectorIndicatorBundle;
   render: () => void;
@@ -39,6 +39,7 @@ type CreateThreeSceneBundleParams = {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   cameraController: MissionCameraController;
+  objects: SceneObjects;
 };
 
 export function createThreeSceneBundle({
@@ -46,6 +47,7 @@ export function createThreeSceneBundle({
   camera,
   renderer,
   cameraController,
+  objects,
 }: CreateThreeSceneBundleParams): ThreeSceneBundle {
   const previousBackground = scene.background;
   const previousFog = scene.fog;
@@ -58,7 +60,6 @@ export function createThreeSceneBundle({
   const ambientLight = createAmbientLight();
   scene.add(ambientLight);
 
-  const objects = createSceneObjects(scene);
   objects.system.add(createOrbitalGrid());
   objects.system.add(createAxisHelper());
 

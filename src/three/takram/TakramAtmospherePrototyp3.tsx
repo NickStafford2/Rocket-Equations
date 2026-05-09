@@ -250,9 +250,15 @@ function TakramAtmosphereScene() {
   );
 }
 
-export function TakramAtmospherePrototype() {
+type TakramAtmospherePrototypeProps = {
+  className?: string;
+};
+
+export function TakramAtmospherePrototype({
+  className,
+}: TakramAtmospherePrototypeProps) {
   return (
-    <div className="h-screen w-screen">
+    <div className={className ?? "h-screen w-screen"}>
       <Canvas
         shadows
         gl={{
