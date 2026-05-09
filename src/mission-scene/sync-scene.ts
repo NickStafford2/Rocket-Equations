@@ -78,6 +78,7 @@ export function syncMissionScene({
   syncTrailDisplay({
     bundle,
     simulation,
+    frame,
     showTrail: showTrailRef.current,
     previousTrailLengthRef,
   });

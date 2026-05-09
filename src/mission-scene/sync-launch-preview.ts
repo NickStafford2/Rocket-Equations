@@ -1,6 +1,6 @@
 import * as THREE from "three";
+import { copyRenderPositionFromMeters } from "../render-space/scene-position";
 import { updateLaunchCloudField } from "../three/objects/earth/launch-clouds";
-import { copyScenePositionFromMeters } from "../three/objects/position-scaling";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
 
@@ -24,8 +24,9 @@ export function syncLaunchPreview(
   objects.launchTangentArrow.visible = stagedLaunchPreviewVisible;
   objects.launchAimArrow.visible = stagedLaunchPreviewVisible;
 
-  const launchOrigin = copyScenePositionFromMeters(
+  const launchOrigin = copyRenderPositionFromMeters(
     new THREE.Vector3(),
+    frame.renderSpace,
     launchFrame.position,
   );
   objects.launchLocationArrow.position.set(0, 0, 0);

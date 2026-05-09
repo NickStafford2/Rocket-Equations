@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { TRAIL_POINT_CAPACITY } from "../sim/trail";
-import { moonPositionMeters } from "../physics/bodies";
-import { writeScenePositionToArray } from "../three/objects/position-scaling";
+import { writeRenderPositionToArray } from "../render-space/scene-position";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { EarthMoonSimulation } from "../sim/simulation";
 import type { FrameState } from "./frame-state";
@@ -10,11 +9,13 @@ import type { MutableRefObject } from "react";
 export function syncTrailDisplay({
   bundle,
   simulation,
+  frame,
   showTrail,
   previousTrailLengthRef,
 }: {
   bundle: ThreeSceneBundle;
   simulation: EarthMoonSimulation;
+  frame: FrameState;
   showTrail: boolean;
   previousTrailLengthRef: MutableRefObject<number>;
 }) {
@@ -41,13 +42,8 @@ export function syncTrailDisplay({
 
   simulation.copyTrailPositionsTo(
     positionArray,
-    (target, offset, point, timeSeconds) => {
-      writeScenePositionToArray(
-        target,
-        offset,
-        point,
-        moonPositionMeters(timeSeconds),
-      );
+    (target, offset, point) => {
+      writeRenderPositionToArray(target, offset, frame.renderSpace, point);
     },
     startIndex,
   );
@@ -109,13 +105,8 @@ export function syncPredictionDisplay({
 
   simulation.copyPredictionPositionsTo(
     positionArray,
-    (target, offset, point, timeSeconds) => {
-      writeScenePositionToArray(
-        target,
-        offset,
-        point,
-        moonPositionMeters(timeSeconds),
-      );
+    (target, offset, point) => {
+      writeRenderPositionToArray(target, offset, frame.renderSpace, point);
     },
   );
   predictionPositions.needsUpdate = true;

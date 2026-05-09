@@ -1,5 +1,9 @@
 import * as THREE from "three";
 import { makeInitialRocketState, R_EARTH } from "../physics/bodies";
+import {
+  createRenderSpaceContext,
+  type RenderSpaceContext,
+} from "../render-space/scene-position";
 import type { EarthMoonSimulation } from "../sim/simulation";
 
 const MIN_PREVIEW_SPEED_METERS_PER_SECOND = 7800;
@@ -12,6 +16,7 @@ export type FrameState = {
   simState: ReturnType<EarthMoonSimulation["getState"]>;
   telemetry: ReturnType<EarthMoonSimulation["getTelemetry"]>;
   launchFrame: ReturnType<EarthMoonSimulation["getLaunchFrame"]>;
+  renderSpace: RenderSpaceContext;
   previewState: ReturnType<typeof makeInitialRocketState>;
   aimArrowLength: number;
   stagedLaunchPreviewVisible: boolean;
@@ -34,6 +39,9 @@ export function createFrameState({
   const simState = simulation.getState();
   const telemetry = simulation.getTelemetry();
   const launchFrame = simulation.getLaunchFrame();
+  const renderSpace = createRenderSpaceContext({
+    moonPositionMeters: telemetry.moonPosition,
+  });
   const launchAltitudeMeters = Math.max(launchFrame.position.length() - R_EARTH, 0);
   const previewState = makeInitialRocketState(
     launchSpeed,
@@ -54,6 +62,7 @@ export function createFrameState({
     simState,
     telemetry,
     launchFrame,
+    renderSpace,
     previewState,
     aimArrowLength: THREE.MathUtils.lerp(
       MIN_AIM_ARROW_LENGTH,
