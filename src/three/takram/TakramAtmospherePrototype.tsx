@@ -6,7 +6,7 @@ import {
   Atmosphere,
   Sky,
 } from "@takram/three-atmosphere/r3f";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 
 const EARTH_RADIUS_METERS = 6_378_137;
@@ -21,6 +21,35 @@ const TEST_DATE = new Date("2026-06-21T16:00:00Z");
 type TakramAtmospherePrototypeProps = {
   className?: string;
 };
+import { createEarthObjects } from "../objects/earth/earth";
+import { EARTH_RENDER_RADIUS_SCENE_UNITS } from "../objects/constants";
+
+function ImportedProjectEarth() {
+  const earthBundle = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    return createEarthObjects(loader);
+  }, []);
+
+  useEffect(() => {
+    // Hide your existing atmosphere layers so Takram can be judged clearly.
+    earthBundle.earthAtmosphere.visible = false;
+    earthBundle.earthFresnel.visible = false;
+
+    // Optional: hide your current cloud texture shell at first.
+    // Turn this back on later to see how it combines with Takram.
+    earthBundle.earthCloudsFrame.visible = false;
+
+    // Important: avoid drawing duplicate Earth surfaces.
+    // Your earth.ts currently adds both the far renderer and near renderer.
+    // For the prototype, pick one surface. Start with near.
+    earthBundle.renderers.far.root.visible = false;
+    earthBundle.renderers.nearAtmosphere.root.visible = true;
+  }, [earthBundle]);
+
+  const scale = (EARTH_RADIUS_METERS / EARTH_RENDER_RADIUS_SCENE_UNITS) * 0.99;
+
+  return <primitive object={earthBundle.earthGroup} scale={scale} />;
+}
 
 export function TakramAtmospherePrototype({
   className,
@@ -60,8 +89,8 @@ export function TakramAtmospherePrototype({
 
       <Atmosphere date={TEST_DATE}>
         <Sky />
-
-        <EarthTestSphere />
+        <ImportedProjectEarth />
+        {/* <EarthTestSphere /> */}
 
         <EffectComposer enableNormalPass>
           <AerialPerspective sunLight skyLight />
