@@ -10,17 +10,14 @@ import {
 import { useEffect } from "react";
 import * as THREE from "three";
 
-import earthClouds2kUrl from "../../assets/textures/earth/2k_earth_clouds.jpg";
 import earthDay2kUrl from "../../assets/textures/earth/2k_earth_daymap.jpg";
-
-const EARTH_RADIUS_METERS = 6_378_137;
+import { EARTH_RADIUS_METERS } from "./constants";
+import { EarthCloudLayer } from "./EarthCloudLayer";
 
 const GROUND_ALTITUDE_METERS = 2_000;
 const LOW_ORBIT_ALTITUDE_METERS = 420_000;
 const FAR_SPACE_ALTITUDE_METERS = 20_000_000;
 const VERY_FAR_SPACE_ALTITUDE_METERS = 45_000_000;
-
-const CLOUD_ALTITUDE_METERS = 12_000;
 
 const TEST_DATE = new Date("2026-06-21T16:00:00Z");
 
@@ -69,7 +66,7 @@ export function TakramAtmospherePrototype({
         <Sky />
 
         <EarthSurface />
-        {/* <EarthCloudLayer /> */}
+        <EarthCloudLayer />
 
         <EffectComposer enableNormalPass>
           <LightingMask selectionLayer={10} />
@@ -104,30 +101,6 @@ function EarthSurface() {
     <mesh>
       <sphereGeometry args={[EARTH_RADIUS_METERS * 0.99, 256, 128]} />
       <meshBasicMaterial map={dayTexture} />
-    </mesh>
-  );
-}
-
-function EarthCloudLayer() {
-  const cloudTexture = useTexture(earthClouds2kUrl);
-
-  useEffect(() => {
-    cloudTexture.colorSpace = THREE.SRGBColorSpace;
-    cloudTexture.anisotropy = 8;
-    cloudTexture.needsUpdate = true;
-  }, [cloudTexture]);
-
-  return (
-    <mesh>
-      <sphereGeometry
-        args={[EARTH_RADIUS_METERS + CLOUD_ALTITUDE_METERS, 256, 128]}
-      />
-      <meshBasicMaterial
-        map={cloudTexture}
-        transparent
-        opacity={0.55}
-        depthWrite={false}
-      />
     </mesh>
   );
 }
