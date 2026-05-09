@@ -13,7 +13,8 @@ import { syncOrientationIndicator } from "./sync-indicators";
 import { syncLaunchPreview } from "./sync-launch-preview";
 import { syncRenderMode } from "./sync-render-mode";
 import { syncRocketVisuals } from "./rocket/sync-rocket-visuals";
-import { syncPredictionDisplay, syncTrailDisplay } from "./sync-trails";
+import { syncTrailDisplay } from "./sync-trails";
+import { syncPredictionDisplay } from "./sync-prediction-display";
 import type { CameraDebugState } from "./types";
 
 type SyncMissionSceneParams = {
