@@ -1,8 +1,8 @@
 import { getMissionPhase, describeMoonLanding, formatSpeed } from "../mission";
 import {
   getCameraDebugSnapshot,
-  type CameraRigState,
-} from "../three/camera-rig";
+  type CameraControllerState,
+} from "../camera/controller";
 import type { CameraDebugState } from "./types";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { MutableRefObject } from "react";
@@ -133,13 +133,13 @@ function stopAndSyncImpact({
 
 export function syncCameraDebug({
   bundle,
-  cameraRigRef,
+  cameraControllerRef,
   frameNow,
   lastCameraDebugSyncAtRef,
   setCameraDebug,
 }: {
   bundle: ThreeSceneBundle;
-  cameraRigRef: MutableRefObject<CameraRigState>;
+  cameraControllerRef: MutableRefObject<CameraControllerState>;
   frameNow: number;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
   setCameraDebug: (value: CameraDebugState) => void;
@@ -151,7 +151,7 @@ export function syncCameraDebug({
   lastCameraDebugSyncAtRef.current = frameNow;
   setCameraDebug(
     getCameraDebugSnapshot(
-      cameraRigRef.current,
+      cameraControllerRef.current,
       bundle.camera,
       bundle.controls,
     ),

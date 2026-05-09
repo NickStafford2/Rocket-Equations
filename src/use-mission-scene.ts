@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import type { CameraTarget } from "./mission";
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from "react";
 import {
   clearFollowTarget,
   clearLookTarget,
@@ -7,15 +12,17 @@ import {
   setLookTarget,
   setOverview,
   syncSelection,
-  type CameraRigTarget,
-  type CameraRigState,
-} from "./three/camera-rig";
-import type { ThreeSceneBundle } from "./three/scene";
+  type CameraControllerState,
+} from "./camera/controller";
 import {
+  createCameraTargetRegistry,
+  type CameraTarget as RegisteredCameraTarget,
+} from "./camera/targets";
+import type { CameraTarget } from "./mission";
+import {
+  createInitialCameraController,
   createInitialCameraDebugState,
-  createInitialCameraRig,
-  findFocusableByPreset,
-  getFocusLabel,
+  findCameraTargetByPreset,
   toCameraSelection,
 } from "./mission-scene/camera";
 import { startMissionSceneRuntime } from "./mission-scene/runtime";
@@ -24,6 +31,7 @@ import type {
   CameraSelection,
   UseMissionSceneParams,
 } from "./mission-scene/types";
+import { createThreeScene, type ThreeSceneBundle } from "./three/scene";
 
 export function useMissionScene({
   mountRef,
@@ -45,8 +53,10 @@ export function useMissionScene({
   showThrustDirectionArrow,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
-  const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
-  const cameraRigRef = useRef<CameraRigState>(createInitialCameraRig());
+  const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(
+    null,
+  );
+  const cameraControllerRef = useRef<CameraControllerState | null>(null);
   const showTrailRef = useRef(showTrail);
   const showPredictionRef = useRef(showPrediction);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
@@ -65,30 +75,47 @@ export function useMissionScene({
   );
   const [earthLodDebug, setEarthLodDebug] = useState("LOD 0 · 8K · near");
 
-  function syncCameraSelectionFromRig() {
-    setCameraSelection(toCameraSelection(syncSelection(cameraRigRef.current)));
+  function syncCameraSelectionFromController() {
+    const controller = cameraControllerRef.current;
+    if (!controller) return;
+
+    setCameraSelection(toCameraSelection(syncSelection(controller)));
   }
 
   function requestSceneRender() {
     runtimeRef.current?.requestRender();
   }
 
-  function applyFollowSelection(target: CameraRigTarget) {
+  function applyFollowSelection(target: RegisteredCameraTarget) {
     const bundle = bundleRef.current;
-    if (!bundle) return;
+    const controller = cameraControllerRef.current;
+    if (!bundle || !controller) return;
 
-    setFollowTarget(cameraRigRef.current, target, bundle.camera, bundle.controls);
-    syncCameraSelectionFromRig();
-    setStatus(`Locking on ${getFocusLabel(target.object)}...`);
+    bundle.scene.updateMatrixWorld(true);
+    setFollowTarget(controller, target, bundle.camera, bundle.controls);
+    syncCameraSelectionFromController();
+    setStatus(`Locking on ${target.label}...`);
     requestSceneRender();
   }
 
-  function applyLookSelection(target: CameraRigTarget) {
-    setLookTarget(cameraRigRef.current, target);
-    syncCameraSelectionFromRig();
-    setStatus(`Turning toward ${getFocusLabel(target.object)}...`);
+  function applyLookSelection(target: RegisteredCameraTarget) {
+    const controller = cameraControllerRef.current;
+    if (!controller) return;
+
+    setLookTarget(controller, target);
+    syncCameraSelectionFromController();
+    setStatus(`Turning toward ${target.label}...`);
     requestSceneRender();
   }
+
+  const onRuntimeFollowSelection = useEffectEvent(
+    (target: RegisteredCameraTarget) => {
+      applyFollowSelection(target);
+    },
+  );
+  const onRuntimeSyncCameraSelection = useEffectEvent(() => {
+    syncCameraSelectionFromController();
+  });
 
   useEffect(() => {
     showTrailRef.current = showTrail;
@@ -113,10 +140,18 @@ export function useMissionScene({
     const mount = mountRef.current;
     if (!mount) return;
 
+    const bundle = createThreeScene(mount);
+    const cameraTargetRegistry = createCameraTargetRegistry(bundle);
+    cameraControllerRef.current = createInitialCameraController(
+      cameraTargetRegistry,
+    );
+
     const runtime = startMissionSceneRuntime({
       mount,
+      bundle,
       simulation,
-      cameraRigRef,
+      cameraControllerRef:
+        cameraControllerRef as MutableRefObject<CameraControllerState>,
       runningRef,
       maneuverInputRef,
       launchSpeedRef,
@@ -135,17 +170,17 @@ export function useMissionScene({
       setTelemetry,
       setCameraDebug,
       setEarthLodDebug,
-      onFollowSelection: applyFollowSelection,
-      onSyncCameraSelection: syncCameraSelectionFromRig,
+      onFollowSelection: onRuntimeFollowSelection,
+      onSyncCameraSelection: onRuntimeSyncCameraSelection,
     });
-    bundleRef.current = runtime.bundle;
+    bundleRef.current = bundle;
     runtimeRef.current = runtime;
 
     return () => {
       runtime.cleanup();
       bundleRef.current = null;
       runtimeRef.current = null;
-      cameraRigRef.current = createInitialCameraRig();
+      cameraControllerRef.current = null;
       previousTrailLengthRef.current = 0;
     };
   }, [
@@ -162,44 +197,47 @@ export function useMissionScene({
   ]);
 
   function applyOverviewCamera() {
-    setOverview(cameraRigRef.current);
-    syncCameraSelectionFromRig();
+    const controller = cameraControllerRef.current;
+    if (!controller) return;
+
+    setOverview(controller);
+    syncCameraSelectionFromController();
     setStatus("Restoring overview camera...");
     requestSceneRender();
   }
 
   function applyLockTarget(target: CameraTarget) {
-    const bundle = bundleRef.current;
-    if (!bundle) return;
+    const controller = cameraControllerRef.current;
+    if (!controller) return;
 
-    const currentFollow = cameraRigRef.current.follow;
-    if (currentFollow?.key === target) {
-      clearFollowTarget(cameraRigRef.current);
-      syncCameraSelectionFromRig();
+    const currentFollow = controller.follow;
+    if (currentFollow?.id === target) {
+      clearFollowTarget(controller);
+      syncCameraSelectionFromController();
       setStatus("Camera unlocked.");
       requestSceneRender();
       return;
     }
 
-    const focusable = findFocusableByPreset(bundle.scene, target);
+    const focusable = findCameraTargetByPreset(controller.registry, target);
     if (!focusable) return;
     applyFollowSelection(focusable);
   }
 
   function applyLookAtTarget(target: CameraTarget) {
-    const bundle = bundleRef.current;
-    if (!bundle) return;
+    const controller = cameraControllerRef.current;
+    if (!controller) return;
 
-    const currentLook = cameraRigRef.current.look;
-    if (currentLook?.key === target) {
-      clearLookTarget(cameraRigRef.current);
-      syncCameraSelectionFromRig();
+    const currentLook = controller.look;
+    if (currentLook?.id === target) {
+      clearLookTarget(controller);
+      syncCameraSelectionFromController();
       setStatus("Look-at released.");
       requestSceneRender();
       return;
     }
 
-    const focusable = findFocusableByPreset(bundle.scene, target);
+    const focusable = findCameraTargetByPreset(controller.registry, target);
     if (!focusable) return;
     applyLookSelection(focusable);
   }

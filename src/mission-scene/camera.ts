@@ -1,19 +1,26 @@
 import * as THREE from "three";
-import { normalizeFocusLabelToPreset } from "../mission";
-import type { CameraTarget } from "../mission";
 import {
-  createCameraRig,
-  type CameraRigSelection,
-  type CameraRigState,
-  type CameraRigTarget,
-} from "../three/camera-rig";
+  createCameraController,
+  type CameraControllerSelection,
+  type CameraControllerState,
+} from "../camera/controller";
+import {
+  findRegisteredCameraTargetForObject,
+  getCameraTargetById,
+  type CameraTarget,
+  type CameraTargetRegistry,
+} from "../camera/targets";
+import type { CameraTarget as MissionCameraTarget } from "../mission";
 import type { CameraDebugState, CameraSelection } from "./types";
 
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-840, 480, 840);
 export const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(224, 0, 0);
 
-export function createInitialCameraRig(): CameraRigState {
-  return createCameraRig({
+export function createInitialCameraController(
+  registry: CameraTargetRegistry,
+): CameraControllerState {
+  return createCameraController({
+    registry,
     overviewPosition: OVERVIEW_CAMERA_POSITION,
     overviewTarget: OVERVIEW_CAMERA_TARGET,
   });
@@ -36,7 +43,7 @@ export function createInitialCameraDebugState(): CameraDebugState {
 }
 
 export function toCameraSelection(
-  selection: CameraRigSelection,
+  selection: CameraControllerSelection,
 ): CameraSelection {
   return {
     isOverviewActive: selection.overview,
@@ -45,46 +52,16 @@ export function toCameraSelection(
   };
 }
 
-export function getFocusLabel(object: THREE.Object3D): string {
-  return String(object.userData.focusLabel ?? "target");
+export function findCameraTargetByPreset(
+  registry: CameraTargetRegistry,
+  preset: MissionCameraTarget,
+): CameraTarget | null {
+  return getCameraTargetById(registry, preset);
 }
 
-export function findFocusableByPreset(
-  scene: THREE.Scene,
-  preset: CameraTarget,
-): CameraRigTarget | null {
-  let focusable: CameraRigTarget | null = null;
-  scene.traverse((object) => {
-    if (focusable) return;
-    const target = toCameraRigTarget(object);
-    if (target?.key === preset) {
-      focusable = target;
-    }
-  });
-
-  return focusable;
-}
-
-export function findFocusableObject(
+export function findCameraTargetForObject(
+  registry: CameraTargetRegistry,
   object: THREE.Object3D | null,
-): CameraRigTarget | null {
-  let current: THREE.Object3D | null = object;
-
-  while (current) {
-    const target = toCameraRigTarget(current);
-    if (target) return target;
-    current = current.parent;
-  }
-
-  return null;
-}
-
-function toCameraRigTarget(object: THREE.Object3D): CameraRigTarget | null {
-  const key = normalizeFocusLabelToPreset(object.userData.focusLabel);
-  if (!key || key === "overview") return null;
-
-  return {
-    key,
-    object,
-  };
+): CameraTarget | null {
+  return findRegisteredCameraTargetForObject(registry, object);
 }

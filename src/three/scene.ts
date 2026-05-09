@@ -26,6 +26,7 @@ export type ThreeSceneBundle = {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   controls: OrbitControls;
+  sun: THREE.Mesh;
   objects: ReturnType<typeof createSceneObjects>;
   orientationIndicator: OrientationIndicatorBundle;
   relativeVelocityIndicator: VectorIndicatorBundle;
@@ -189,6 +190,7 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     camera,
     renderer,
     controls,
+    sun: sunBundle.sun,
     objects,
     orientationIndicator,
     relativeVelocityIndicator,

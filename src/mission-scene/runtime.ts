@@ -1,24 +1,25 @@
 import type { MutableRefObject } from "react";
 import * as THREE from "three";
+import type { CameraControllerState } from "../camera/controller";
+import {
+  updateCameraController,
+  updateFromControlsChange,
+  updateFromControlsStart,
+} from "../camera/controller";
+import type { CameraTarget } from "../camera/targets";
 import type { ManeuverInput } from "../physics/bodies";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
-import { createThreeScene } from "../three/scene";
-import {
-  updateCameraRig,
-  updateFromControlsChange,
-  updateFromControlsStart,
-  type CameraRigState,
-  type CameraRigTarget,
-} from "../three/camera-rig";
-import { findFocusableObject } from "./camera";
+import { findCameraTargetForObject } from "./camera";
+import { getCameraClipPlanes } from "./camera-clip-planes";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
 
 type StartMissionSceneRuntimeParams = {
   mount: HTMLDivElement;
+  bundle: ThreeSceneBundle;
   simulation: EarthMoonSimulation;
-  cameraRigRef: MutableRefObject<CameraRigState>;
+  cameraControllerRef: MutableRefObject<CameraControllerState>;
   runningRef: MutableRefObject<boolean>;
   maneuverInputRef: MutableRefObject<ManeuverInput>;
   launchSpeedRef: MutableRefObject<number>;
@@ -37,7 +38,7 @@ type StartMissionSceneRuntimeParams = {
   setTelemetry: (value: SimulationTelemetry) => void;
   setCameraDebug: (value: CameraDebugState) => void;
   setEarthLodDebug: (value: string) => void;
-  onFollowSelection: (target: CameraRigTarget) => void;
+  onFollowSelection: (target: CameraTarget) => void;
   onSyncCameraSelection: () => void;
 };
 
@@ -48,14 +49,12 @@ type MissionSceneRuntime = {
 };
 
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
-const MIN_CAMERA_NEAR = 0.01;
-const MAX_CAMERA_NEAR = 4;
-const CAMERA_NEAR_DISTANCE_FACTOR = 0.0015;
 
 export function startMissionSceneRuntime({
   mount,
+  bundle,
   simulation,
-  cameraRigRef,
+  cameraControllerRef,
   runningRef,
   maneuverInputRef,
   launchSpeedRef,
@@ -77,7 +76,6 @@ export function startMissionSceneRuntime({
   onFollowSelection,
   onSyncCameraSelection,
 }: StartMissionSceneRuntimeParams): MissionSceneRuntime {
-  const bundle = createThreeScene(mount);
   const { camera, controls, render, resize, renderer, scene } = bundle;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
@@ -99,7 +97,10 @@ export function startMissionSceneRuntime({
     const intersections = raycaster.intersectObjects(scene.children, true);
 
     for (const hit of intersections) {
-      const focusable = findFocusableObject(hit.object);
+      const focusable = findCameraTargetForObject(
+        cameraControllerRef.current.registry,
+        hit.object,
+      );
       if (focusable) {
         onFollowSelection(focusable);
         return;
@@ -119,7 +120,7 @@ export function startMissionSceneRuntime({
 
   function onControlsStart() {
     controlsInteracting = true;
-    const status = updateFromControlsStart(cameraRigRef.current);
+    const status = updateFromControlsStart(cameraControllerRef.current);
     if (status) {
       onSyncCameraSelection();
       setStatus(status);
@@ -128,7 +129,7 @@ export function startMissionSceneRuntime({
   }
 
   function onControlsChange() {
-    updateFromControlsChange(cameraRigRef.current, camera);
+    updateFromControlsChange(cameraControllerRef.current, camera);
     requestRender();
   }
 
@@ -138,18 +139,21 @@ export function startMissionSceneRuntime({
   }
 
   function syncCameraClipPlanes() {
-    const distanceToTarget = camera.position.distanceTo(controls.target);
-    const nextNear = THREE.MathUtils.clamp(
-      distanceToTarget * CAMERA_NEAR_DISTANCE_FACTOR,
-      MIN_CAMERA_NEAR,
-      MAX_CAMERA_NEAR,
-    );
+    const { near: nextNear, far: nextFar } = getCameraClipPlanes({
+      followTarget: cameraControllerRef.current.follow?.id ?? null,
+      lookTarget: cameraControllerRef.current.look?.id ?? null,
+      distanceToTarget: camera.position.distanceTo(controls.target),
+    });
 
-    if (Math.abs(camera.near - nextNear) <= 1e-6) {
+    if (
+      Math.abs(camera.near - nextNear) <= 1e-6 &&
+      Math.abs(camera.far - nextFar) <= 1e-3
+    ) {
       return;
     }
 
     camera.near = nextNear;
+    camera.far = nextFar;
     camera.updateProjectionMatrix();
   }
 
@@ -161,7 +165,11 @@ export function startMissionSceneRuntime({
   }
 
   function startFrameLoop() {
-    if (disposed || document.visibilityState === "hidden" || animationFrameId !== null) {
+    if (
+      disposed ||
+      document.visibilityState === "hidden" ||
+      animationFrameId !== null
+    ) {
       return;
     }
 
@@ -173,8 +181,8 @@ export function startMissionSceneRuntime({
       renderRequested ||
       runningRef.current ||
       controlsInteracting ||
-      cameraRigRef.current.positionTransitioning ||
-      cameraRigRef.current.targetTransitioning
+      cameraControllerRef.current.positionTransitioning ||
+      cameraControllerRef.current.targetTransitioning
     );
   }
 
@@ -186,8 +194,7 @@ export function startMissionSceneRuntime({
   function syncEarthLodDebug() {
     const earth = bundle.objects.earth;
     const levelIndex = earth.getCurrentLevel();
-    const detail =
-      levelIndex === 0 ? "8K" : "2K";
+    const detail = levelIndex === 0 ? "8K" : "2K";
     const range =
       levelIndex === 0 ? "near" : levelIndex === 1 ? "mid" : "far";
     const nextDebug = `LOD ${levelIndex} · ${detail} · ${range}`;
@@ -232,7 +239,7 @@ export function startMissionSceneRuntime({
     syncMissionScene({
       bundle,
       simulation,
-      cameraRigRef,
+      cameraControllerRef,
       runningRef,
       launchSpeedRef,
       launchAngleRef,
@@ -251,7 +258,7 @@ export function startMissionSceneRuntime({
       setCameraDebug,
     });
 
-    const cameraStatuses = updateCameraRig(cameraRigRef.current, {
+    const cameraStatuses = updateCameraController(cameraControllerRef.current, {
       camera,
       controls,
       scene,

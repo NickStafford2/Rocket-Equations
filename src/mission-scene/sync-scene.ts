@@ -1,10 +1,10 @@
 import type { MutableRefObject } from "react";
+import type { CameraControllerState } from "../camera/controller";
 import type {
   EarthMoonSimulation,
   SimulationTelemetry,
 } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
-import { type CameraRigState } from "../three/camera-rig";
 import { createFrameState } from "./frame-state";
 import { syncCameraDebug, syncMissionUi } from "./sync-ui";
 import { syncCelestialBodies } from "./sync-celestial-bodies";
@@ -18,7 +18,7 @@ import type { CameraDebugState } from "./types";
 type SyncMissionSceneParams = {
   bundle: ThreeSceneBundle;
   simulation: EarthMoonSimulation;
-  cameraRigRef: MutableRefObject<CameraRigState>;
+  cameraControllerRef: MutableRefObject<CameraControllerState>;
   runningRef: MutableRefObject<boolean>;
   launchSpeedRef: MutableRefObject<number>;
   launchAngleRef: MutableRefObject<number>;
@@ -40,7 +40,7 @@ type SyncMissionSceneParams = {
 export function syncMissionScene({
   bundle,
   simulation,
-  cameraRigRef,
+  cameraControllerRef,
   runningRef,
   launchSpeedRef,
   launchAngleRef,
@@ -65,7 +65,6 @@ export function syncMissionScene({
     launchAzimuthDeg: launchAzimuthRef.current,
     running: runningRef.current,
   });
-
   syncCelestialBodies(bundle, frame);
   syncRocketVisuals(bundle, frame, {
     thrusting: frame.simState.thrusting,
@@ -99,7 +98,7 @@ export function syncMissionScene({
   });
   syncCameraDebug({
     bundle,
-    cameraRigRef,
+    cameraControllerRef,
     frameNow: frame.now,
     lastCameraDebugSyncAtRef,
     setCameraDebug,

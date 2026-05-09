@@ -2,7 +2,7 @@ import type { MutableRefObject, RefObject } from "react";
 import type { ManeuverInput } from "../physics/bodies";
 import type { CameraTarget } from "../mission";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
-import type { CameraRigDebugSnapshot } from "../three/camera-rig";
+import type { CameraControllerDebugSnapshot } from "../camera/controller";
 
 export type UseMissionSceneParams = {
   mountRef: RefObject<HTMLDivElement | null>;
@@ -30,4 +30,4 @@ export type CameraSelection = {
   lookTarget: CameraTarget | null;
 };
 
-export type CameraDebugState = CameraRigDebugSnapshot;
+export type CameraDebugState = CameraControllerDebugSnapshot;
