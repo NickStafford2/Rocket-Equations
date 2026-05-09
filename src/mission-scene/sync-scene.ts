@@ -12,7 +12,7 @@ import { syncFarAwayLabels } from "./sync-far-away-labels";
 import { syncOrientationIndicator } from "./sync-indicators";
 import { syncLaunchPreview } from "./sync-launch-preview";
 import { syncRenderMode } from "./sync-render-mode";
-import { syncRocketVisuals } from "./sync-rocket-visuals";
+import { syncRocketVisuals } from "./rocket/sync-rocket-visuals";
 import { syncPredictionDisplay, syncTrailDisplay } from "./sync-trails";
 import type { CameraDebugState } from "./types";
 
