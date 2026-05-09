@@ -1,5 +1,4 @@
 import { EarthObjectsHost } from "./objects/earth/earth-objects-host";
-import { EarthTakramNearHost } from "./objects/earth/earth-takram-near-host";
 import type { SceneObjects } from "./objects";
 
 type MissionSceneObjectsHostProps = {
@@ -12,7 +11,6 @@ export function MissionSceneObjectsHost({
   return (
     <primitive object={objects.system} dispose={null}>
       <EarthObjectsHost objects={objects} />
-      <EarthTakramNearHost renderer={objects.earthRenderers.takramNear} />
       <primitive object={objects.moon} dispose={null} />
       <primitive object={objects.rocket} dispose={null} />
       <primitive object={objects.launchRing} dispose={null} />

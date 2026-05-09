@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   Atmosphere,
@@ -7,6 +7,7 @@ import {
   SunLight,
   type AtmosphereApi,
 } from "@takram/three-atmosphere/r3f";
+import { Ellipsoid } from "@takram/three-geospatial";
 import type { EarthTakramNearRendererBundle } from "./takram-near-renderer";
 
 type EarthTakramNearHostProps = {
@@ -19,6 +20,19 @@ export function EarthTakramNearHost({
   renderer,
 }: EarthTakramNearHostProps) {
   const atmosphereRef = useRef<AtmosphereApi | null>(null);
+
+  useEffect(() => {
+    const atmosphere = atmosphereRef.current;
+
+    if (!atmosphere) {
+      return;
+    }
+
+    Ellipsoid.WGS84.getNorthUpEastFrame(
+      renderer.worldReferenceMeters,
+      atmosphere.worldToECEFMatrix,
+    );
+  }, [renderer]);
 
   useFrame(() => {
     const date = REFERENCE_DATE_MS + ((renderer.elapsedSeconds * 5e6) % 864e5);

@@ -18,7 +18,7 @@ export function MissionSceneCanvas({
   return (
     <Canvas
       className={className}
-      frameloop="never"
+      frameloop="always"
       gl={{
         antialias: true,
         powerPreference: "high-performance",
