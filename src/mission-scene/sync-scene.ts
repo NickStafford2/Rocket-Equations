@@ -6,15 +6,15 @@ import type {
 import type { ThreeSceneBundle } from "../three/scene";
 import { type CameraRigState } from "./camera/camera-types";
 import { createFrameState } from "./frame-state";
-import { syncCameraDebug, syncMissionUi } from "./sync-ui";
+import { syncRocketVisuals } from "./rocket/sync-rocket-visuals";
 import { syncCelestialBodies } from "./sync-celestial-bodies";
 import { syncFarAwayLabels } from "./sync-far-away-labels";
 import { syncOrientationIndicator } from "./sync-indicators";
 import { syncLaunchPreview } from "./sync-launch-preview";
-import { syncRenderMode } from "./sync-render-mode";
-import { syncRocketVisuals } from "./rocket/sync-rocket-visuals";
-import { syncTrailDisplay } from "./sync-trails";
 import { syncPredictionDisplay } from "./sync-prediction-display";
+import { syncRenderMode } from "./sync-render-mode";
+import { syncTrailDisplay } from "./sync-trails";
+import { syncCameraDebug, syncMissionUi } from "./sync-ui";
 import type { CameraDebugState } from "./types";
 
 type SyncMissionSceneParams = {
