@@ -12,8 +12,8 @@ export function EarthObjectsHost({ objects }: EarthObjectsHostProps) {
       <primitive object={objects.earthRotatingFrame} dispose={null}>
         <primitive object={objects.earthRenderers.far.root} dispose={null} />
         <EarthNearAtmosphereHost renderer={objects.earthRenderers.nearAtmosphere} />
-        <EarthTakramNearHost renderer={objects.earthRenderers.takramNear} />
       </primitive>
+      <EarthTakramNearHost renderer={objects.earthRenderers.takramNear} />
       <primitive object={objects.earthLabel} dispose={null} />
       <primitive object={objects.satelliteSystem} dispose={null} />
     </primitive>
