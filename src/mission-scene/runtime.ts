@@ -11,7 +11,6 @@ import {
   updateFromControlsChange,
   updateFromControlsStart,
 } from "./camera/camera-state";
-import { findFocusableObject } from "./camera/camera-target";
 import { updateCameraRig } from "./camera/camera-update";
 import type { CameraRigState, CameraRigTarget } from "./camera/camera-types";
 import type { CameraDebugState } from "./types";
