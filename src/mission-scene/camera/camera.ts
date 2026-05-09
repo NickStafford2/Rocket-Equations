@@ -1,57 +1,7 @@
 import * as THREE from "three";
 import { normalizeFocusLabelToPreset } from "../../mission";
 import type { CameraTarget } from "../../mission";
-import {
-  createCameraRig,
-  type CameraRigSelection,
-  type CameraRigState,
-  type CameraRigTarget,
-} from "./camera-rig";
-import type { CameraDebugState, CameraSelection } from "../types";
-
-export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-840, 480, 840);
-export const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(224, 0, 0);
-
-export function createInitialCameraRig(): CameraRigState {
-  return createCameraRig({
-    overviewPosition: OVERVIEW_CAMERA_POSITION,
-    overviewTarget: OVERVIEW_CAMERA_TARGET,
-  });
-}
-
-export function createInitialCameraDebugState(): CameraDebugState {
-  return {
-    mode: "overview",
-    renderSpaceMode: "earth-local",
-    renderSpaceAnchor: "earth",
-    renderSpaceProjection: "body-surface-scaled",
-    renderOrigin: {
-      x: "0.0",
-      y: "0.0",
-      z: "0.0",
-    },
-    position: {
-      x: OVERVIEW_CAMERA_POSITION.x.toFixed(1),
-      y: OVERVIEW_CAMERA_POSITION.y.toFixed(1),
-      z: OVERVIEW_CAMERA_POSITION.z.toFixed(1),
-    },
-    target: {
-      x: OVERVIEW_CAMERA_TARGET.x.toFixed(1),
-      y: OVERVIEW_CAMERA_TARGET.y.toFixed(1),
-      z: OVERVIEW_CAMERA_TARGET.z.toFixed(1),
-    },
-  };
-}
-
-export function toCameraSelection(
-  selection: CameraRigSelection,
-): CameraSelection {
-  return {
-    isOverviewActive: selection.overview,
-    lockTarget: selection.followTarget,
-    lookTarget: selection.lookTarget,
-  };
-}
+import type { CameraRigTarget } from "./camera-rig";
 
 export function getFocusLabel(object: THREE.Object3D): string {
   return String(object.userData.focusLabel ?? "target");
@@ -62,8 +12,10 @@ export function findFocusableByPreset(
   preset: CameraTarget,
 ): CameraRigTarget | null {
   let focusable: CameraRigTarget | null = null;
+
   scene.traverse((object) => {
     if (focusable) return;
+
     const target = toCameraRigTarget(object);
     if (target?.key === preset) {
       focusable = target;
@@ -81,6 +33,7 @@ export function findFocusableObject(
   while (current) {
     const target = toCameraRigTarget(current);
     if (target) return target;
+
     current = current.parent;
   }
 

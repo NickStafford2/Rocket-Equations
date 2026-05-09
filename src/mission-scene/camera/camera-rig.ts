@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { CameraTarget } from "../mission";
+import type { CameraTarget } from "../../mission";
 
 export type CameraRigMode = "free" | "overview" | "tracking";
 
@@ -193,11 +193,12 @@ export function updateFromControlsStart(rig: CameraRigState): string | null {
     return null;
   }
 
-  const status = rig.mode === "overview"
-    ? rig.positionTransitioning || rig.targetTransitioning
-      ? "Overview transition canceled."
-      : "Free camera enabled."
-    : "Camera tracking canceled.";
+  const status =
+    rig.mode === "overview"
+      ? rig.positionTransitioning || rig.targetTransitioning
+        ? "Overview transition canceled."
+        : "Free camera enabled."
+      : "Camera tracking canceled.";
   clearAllTracking(rig);
   return status;
 }
@@ -447,7 +448,10 @@ function getFollowDistanceSetting(
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
-function getCameraCollisionClearance(object: THREE.Object3D, focusRadius: number) {
+function getCameraCollisionClearance(
+  object: THREE.Object3D,
+  focusRadius: number,
+) {
   const override = Number(object.userData.cameraCollisionClearance);
   if (Number.isFinite(override) && override >= 0) {
     return override;
@@ -467,7 +471,11 @@ function preventCameraBodyIntersection(
 ) {
   scene.traverse((object) => {
     const focusLabel = String(object.userData.focusLabel ?? "").toLowerCase();
-    if (focusLabel !== "earth" && focusLabel !== "moon" && focusLabel !== "rocket") {
+    if (
+      focusLabel !== "earth" &&
+      focusLabel !== "moon" &&
+      focusLabel !== "rocket"
+    ) {
       return;
     }
     if (focusLabel === "moon" && !preventMoonCameraIntersection) return;
@@ -483,8 +491,7 @@ function preventCameraBodyIntersection(
     }
 
     const minimumDistance =
-      focusRadius +
-      getCameraCollisionClearance(object, focusRadius);
+      focusRadius + getCameraCollisionClearance(object, focusRadius);
 
     if (CAMERA_COLLISION_OFFSET.length() >= minimumDistance) return;
 
@@ -496,9 +503,9 @@ function preventCameraBodyIntersection(
       const tangentialOffset = cameraOffsetFromTarget
         .clone()
         .sub(
-          targetNormal.clone().multiplyScalar(
-            cameraOffsetFromTarget.dot(targetNormal),
-          ),
+          targetNormal
+            .clone()
+            .multiplyScalar(cameraOffsetFromTarget.dot(targetNormal)),
         );
       const minimumRadialOffset = minimumDistance - targetDistance;
 

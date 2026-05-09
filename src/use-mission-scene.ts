@@ -12,12 +12,15 @@ import {
 } from "./mission-scene/camera/camera-rig";
 import type { ThreeSceneBundle } from "./three/scene";
 import {
-  createInitialCameraDebugState,
-  createInitialCameraRig,
   findFocusableByPreset,
   getFocusLabel,
-  toCameraSelection,
 } from "./mission-scene/camera/camera";
+
+import {
+  createInitialCameraDebugState,
+  createInitialCameraRig,
+  toCameraSelection,
+} from "./mission-scene/camera/camera-presets";
 import { startMissionSceneRuntime } from "./mission-scene/runtime";
 import type {
   CameraDebugState,
