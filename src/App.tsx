@@ -1,10 +1,12 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   formatDistance,
   formatElapsed,
   formatRelativeSpeed,
   formatSpeed,
 } from "./mission";
+import type { ThreeSceneBundle } from "./three/scene";
+import { MissionSceneCanvas } from "./three/scene-host";
 import { useMissionScene } from "./use-mission-scene";
 import {
   type MissionControlKey,
@@ -14,6 +16,7 @@ import { SceneHud } from "./ui/scene-hud";
 
 export default function App() {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const [sceneBundle, setSceneBundle] = useState<ThreeSceneBundle | null>(null);
   const {
     simulation,
     running,
@@ -63,6 +66,7 @@ export default function App() {
     requestSceneRender,
   } = useMissionScene({
     mountRef,
+    bundle: sceneBundle,
     simulation,
     running,
     setRunning,
@@ -105,7 +109,12 @@ export default function App() {
         ref={mountRef}
         tabIndex={0}
         className="h-full w-full focus:outline-none"
-      />
+      >
+        <MissionSceneCanvas
+          className="h-full w-full"
+          onBundleChange={setSceneBundle}
+        />
+      </div>
       <SceneHud
         isOverviewActive={isOverviewActive}
         currentLockTarget={currentLockTarget}

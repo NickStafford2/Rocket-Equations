@@ -7,9 +7,11 @@ import type {
   RenderSpaceProjection,
 } from "../render-space/frame";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
+import type { ThreeSceneBundle } from "../three/scene";
 
 export type UseMissionSceneParams = {
   mountRef: RefObject<HTMLDivElement | null>;
+  bundle: ThreeSceneBundle | null;
   simulation: EarthMoonSimulation;
   running: boolean;
   setRunning: (value: boolean) => void;

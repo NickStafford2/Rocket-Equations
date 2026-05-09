@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { createSceneObjects } from "./objects";
 import { createOrientationIndicator } from "./orientation-indicator";
 import { createVectorIndicator } from "./orientation-indicator";
@@ -34,38 +34,40 @@ export type ThreeSceneBundle = {
   dispose: () => void;
 };
 
-export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
-  const scene = new THREE.Scene();
-  scene.background = loadReferenceBackground();
-  scene.fog = new THREE.Fog(0x000814, 180, 2500);
+type CreateThreeSceneBundleParams = {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer;
+  controls: OrbitControls;
+};
 
-  const camera = new THREE.PerspectiveCamera(
-    55,
-    container.clientWidth / Math.max(container.clientHeight, 1),
-    0.0005,
-    10000,
-  );
+export function createThreeSceneBundle({
+  scene,
+  camera,
+  renderer,
+  controls,
+}: CreateThreeSceneBundleParams): ThreeSceneBundle {
+  const previousBackground = scene.background;
+  const previousFog = scene.fog;
+  const background = loadReferenceBackground();
+
+  scene.background = background;
+  scene.fog = new THREE.Fog(0x000814, 180, 2500);
   camera.up.set(0, 1, 0);
   camera.position.set(-840, 480, 840);
   camera.lookAt(0, 0, 0);
 
-  const renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    powerPreference: "high-performance",
-  });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  container.appendChild(renderer.domElement);
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
+  const rendererSize = renderer.getSize(new THREE.Vector2());
   const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(container.clientWidth, container.clientHeight),
+    rendererSize.clone(),
     BLOOM_STRENGTH,
     BLOOM_RADIUS,
     BLOOM_THRESHOLD,
@@ -89,7 +91,6 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   // scene.add(sunBundle.fillLight);
   // scene.add(sunBundle.fillLight.target);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.rotateSpeed = 0.55;
@@ -104,7 +105,6 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
   controls.update();
 
   function resize(width: number, height: number) {
-    renderer.setSize(width, height);
     composer.setSize(width, height);
   }
 
@@ -140,47 +140,29 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     renderer.autoClear = previousAutoClear;
   }
 
+  let disposed = false;
+
   function dispose() {
+    if (disposed) {
+      return;
+    }
+
+    disposed = true;
     controls.dispose();
-    scene.traverse((object: THREE.Object3D) => {
-      const mesh = object as THREE.Mesh & {
-        geometry?: THREE.BufferGeometry;
-        material?: THREE.Material | THREE.Material[];
-      };
-      mesh.geometry?.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((material: THREE.Material) => material.dispose());
-      } else {
-        mesh.material?.dispose();
-      }
-    });
-    orientationIndicator.scene.traverse((object: THREE.Object3D) => {
-      const mesh = object as THREE.Mesh & {
-        geometry?: THREE.BufferGeometry;
-        material?: THREE.Material | THREE.Material[];
-      };
-      mesh.geometry?.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((material: THREE.Material) => material.dispose());
-      } else {
-        mesh.material?.dispose();
-      }
-    });
-    relativeVelocityIndicator.scene.traverse((object: THREE.Object3D) => {
-      const mesh = object as THREE.Mesh & {
-        geometry?: THREE.BufferGeometry;
-        material?: THREE.Material | THREE.Material[];
-      };
-      mesh.geometry?.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach((material: THREE.Material) => material.dispose());
-      } else {
-        mesh.material?.dispose();
-      }
-    });
-    renderer.dispose();
-    if (renderer.domElement.parentNode === container) {
-      container.removeChild(renderer.domElement);
+    composer.dispose();
+    disposeSceneGraph(objects.system);
+    disposeSceneGraph(sunBundle.sun);
+    disposeSceneGraph(orientationIndicator.scene);
+    disposeSceneGraph(relativeVelocityIndicator.scene);
+    scene.remove(ambientLight);
+    scene.remove(objects.system);
+    scene.remove(sunBundle.sun);
+    scene.remove(sunBundle.sunLight);
+    scene.remove(sunBundle.sunLight.target);
+    scene.background = previousBackground;
+    scene.fog = previousFog;
+    if (background !== previousBackground) {
+      background.dispose();
     }
   }
 
@@ -196,6 +178,23 @@ export function createThreeScene(container: HTMLDivElement): ThreeSceneBundle {
     resize,
     dispose,
   };
+}
+
+function disposeSceneGraph(root: THREE.Object3D) {
+  root.traverse((object: THREE.Object3D) => {
+    const mesh = object as THREE.Mesh & {
+      geometry?: THREE.BufferGeometry;
+      material?: THREE.Material | THREE.Material[];
+    };
+
+    mesh.geometry?.dispose();
+    if (Array.isArray(mesh.material)) {
+      mesh.material.forEach((material: THREE.Material) => material.dispose());
+      return;
+    }
+
+    mesh.material?.dispose();
+  });
 }
 
 function createOrbitalGrid(): THREE.Mesh {

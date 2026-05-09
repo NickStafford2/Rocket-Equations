@@ -3,7 +3,6 @@ import * as THREE from "three";
 import type { ManeuverInput } from "../physics/bodies";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
-import { createThreeScene } from "../three/scene";
 import {
   updateCameraRig,
   updateFromControlsChange,
@@ -18,6 +17,7 @@ import type { CameraDebugState } from "./types";
 
 type StartMissionSceneRuntimeParams = {
   mount: HTMLDivElement;
+  bundle: ThreeSceneBundle;
   simulation: EarthMoonSimulation;
   cameraRigRef: MutableRefObject<CameraRigState>;
   runningRef: MutableRefObject<boolean>;
@@ -53,6 +53,7 @@ type MissionSceneRuntime = {
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
 export function startMissionSceneRuntime({
   mount,
+  bundle,
   simulation,
   cameraRigRef,
   runningRef,
@@ -78,8 +79,7 @@ export function startMissionSceneRuntime({
   onFollowSelection,
   onSyncCameraSelection,
 }: StartMissionSceneRuntimeParams): MissionSceneRuntime {
-  const bundle = createThreeScene(mount);
-  const { camera, controls, render, resize, renderer, scene } = bundle;
+  const { camera, controls, render, renderer, scene } = bundle;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let animationFrameId: number | null = null;
@@ -106,12 +106,6 @@ export function startMissionSceneRuntime({
         return;
       }
     }
-  }
-
-  function onResize() {
-    camera.aspect = mount.clientWidth / Math.max(mount.clientHeight, 1);
-    camera.updateProjectionMatrix();
-    resize(mount.clientWidth, mount.clientHeight);
   }
 
   function onScenePointerDown() {
@@ -277,7 +271,6 @@ export function startMissionSceneRuntime({
     previousFrameTimeMs = null;
   }
 
-  window.addEventListener("resize", onResize);
   document.addEventListener("visibilitychange", onVisibilityChange);
   mount.addEventListener("pointerdown", onScenePointerDown);
   controls.addEventListener("start", onControlsStart);
@@ -294,7 +287,6 @@ export function startMissionSceneRuntime({
     requestRender,
     cleanup: () => {
       disposed = true;
-      window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       mount.removeEventListener("pointerdown", onScenePointerDown);
       controls.removeEventListener("start", onControlsStart);
@@ -302,7 +294,6 @@ export function startMissionSceneRuntime({
       controls.removeEventListener("end", onControlsEnd);
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
       stopFrameLoop();
-      bundle.dispose();
     },
   };
 }

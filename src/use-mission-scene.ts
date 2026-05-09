@@ -27,6 +27,7 @@ import type {
 
 export function useMissionScene({
   mountRef,
+  bundle,
   simulation,
   running,
   setRunning,
@@ -61,6 +62,10 @@ export function useMissionScene({
   const lastTelemetryTimeRef = useRef<number | null>(null);
   const lastRunningStatusRef = useRef<string | null>(null);
   const previousTrailLengthRef = useRef(0);
+  const followSelectionHandlerRef = useRef<(target: CameraRigTarget) => void>(
+    () => {},
+  );
+  const syncCameraSelectionHandlerRef = useRef<() => void>(() => {});
   const [cameraSelection, setCameraSelection] = useState<CameraSelection>({
     isOverviewActive: true,
     lockTarget: null,
@@ -126,11 +131,21 @@ export function useMissionScene({
   }, [running, launchSpeed, launchAngleDeg, launchAzimuthDeg]);
 
   useEffect(() => {
+    bundleRef.current = bundle;
+  }, [bundle]);
+
+  useEffect(() => {
+    followSelectionHandlerRef.current = applyFollowSelection;
+    syncCameraSelectionHandlerRef.current = syncCameraSelectionFromRig;
+  });
+
+  useEffect(() => {
     const mount = mountRef.current;
-    if (!mount) return;
+    if (!mount || !bundle) return;
 
     const runtime = startMissionSceneRuntime({
       mount,
+      bundle,
       simulation,
       cameraRigRef,
       runningRef,
@@ -153,20 +168,22 @@ export function useMissionScene({
       setTelemetry,
       setCameraDebug,
       setEarthLodDebug,
-      onFollowSelection: applyFollowSelection,
-      onSyncCameraSelection: syncCameraSelectionFromRig,
+      onFollowSelection: (target) => followSelectionHandlerRef.current(target),
+      onSyncCameraSelection: () => syncCameraSelectionHandlerRef.current(),
     });
-    bundleRef.current = runtime.bundle;
     runtimeRef.current = runtime;
 
     return () => {
       runtime.cleanup();
-      bundleRef.current = null;
+      if (bundleRef.current === bundle) {
+        bundleRef.current = null;
+      }
       runtimeRef.current = null;
       cameraRigRef.current = createInitialCameraRig();
       previousTrailLengthRef.current = 0;
     };
   }, [
+    bundle,
     mountRef,
     simulation,
     setRunning,
