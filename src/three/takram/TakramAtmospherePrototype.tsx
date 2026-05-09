@@ -1,17 +1,15 @@
-import { Html, OrbitControls, Stars } from "@react-three/drei";
+import { OrbitControls, Stars } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
 import {
   AerialPerspective,
   Atmosphere,
-  LightingMask,
   Sky,
 } from "@takram/three-atmosphere/r3f";
 import { useEffect } from "react";
 import * as THREE from "three";
 
 import { EARTH_RADIUS_METERS } from "./constants";
-import { EarthCloudLayer } from "./EarthCloudLayer";
 import { EarthSurface } from "./EarthSurface";
 
 const FAR_SPACE_ALTITUDE_METERS = 20_000_000;
@@ -33,10 +31,11 @@ export function TakramAtmospherePrototype({
       gl={{
         antialias: true,
         powerPreference: "high-performance",
+        logarithmicDepthBuffer: true,
       }}
       camera={{
         fov: 45,
-        near: 1,
+        near: 10,
         far: 120_000_000,
         position: [
           EARTH_RADIUS_METERS + FAR_SPACE_ALTITUDE_METERS,
@@ -62,13 +61,10 @@ export function TakramAtmospherePrototype({
 
       <Atmosphere date={TEST_DATE}>
         <Sky />
-
         <EarthSurface />
-        <EarthCloudLayer />
 
         <EffectComposer enableNormalPass>
-          <LightingMask selectionLayer={10} />
-          <AerialPerspective sunLight skyLight />
+          <AerialPerspective sky sunLight skyLight />
         </EffectComposer>
       </Atmosphere>
 

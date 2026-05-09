@@ -1,6 +1,7 @@
 import { useTexture } from "@react-three/drei";
 import { useEffect } from "react";
 import * as THREE from "three";
+
 import earthDay2kUrl from "../../assets/textures/earth/2k_earth_daymap.jpg";
 import { EARTH_RADIUS_METERS } from "./constants";
 
@@ -15,7 +16,7 @@ export function EarthSurface() {
 
   return (
     <mesh>
-      <sphereGeometry args={[EARTH_RADIUS_METERS * 0.99, 256, 128]} />
+      <sphereGeometry args={[EARTH_RADIUS_METERS, 256, 128]} />
       <meshBasicMaterial map={dayTexture} />
     </mesh>
   );
