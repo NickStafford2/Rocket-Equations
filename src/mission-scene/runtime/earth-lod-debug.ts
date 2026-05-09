@@ -1,8 +1,14 @@
+import type { EarthRendererOverride } from "../earth-renderer-mode";
 import type { ThreeSceneBundle } from "../../three/scene";
 
-export function getEarthLodDebug(bundle: ThreeSceneBundle): string {
+export function getEarthLodDebug(
+  bundle: ThreeSceneBundle,
+  earthRendererOverride: EarthRendererOverride,
+): string {
+  const prefix = earthRendererOverride === "auto" ? "Auto" : "Forced";
+
   if (bundle.objects.earthRenderers.nearAtmosphere.root.visible) {
-    return "Near Atmosphere Renderer";
+    return `${prefix} · Near Atmosphere`;
   }
 
   const earth = bundle.objects.earth;
@@ -10,5 +16,5 @@ export function getEarthLodDebug(bundle: ThreeSceneBundle): string {
   const detail = levelIndex === 0 ? "8K" : "2K";
   const range = levelIndex === 0 ? "near" : levelIndex === 1 ? "mid" : "far";
 
-  return `LOD ${levelIndex} · ${detail} · ${range}`;
+  return `${prefix} · Far · LOD ${levelIndex} · ${detail} · ${range}`;
 }

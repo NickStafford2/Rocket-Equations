@@ -1,5 +1,6 @@
 import type { MutableRefObject, RefObject } from "react";
 import type { ManeuverInput } from "../physics/bodies";
+import type { EarthRendererOverride } from "./earth-renderer-mode";
 import type { CameraTarget } from "../mission";
 import type {
   RenderSpaceAnchor,
@@ -30,6 +31,11 @@ export type UseMissionSceneParams = {
   showThrustDirectionArrow: boolean;
   showMoonLandingArrow: boolean;
   preventMoonCameraIntersection: boolean;
+};
+
+export type EarthRendererControl = {
+  earthRendererOverride: EarthRendererOverride;
+  onEarthRendererOverrideChange: (value: EarthRendererOverride) => void;
 };
 
 export type CameraSelection = {

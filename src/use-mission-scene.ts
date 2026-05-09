@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { EarthRendererOverride } from "./mission-scene/earth-renderer-mode";
 import type { CameraTarget } from "./mission";
 import {
   clearFollowTarget,
@@ -61,6 +62,7 @@ export function useMissionScene({
   const showPredictionRef = useRef(showPrediction);
   const showThrustDirectionArrowRef = useRef(showThrustDirectionArrow);
   const showMoonLandingArrowRef = useRef(showMoonLandingArrow);
+  const earthRendererOverrideRef = useRef<EarthRendererOverride>("auto");
   const preventMoonCameraIntersectionRef = useRef(
     preventMoonCameraIntersection,
   );
@@ -82,6 +84,8 @@ export function useMissionScene({
     createInitialCameraDebugState,
   );
   const [earthLodDebug, setEarthLodDebug] = useState("LOD 0 · 8K · near");
+  const [earthRendererOverride, setEarthRendererOverride] =
+    useState<EarthRendererOverride>("auto");
 
   function syncCameraSelectionFromRig() {
     setCameraSelection(toCameraSelection(syncSelection(cameraRigRef.current)));
@@ -134,6 +138,11 @@ export function useMissionScene({
   }, [showMoonLandingArrow]);
 
   useEffect(() => {
+    earthRendererOverrideRef.current = earthRendererOverride;
+    requestSceneRender();
+  }, [earthRendererOverride]);
+
+  useEffect(() => {
     preventMoonCameraIntersectionRef.current = preventMoonCameraIntersection;
     requestSceneRender();
   }, [preventMoonCameraIntersection]);
@@ -169,6 +178,7 @@ export function useMissionScene({
       showPredictionRef,
       showThrustDirectionArrowRef,
       showMoonLandingArrowRef,
+      earthRendererOverrideRef,
       preventMoonCameraIntersectionRef,
       previousTrailLengthRef,
       lastUiSyncAtRef,
@@ -257,6 +267,8 @@ export function useMissionScene({
     currentLookTarget: cameraSelection.lookTarget,
     cameraDebug,
     earthLodDebug,
+    earthRendererOverride,
+    setEarthRendererOverride,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,

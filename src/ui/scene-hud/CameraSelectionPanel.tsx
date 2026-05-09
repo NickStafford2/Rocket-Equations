@@ -12,6 +12,9 @@ type CameraSelectionPanelProps = Pick<
   | "onLockTarget"
   | "onLookAtTarget"
   | "cameraDebug"
+  | "earthLodDebug"
+  | "earthRendererOverride"
+  | "onEarthRendererOverrideChange"
 >;
 
 export const CameraSelectionPanel = memo(function CameraSelectionPanel({
@@ -22,11 +25,21 @@ export const CameraSelectionPanel = memo(function CameraSelectionPanel({
   onLockTarget,
   onLookAtTarget,
   cameraDebug,
+  earthLodDebug,
+  earthRendererOverride,
+  onEarthRendererOverrideChange,
 }: CameraSelectionPanelProps) {
   const showDebug = true;
   return (
     <div className={CAMERA_CONTROL_PANEL_CLASS_NAME}>
-      {showDebug ? <CameraDebugPanel cameraDebug={cameraDebug} /> : null}
+      {showDebug ? (
+        <CameraDebugPanel
+          cameraDebug={cameraDebug}
+          earthLodDebug={earthLodDebug}
+          earthRendererOverride={earthRendererOverride}
+          onEarthRendererOverrideChange={onEarthRendererOverrideChange}
+        />
+      ) : null}
       <div className="flex flex-col gap-2">
         <div className="px-1 text-[0.65rem] font-semibold tracking-[0.2em] text-slate-300 uppercase">
           Camera

@@ -62,6 +62,8 @@ export default function App() {
     currentLookTarget,
     cameraDebug,
     earthLodDebug,
+    earthRendererOverride,
+    setEarthRendererOverride,
     applyOverviewCamera,
     applyLockTarget,
     applyLookAtTarget,
@@ -141,6 +143,7 @@ export default function App() {
           currentLookTarget={currentLookTarget}
           cameraDebug={cameraDebug}
           earthLodDebug={earthLodDebug}
+          earthRendererOverride={earthRendererOverride}
           running={running}
           elapsedMissionTime={formatElapsed(telemetry.hours)}
           currentSpeed={formatSpeed(telemetry.speed)}
@@ -178,6 +181,10 @@ export default function App() {
           onReset={() => {
             resetSimulation();
             requestSceneRender();
+            focusScene();
+          }}
+          onEarthRendererOverrideChange={(value) => {
+            setEarthRendererOverride(value);
             focusScene();
           }}
           onLaunchSpeedChange={setLaunchSpeed}

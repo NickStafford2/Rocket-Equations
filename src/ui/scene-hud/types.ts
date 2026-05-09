@@ -1,4 +1,5 @@
 import type { CameraTarget } from "../../mission";
+import type { EarthRendererOverride } from "../../mission-scene/earth-renderer-mode";
 import type { MissionControlKey } from "../../use-mission-simulation";
 
 export type CameraDebugProps = {
@@ -29,6 +30,7 @@ export type SceneHudProps = {
   currentLookTarget: CameraTarget | null;
   cameraDebug: CameraDebugProps;
   earthLodDebug: string;
+  earthRendererOverride: EarthRendererOverride;
   running: boolean;
   elapsedMissionTime: string;
   currentSpeed: string;
@@ -51,6 +53,7 @@ export type SceneHudProps = {
   onLookAtTarget: (target: CameraTarget) => void;
   onToggleRunning: () => void;
   onReset: () => void;
+  onEarthRendererOverrideChange: (value: EarthRendererOverride) => void;
   onLaunchSpeedChange: (value: number) => void;
   onLaunchAngleChange: (value: number) => void;
   onLaunchAzimuthChange: (value: number) => void;

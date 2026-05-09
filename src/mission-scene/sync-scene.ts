@@ -1,3 +1,4 @@
+import type { EarthRendererOverride } from "./earth-renderer-mode";
 import type { MutableRefObject } from "react";
 import type {
   EarthMoonSimulation,
@@ -29,6 +30,7 @@ type SyncMissionSceneParams = {
   showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
   showMoonLandingArrowRef: MutableRefObject<boolean>;
+  earthRendererOverrideRef: MutableRefObject<EarthRendererOverride>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
   lastCameraDebugSyncAtRef: MutableRefObject<number>;
@@ -52,6 +54,7 @@ export function syncMissionScene({
   showPredictionRef,
   showThrustDirectionArrowRef,
   showMoonLandingArrowRef,
+  earthRendererOverrideRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
   lastCameraDebugSyncAtRef,
@@ -72,6 +75,7 @@ export function syncMissionScene({
 
   syncCelestialBodies(bundle, frame);
   syncRenderMode(bundle, frame, {
+    earthRendererOverride: earthRendererOverrideRef.current,
     showMoonLandingArrow: showMoonLandingArrowRef.current,
   });
   syncRocketVisuals(bundle, frame, {

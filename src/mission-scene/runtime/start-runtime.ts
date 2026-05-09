@@ -1,3 +1,4 @@
+import type { EarthRendererOverride } from "../earth-renderer-mode";
 import type { MutableRefObject } from "react";
 import type { ManeuverInput } from "../../physics/bodies";
 import type {
@@ -28,6 +29,7 @@ type StartMissionSceneRuntimeParams = {
   showPredictionRef: MutableRefObject<boolean>;
   showThrustDirectionArrowRef: MutableRefObject<boolean>;
   showMoonLandingArrowRef: MutableRefObject<boolean>;
+  earthRendererOverrideRef: MutableRefObject<EarthRendererOverride>;
   preventMoonCameraIntersectionRef: MutableRefObject<boolean>;
   previousTrailLengthRef: MutableRefObject<number>;
   lastUiSyncAtRef: MutableRefObject<number>;
@@ -63,6 +65,7 @@ export function startMissionSceneRuntime({
   showPredictionRef,
   showThrustDirectionArrowRef,
   showMoonLandingArrowRef,
+  earthRendererOverrideRef,
   preventMoonCameraIntersectionRef,
   previousTrailLengthRef,
   lastUiSyncAtRef,
@@ -93,7 +96,7 @@ export function startMissionSceneRuntime({
   }
 
   function syncEarthLodDebug() {
-    const nextDebug = getEarthLodDebug(bundle);
+    const nextDebug = getEarthLodDebug(bundle, earthRendererOverrideRef.current);
 
     if (nextDebug === lastEarthLodDebug) {
       return;
@@ -125,6 +128,7 @@ export function startMissionSceneRuntime({
         showPredictionRef,
         showThrustDirectionArrowRef,
         showMoonLandingArrowRef,
+        earthRendererOverrideRef,
         previousTrailLengthRef,
         lastUiSyncAtRef,
         lastCameraDebugSyncAtRef,
