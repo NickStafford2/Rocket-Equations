@@ -5,15 +5,13 @@ import {
   AerialPerspective,
   Atmosphere,
   Sky,
-  SkyLight,
-  SunLight,
 } from "@takram/three-atmosphere/r3f";
 import { useEffect } from "react";
 import * as THREE from "three";
 
 const EARTH_RADIUS_METERS = 6_378_137;
-const ORBIT_ALTITUDE_METERS = 420_000;
 const GROUND_ALTITUDE_METERS = 2_000;
+const LOW_ORBIT_ALTITUDE_METERS = 420_000;
 const FAR_SPACE_ALTITUDE_METERS = 20_000_000;
 
 const TEST_DATE = new Date("2026-06-21T16:00:00Z");
@@ -36,22 +34,19 @@ export function TakramAtmospherePrototype({
       camera={{
         fov: 55,
         near: 1,
-        far: 60_000_000,
+        far: 80_000_000,
         position: [
-          EARTH_RADIUS_METERS + ORBIT_ALTITUDE_METERS,
+          EARTH_RADIUS_METERS + LOW_ORBIT_ALTITUDE_METERS,
           EARTH_RADIUS_METERS * 0.08,
           EARTH_RADIUS_METERS * 0.25,
         ],
       }}
     >
       <RendererSettings />
-      <color attach="background" args={["#02060d"]} />
+      <InitialCameraLookAt />
 
       <Atmosphere date={TEST_DATE} correctAltitude>
         <Sky />
-
-        <SunLight intensity={3} distance={20_000_000} />
-        <SkyLight intensity={1} />
 
         <EarthTestSphere />
 
@@ -61,6 +56,7 @@ export function TakramAtmospherePrototype({
       </Atmosphere>
 
       <OrbitControls
+        makeDefault
         enableDamping
         dampingFactor={0.08}
         target={[0, 0, 0]}
@@ -85,15 +81,22 @@ function RendererSettings() {
   return null;
 }
 
+function InitialCameraLookAt() {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+  }, [camera]);
+
+  return null;
+}
+
 function EarthTestSphere() {
   return (
     <mesh>
       <sphereGeometry args={[EARTH_RADIUS_METERS, 128, 128]} />
-      <meshStandardMaterial
-        color={new THREE.Color("#1e5f8a")}
-        roughness={1}
-        metalness={0}
-      />
+      <meshBasicMaterial color={new THREE.Color("#1e5f8a")} />
     </mesh>
   );
 }
@@ -107,15 +110,24 @@ function CameraButtons() {
       EARTH_RADIUS_METERS * 0.04,
       EARTH_RADIUS_METERS * 0.12,
     );
-    camera.lookAt(0, 0, 0);
 
-    const orbitControls = controls as { target?: THREE.Vector3 } | null;
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+
+    const orbitControls = controls as
+      | {
+          target?: THREE.Vector3;
+          update?: () => void;
+        }
+      | undefined;
+
     orbitControls?.target?.set(0, 0, 0);
+    orbitControls?.update?.();
   }
 
   return (
     <Html fullscreen>
-      <div className="pointer-events-auto absolute top-4 left-4 z-20 flex gap-2">
+      <div className="pointer-events-auto absolute top-16 left-4 z-20 flex gap-2">
         <button
           className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
           onClick={() => setCameraAltitude(GROUND_ALTITUDE_METERS)}
@@ -125,7 +137,7 @@ function CameraButtons() {
         </button>
         <button
           className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={() => setCameraAltitude(ORBIT_ALTITUDE_METERS)}
+          onClick={() => setCameraAltitude(LOW_ORBIT_ALTITUDE_METERS)}
           type="button"
         >
           Orbit
@@ -139,41 +151,5 @@ function CameraButtons() {
         </button>
       </div>
     </Html>
-  );
-}
-
-function HtmlButtonPanel({
-  onGround,
-  onOrbit,
-  onSpace,
-}: {
-  onGround: () => void;
-  onOrbit: () => void;
-  onSpace: () => void;
-}) {
-  return (
-    <div className="pointer-events-auto absolute top-4 left-4 z-20 flex gap-2">
-      <button
-        className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-        onClick={onGround}
-        type="button"
-      >
-        Ground
-      </button>
-      <button
-        className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-        onClick={onOrbit}
-        type="button"
-      >
-        Orbit
-      </button>
-      <button
-        className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-        onClick={onSpace}
-        type="button"
-      >
-        Space
-      </button>
-    </div>
   );
 }
