@@ -7,9 +7,11 @@ import {
   setLookTarget,
   setOverview,
   syncSelection,
+} from "./mission-scene/camera/camera-state";
+import {
   type CameraRigTarget,
   type CameraRigState,
-} from "./mission-scene/camera/camera-state";
+} from "./mission-scene/camera/camera-types";
 import type { ThreeSceneBundle } from "./three/scene";
 import {
   findFocusableByPreset,
@@ -21,7 +23,7 @@ import {
   createInitialCameraRig,
   toCameraSelection,
 } from "./mission-scene/camera/camera-presets";
-import { startMissionSceneRuntime } from "./mission-scene/runtime";
+import { startMissionSceneRuntime } from "./mission-scene/runtime/start-runtime";
 import type {
   CameraDebugState,
   CameraSelection,
