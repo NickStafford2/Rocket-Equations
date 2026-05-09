@@ -1,3 +1,4 @@
+import { EarthObjectsHost } from "./objects/earth/earth-objects-host";
 import type { SceneObjects } from "./objects";
 
 type MissionSceneObjectsHostProps = {
@@ -9,7 +10,7 @@ export function MissionSceneObjectsHost({
 }: MissionSceneObjectsHostProps) {
   return (
     <primitive object={objects.system} dispose={null}>
-      <primitive object={objects.earthGroup} dispose={null} />
+      <EarthObjectsHost objects={objects} />
       <primitive object={objects.moon} dispose={null} />
       <primitive object={objects.rocket} dispose={null} />
       <primitive object={objects.launchRing} dispose={null} />

@@ -32,17 +32,13 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
   earthGroup.userData.cameraCollisionClearance =
     REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS * 12;
   const earthRotatingFrame = new THREE.Group();
-  earthGroup.add(earthRotatingFrame);
 
   const far = createEarthFarRenderer(textures);
   const nearAtmosphere = createEarthNearAtmosphereRenderer(textures);
-  earthRotatingFrame.add(far.root);
-  earthRotatingFrame.add(nearAtmosphere.root);
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
   earthLabel.visible = false;
-  earthGroup.add(earthLabel);
 
   const { satelliteSystem } = createSatelliteSystem({
     body: {
@@ -52,7 +48,6 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
     },
     definitions: EARTH_SATELLITE_DEFINITIONS,
   });
-  earthGroup.add(satelliteSystem);
 
   return {
     earthGroup,
