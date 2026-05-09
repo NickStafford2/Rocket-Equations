@@ -11,7 +11,6 @@ import {
   type CameraRigTarget,
 } from "../three/camera-rig";
 import { findFocusableObject } from "./camera";
-import { getCameraClipPlanes } from "./camera-clip-planes";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
 
@@ -79,7 +78,7 @@ export function startMissionSceneRuntime({
   onFollowSelection,
   onSyncCameraSelection,
 }: StartMissionSceneRuntimeParams): MissionSceneRuntime {
-  const { camera, controls, render, renderer, scene } = bundle;
+  const { camera, cameraController, render, renderer, scene } = bundle;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let animationFrameId: number | null = null;
@@ -130,25 +129,6 @@ export function startMissionSceneRuntime({
   function onControlsEnd() {
     controlsInteracting = false;
     requestRender();
-  }
-
-  function syncCameraClipPlanes() {
-    const { near: nextNear, far: nextFar } = getCameraClipPlanes({
-      followTarget: cameraRigRef.current.follow?.key ?? null,
-      lookTarget: cameraRigRef.current.look?.key ?? null,
-      distanceToTarget: camera.position.distanceTo(controls.target),
-    });
-
-    if (
-      Math.abs(camera.near - nextNear) <= 1e-6 &&
-      Math.abs(camera.far - nextFar) <= 1e-3
-    ) {
-      return;
-    }
-
-    camera.near = nextNear;
-    camera.far = nextFar;
-    camera.updateProjectionMatrix();
   }
 
   function stopFrameLoop() {
@@ -252,11 +232,16 @@ export function startMissionSceneRuntime({
 
     const cameraStatuses = updateCameraRig(cameraRigRef.current, {
       camera,
-      controls,
+      controls: cameraController,
       scene,
+      deltaSeconds: elapsedRealSeconds,
       preventMoonCameraIntersection: preventMoonCameraIntersectionRef.current,
     });
-    syncCameraClipPlanes();
+    cameraController.syncClipPlanes({
+      camera,
+      followTarget: cameraRigRef.current.follow?.key ?? null,
+      lookTarget: cameraRigRef.current.look?.key ?? null,
+    });
     if (cameraStatuses.length > 0) {
       setStatus(cameraStatuses.join(" "));
     }
@@ -273,9 +258,11 @@ export function startMissionSceneRuntime({
 
   document.addEventListener("visibilitychange", onVisibilityChange);
   mount.addEventListener("pointerdown", onScenePointerDown);
-  controls.addEventListener("start", onControlsStart);
-  controls.addEventListener("change", onControlsChange);
-  controls.addEventListener("end", onControlsEnd);
+  const detachCameraControlHandlers = cameraController.bindInteractionHandlers({
+    onControlStart: onControlsStart,
+    onControl: onControlsChange,
+    onControlEnd: onControlsEnd,
+  });
   renderer.domElement.addEventListener("dblclick", onDoubleClick);
 
   if (document.visibilityState === "visible") {
@@ -289,9 +276,7 @@ export function startMissionSceneRuntime({
       disposed = true;
       document.removeEventListener("visibilitychange", onVisibilityChange);
       mount.removeEventListener("pointerdown", onScenePointerDown);
-      controls.removeEventListener("start", onControlsStart);
-      controls.removeEventListener("change", onControlsChange);
-      controls.removeEventListener("end", onControlsEnd);
+      detachCameraControlHandlers();
       renderer.domElement.removeEventListener("dblclick", onDoubleClick);
       stopFrameLoop();
     },

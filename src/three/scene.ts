@@ -3,7 +3,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import type { MissionCameraController } from "./camera-controller";
 import { createSceneObjects } from "./objects";
 import { createOrientationIndicator } from "./orientation-indicator";
 import { createVectorIndicator } from "./orientation-indicator";
@@ -25,7 +25,7 @@ export type ThreeSceneBundle = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
-  controls: OrbitControls;
+  cameraController: MissionCameraController;
   objects: ReturnType<typeof createSceneObjects>;
   orientationIndicator: OrientationIndicatorBundle;
   relativeVelocityIndicator: VectorIndicatorBundle;
@@ -38,14 +38,14 @@ type CreateThreeSceneBundleParams = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
-  controls: OrbitControls;
+  cameraController: MissionCameraController;
 };
 
 export function createThreeSceneBundle({
   scene,
   camera,
   renderer,
-  controls,
+  cameraController,
 }: CreateThreeSceneBundleParams): ThreeSceneBundle {
   const previousBackground = scene.background;
   const previousFog = scene.fog;
@@ -91,19 +91,6 @@ export function createThreeSceneBundle({
   // scene.add(sunBundle.fillLight);
   // scene.add(sunBundle.fillLight.target);
 
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.rotateSpeed = 0.55;
-  controls.zoomSpeed = 0.9;
-  controls.panSpeed = 0.75;
-  controls.screenSpacePanning = false;
-  controls.minDistance = 0.0002;
-  controls.maxDistance = 5600;
-  controls.minPolarAngle = 0.08;
-  controls.maxPolarAngle = Math.PI - 0.08;
-  controls.target.set(224, 0, 0);
-  controls.update();
-
   function resize(width: number, height: number) {
     composer.setSize(width, height);
   }
@@ -148,7 +135,7 @@ export function createThreeSceneBundle({
     }
 
     disposed = true;
-    controls.dispose();
+    cameraController.dispose();
     composer.dispose();
     disposeSceneGraph(objects.system);
     disposeSceneGraph(sunBundle.sun);
@@ -170,7 +157,7 @@ export function createThreeSceneBundle({
     scene,
     camera,
     renderer,
-    controls,
+    cameraController,
     objects,
     orientationIndicator,
     relativeVelocityIndicator,

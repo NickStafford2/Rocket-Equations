@@ -154,7 +154,7 @@ export function syncCameraDebug({
   const snapshot = getCameraDebugSnapshot(
     cameraRigRef.current,
     bundle.camera,
-    bundle.controls,
+    bundle.cameraController,
   );
   setCameraDebug({
     ...snapshot,

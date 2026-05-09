@@ -88,7 +88,12 @@ export function useMissionScene({
     const bundle = bundleRef.current;
     if (!bundle) return;
 
-    setFollowTarget(cameraRigRef.current, target, bundle.camera, bundle.controls);
+    setFollowTarget(
+      cameraRigRef.current,
+      target,
+      bundle.camera,
+      bundle.cameraController,
+    );
     syncCameraSelectionFromRig();
     setStatus(`Locking on ${getFocusLabel(target.object)}...`);
     requestSceneRender();

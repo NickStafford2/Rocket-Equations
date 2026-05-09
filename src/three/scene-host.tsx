@@ -1,7 +1,7 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { createMissionCameraController } from "./camera-controller";
 import {
   createThreeSceneBundle,
   type ThreeSceneBundle,
@@ -48,12 +48,15 @@ function SceneBundleBridge({
 
   useEffect(() => {
     const perspectiveCamera = camera as THREE.PerspectiveCamera;
-    const controls = new OrbitControls(perspectiveCamera, gl.domElement);
+    const cameraController = createMissionCameraController({
+      camera: perspectiveCamera,
+      domElement: gl.domElement,
+    });
     const bundle = createThreeSceneBundle({
       scene,
       camera: perspectiveCamera,
       renderer: gl,
-      controls,
+      cameraController,
     });
 
     bundleRef.current = bundle;

@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { CameraTarget } from "../mission";
 
 export type CameraRigMode = "free" | "overview" | "tracking";
@@ -39,9 +38,24 @@ type CameraRigOptions = {
 
 type CameraRigUpdateOptions = {
   camera: THREE.PerspectiveCamera;
-  controls: OrbitControls;
+  controls: CameraRigControls;
   scene: THREE.Scene;
+  deltaSeconds: number;
   preventMoonCameraIntersection?: boolean;
+};
+
+type CameraRigControls = {
+  getTarget: (out: THREE.Vector3, receiveEndValue?: boolean) => THREE.Vector3;
+  setLookAt: (
+    positionX: number,
+    positionY: number,
+    positionZ: number,
+    targetX: number,
+    targetY: number,
+    targetZ: number,
+    enableTransition?: boolean,
+  ) => Promise<void>;
+  update: (deltaSeconds: number) => boolean;
 };
 
 const DEFAULT_TRANSITION_ALPHA = 0.12;
@@ -50,6 +64,8 @@ const DEFAULT_TARGET_EPSILON = 0.35;
 const FALLBACK_VIEW_DIRECTION = new THREE.Vector3(1.25, 0.75, 1.15).normalize();
 const FOLLOW_WORLD_POSITION = new THREE.Vector3();
 const LOOK_WORLD_POSITION = new THREE.Vector3();
+const CURRENT_TARGET = new THREE.Vector3();
+const NEXT_TARGET = new THREE.Vector3();
 const FOLLOW_MIN_DISTANCE_MULTIPLIER = 0.3;
 const FOLLOW_MAX_DISTANCE_MULTIPLIER = 8;
 const FOLLOW_DEFAULT_DISTANCE_MULTIPLIER = 1.05;
@@ -121,7 +137,7 @@ export function setFollowTarget(
   rig: CameraRigState,
   target: CameraRigTarget,
   camera: THREE.PerspectiveCamera,
-  controls: OrbitControls,
+  controls: CameraRigControls,
 ) {
   rig.mode = "tracking";
   rig.follow = target;
@@ -198,11 +214,14 @@ export function updateCameraRig(
     camera,
     controls,
     scene,
+    deltaSeconds,
     preventMoonCameraIntersection = true,
   }: CameraRigUpdateOptions,
 ): string[] {
   syncMode(rig);
   scene.updateMatrixWorld(true);
+  controls.update(deltaSeconds);
+  controls.getTarget(CURRENT_TARGET, false);
 
   const followPosition = rig.follow
     ? rig.follow.object.getWorldPosition(FOLLOW_WORLD_POSITION)
@@ -226,33 +245,47 @@ export function updateCameraRig(
     } else if (followPosition) {
       rig.desiredTarget.copy(followPosition);
     } else {
-      rig.desiredTarget.copy(controls.target);
+      rig.desiredTarget.copy(CURRENT_TARGET);
     }
   } else {
     rig.desiredPosition.copy(camera.position);
-    rig.desiredTarget.copy(controls.target);
+    rig.desiredTarget.copy(CURRENT_TARGET);
   }
 
-  const positionAlpha = rig.positionTransitioning ? rig.transitionAlpha : 1;
-  const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
-  camera.position.lerp(rig.desiredPosition, positionAlpha);
-  controls.target.lerp(rig.desiredTarget, targetAlpha);
-  preventCameraBodyIntersection(
-    scene,
-    camera,
-    controls.target,
-    preventMoonCameraIntersection,
-  );
+  if (rig.mode !== "free") {
+    const positionAlpha = rig.positionTransitioning ? rig.transitionAlpha : 1;
+    const targetAlpha = rig.targetTransitioning ? rig.transitionAlpha : 1;
+
+    camera.position.lerp(rig.desiredPosition, positionAlpha);
+    NEXT_TARGET.copy(CURRENT_TARGET).lerp(rig.desiredTarget, targetAlpha);
+    preventCameraBodyIntersection(
+      scene,
+      camera.position,
+      NEXT_TARGET,
+      preventMoonCameraIntersection,
+    );
+    void controls.setLookAt(
+      camera.position.x,
+      camera.position.y,
+      camera.position.z,
+      NEXT_TARGET.x,
+      NEXT_TARGET.y,
+      NEXT_TARGET.z,
+      false,
+    );
+    controls.update(0);
+  }
+  controls.getTarget(CURRENT_TARGET, false);
+
   if (followPosition && !rig.positionTransitioning) {
     rig.offset.copy(camera.position).sub(followPosition);
   }
-  controls.update();
 
   const statuses: string[] = [];
   const positionSettled =
     camera.position.distanceTo(rig.desiredPosition) < rig.positionEpsilon;
   const targetSettled =
-    controls.target.distanceTo(rig.desiredTarget) < rig.targetEpsilon;
+    CURRENT_TARGET.distanceTo(rig.desiredTarget) < rig.targetEpsilon;
 
   if (rig.mode === "overview") {
     if (rig.positionTransitioning && positionSettled) {
@@ -296,8 +329,9 @@ export function updateCameraRig(
 export function getCameraDebugSnapshot(
   rig: CameraRigState,
   camera: THREE.PerspectiveCamera,
-  controls: OrbitControls,
+  controls: CameraRigControls,
 ): CameraRigDebugSnapshot {
+  controls.getTarget(CURRENT_TARGET, false);
   return {
     mode: getModeSummary(rig),
     position: {
@@ -306,9 +340,9 @@ export function getCameraDebugSnapshot(
       z: camera.position.z.toFixed(1),
     },
     target: {
-      x: controls.target.x.toFixed(1),
-      y: controls.target.y.toFixed(1),
-      z: controls.target.z.toFixed(1),
+      x: CURRENT_TARGET.x.toFixed(1),
+      y: CURRENT_TARGET.y.toFixed(1),
+      z: CURRENT_TARGET.z.toFixed(1),
     },
   };
 }
@@ -348,7 +382,7 @@ function getTargetLabel(target: CameraRigTarget): string {
 function getInitialFollowOffset(
   object: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
-  controls: OrbitControls,
+  controls: CameraRigControls,
 ): THREE.Vector3 {
   object.getWorldPosition(FOLLOW_WORLD_POSITION);
 
@@ -391,7 +425,8 @@ function getInitialFollowOffset(
     return currentOffset.setLength(clampedDistance);
   }
 
-  const viewDirection = camera.position.clone().sub(controls.target);
+  controls.getTarget(CURRENT_TARGET, false);
+  const viewDirection = camera.position.clone().sub(CURRENT_TARGET);
   if (viewDirection.lengthSq() > 1e-6) {
     return viewDirection.normalize().multiplyScalar(defaultDistance);
   }
@@ -422,7 +457,7 @@ function getCameraCollisionClearance(object: THREE.Object3D, focusRadius: number
 
 function preventCameraBodyIntersection(
   scene: THREE.Scene,
-  camera: THREE.PerspectiveCamera,
+  cameraPosition: THREE.Vector3,
   target: THREE.Vector3,
   preventMoonCameraIntersection: boolean,
 ) {
@@ -437,7 +472,7 @@ function preventCameraBodyIntersection(
     if (!Number.isFinite(focusRadius) || focusRadius <= 0) return;
 
     object.getWorldPosition(CAMERA_COLLISION_CENTER);
-    CAMERA_COLLISION_OFFSET.copy(camera.position).sub(CAMERA_COLLISION_CENTER);
+    CAMERA_COLLISION_OFFSET.copy(cameraPosition).sub(CAMERA_COLLISION_CENTER);
 
     if (CAMERA_COLLISION_OFFSET.lengthSq() <= 1e-9) {
       CAMERA_COLLISION_OFFSET.copy(FALLBACK_VIEW_DIRECTION);
@@ -453,7 +488,7 @@ function preventCameraBodyIntersection(
     if (targetOffset.lengthSq() > 1e-9) {
       const targetDistance = targetOffset.length();
       const targetNormal = targetOffset.normalize();
-      const cameraOffsetFromTarget = camera.position.clone().sub(target);
+      const cameraOffsetFromTarget = cameraPosition.clone().sub(target);
       const tangentialOffset = cameraOffsetFromTarget
         .clone()
         .sub(
@@ -463,14 +498,14 @@ function preventCameraBodyIntersection(
         );
       const minimumRadialOffset = minimumDistance - targetDistance;
 
-      camera.position
+      cameraPosition
         .copy(target)
         .add(tangentialOffset)
         .addScaledVector(targetNormal, minimumRadialOffset);
       return;
     }
 
-    camera.position
+    cameraPosition
       .copy(CAMERA_COLLISION_CENTER)
       .add(CAMERA_COLLISION_OFFSET.setLength(minimumDistance));
   });
