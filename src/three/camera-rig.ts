@@ -189,11 +189,15 @@ export function syncSelection(rig: CameraRigState): CameraRigSelection {
 }
 
 export function updateFromControlsStart(rig: CameraRigState): string | null {
-  if (rig.mode !== "overview") return null;
+  if (rig.mode === "free") {
+    return null;
+  }
 
-  const status = rig.positionTransitioning || rig.targetTransitioning
-    ? "Overview transition canceled."
-    : "Free camera enabled.";
+  const status = rig.mode === "overview"
+    ? rig.positionTransitioning || rig.targetTransitioning
+      ? "Overview transition canceled."
+      : "Free camera enabled."
+    : "Camera tracking canceled.";
   clearAllTracking(rig);
   return status;
 }

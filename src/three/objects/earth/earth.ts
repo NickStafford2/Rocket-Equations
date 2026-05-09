@@ -4,12 +4,6 @@ import {
   EARTH_RENDER_RADIUS_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../constants";
-import {
-  createEarthAtmosphereMaterial,
-  createEarthCloudMaterial,
-  createEarthFresnelMaterial,
-  createEarthSurfaceMaterial,
-} from "./materials";
 import { loadEarthTextureVariants } from "./textures";
 import { createBodyLabelSprite } from "../labels";
 import { createSatelliteSystem } from "./satellites";
@@ -17,21 +11,17 @@ import {
   EARTH_SATELLITE_BODY,
   EARTH_SATELLITE_DEFINITIONS,
 } from "./satellites/catalog";
+import { createEarthFarRenderer } from "./far-renderer";
+import {
+  createEarthNearAtmosphereRenderer,
+  type EarthNearAtmosphereRendererBundle,
+} from "./near-atmosphere-renderer";
+import type { EarthFarRendererBundle } from "./far-renderer";
 
-const EARTH_BASE_ROTATION_Y = Math.PI * 1.15;
-const SHOW_PLANETARY_CLOUDS = true;
-const SHOW_EARTH_FRESNEL = true;
-const EARTH_NEAR_SEGMENTS = 128;
-const EARTH_MID_SEGMENTS = 64;
-const EARTH_FAR_SEGMENTS = 24;
-const EARTH_MID_LOD_DISTANCE = 140;
-const EARTH_FAR_LOD_DISTANCE = 420;
-const EARTH_ATMOSPHERE_SHELL_SCALE = 1.03;
-const EARTH_ATMOSPHERE_SEGMENTS = 96;
-const EARTH_CLOUD_SHELL_SCALE = 1.02; // jpeg image of clouds
-const EARTH_CLOUD_SEGMENTS = 96;
-const EARTH_FRESNEL_SHELL_SCALE = 1.0007;
-const EARTH_FRESNEL_SEGMENTS = 96;
+export type EarthRenderers = {
+  far: EarthFarRendererBundle;
+  nearAtmosphere: EarthNearAtmosphereRendererBundle;
+};
 
 export function createEarthObjects(loader: THREE.TextureLoader) {
   const textures = loadEarthTextureVariants(loader);
@@ -44,33 +34,10 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
   const earthRotatingFrame = new THREE.Group();
   earthGroup.add(earthRotatingFrame);
 
-  const earth = new THREE.LOD();
-  earth.rotation.y = EARTH_BASE_ROTATION_Y;
-  earth.autoUpdate = true;
-  earth.addLevel(createEarthMesh(textures.highDetail, EARTH_NEAR_SEGMENTS), 0);
-  earth.addLevel(
-    createEarthMesh(textures.standard, EARTH_MID_SEGMENTS),
-    EARTH_MID_LOD_DISTANCE,
-  );
-  earth.addLevel(
-    createEarthMesh(textures.standard, EARTH_FAR_SEGMENTS),
-    EARTH_FAR_LOD_DISTANCE,
-  );
-  earthRotatingFrame.add(earth);
-
-  const earthCloudsFrame = new THREE.Group();
-  if (SHOW_PLANETARY_CLOUDS) {
-    earthCloudsFrame.add(createEarthCloudMesh(textures.highDetail));
-  }
-  earthRotatingFrame.add(earthCloudsFrame);
-
-  const earthAtmosphere = createEarthAtmosphereMesh();
-  const earthFresnel = createEarthFresnelMesh();
-  earthRotatingFrame.add(earthAtmosphere);
-  if (SHOW_EARTH_FRESNEL) {
-    earthFresnel.rotation.y = EARTH_BASE_ROTATION_Y;
-    earthRotatingFrame.add(earthFresnel);
-  }
+  const far = createEarthFarRenderer(textures);
+  const nearAtmosphere = createEarthNearAtmosphereRenderer(textures);
+  earthRotatingFrame.add(far.root);
+  earthRotatingFrame.add(nearAtmosphere.root);
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
@@ -90,70 +57,15 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
   return {
     earthGroup,
     earthRotatingFrame,
-    earth,
-    earthCloudsFrame,
-    earthAtmosphere,
-    earthFresnel,
+    earth: far.globe,
+    earthCloudsFrame: nearAtmosphere.cloudsFrame,
+    earthAtmosphere: nearAtmosphere.atmosphere,
+    earthFresnel: nearAtmosphere.fresnel,
     earthLabel,
+    renderers: {
+      far,
+      nearAtmosphere,
+    },
     satelliteSystem,
   };
-}
-
-function createEarthMesh(
-  textures: Parameters<typeof createEarthSurfaceMaterial>[0],
-  segments: number,
-): THREE.Mesh {
-  const geometry = new THREE.SphereGeometry(
-    EARTH_RENDER_RADIUS_SCENE_UNITS,
-    segments,
-    segments,
-  );
-  const earthMesh = new THREE.Mesh(
-    geometry,
-    createEarthSurfaceMaterial(textures),
-  );
-  earthMesh.castShadow = true;
-  earthMesh.receiveShadow = true;
-  return earthMesh;
-}
-
-function createEarthCloudMesh(
-  textures: Parameters<typeof createEarthCloudMaterial>[0],
-): THREE.Mesh {
-  const cloudMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      EARTH_RENDER_RADIUS_SCENE_UNITS * EARTH_CLOUD_SHELL_SCALE,
-      EARTH_CLOUD_SEGMENTS,
-      EARTH_CLOUD_SEGMENTS,
-    ),
-    createEarthCloudMaterial(textures),
-  );
-  cloudMesh.renderOrder = 1;
-  return cloudMesh;
-}
-
-function createEarthAtmosphereMesh(): THREE.Mesh {
-  const atmosphereMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      EARTH_RENDER_RADIUS_SCENE_UNITS * EARTH_ATMOSPHERE_SHELL_SCALE,
-      EARTH_ATMOSPHERE_SEGMENTS,
-      EARTH_ATMOSPHERE_SEGMENTS,
-    ),
-    createEarthAtmosphereMaterial(),
-  );
-  atmosphereMesh.renderOrder = 2;
-  return atmosphereMesh;
-}
-
-function createEarthFresnelMesh(): THREE.Mesh {
-  const fresnelMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      EARTH_RENDER_RADIUS_SCENE_UNITS * EARTH_FRESNEL_SHELL_SCALE,
-      EARTH_FRESNEL_SEGMENTS,
-      EARTH_FRESNEL_SEGMENTS,
-    ),
-    createEarthFresnelMaterial(),
-  );
-  fresnelMesh.renderOrder = 3;
-  return fresnelMesh;
 }

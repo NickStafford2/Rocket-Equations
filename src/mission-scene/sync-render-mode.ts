@@ -15,6 +15,8 @@ export function syncRenderMode(
   const isMoonLocal = frame.renderSpace.mode === "moon-local";
   const isDeepSpace = frame.renderSpace.mode === "deep-space";
 
+  objects.earthRenderers.nearAtmosphere.root.visible = isEarthLocal;
+  objects.earthRenderers.far.root.visible = !isEarthLocal;
   objects.earthCloudsFrame.visible = isEarthLocal;
   objects.earthAtmosphere.visible = isEarthLocal;
   objects.earthFresnel.visible = isEarthLocal;

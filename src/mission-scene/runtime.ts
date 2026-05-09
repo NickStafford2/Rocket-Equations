@@ -162,13 +162,16 @@ export function startMissionSceneRuntime({
   }
 
   function syncEarthLodDebug() {
-    const earth = bundle.objects.earth;
-    const levelIndex = earth.getCurrentLevel();
-    const detail =
-      levelIndex === 0 ? "8K" : "2K";
-    const range =
-      levelIndex === 0 ? "near" : levelIndex === 1 ? "mid" : "far";
-    const nextDebug = `LOD ${levelIndex} · ${detail} · ${range}`;
+    const nextDebug = bundle.objects.earthRenderers.nearAtmosphere.root.visible
+      ? "Near Atmosphere Renderer"
+      : (() => {
+          const earth = bundle.objects.earth;
+          const levelIndex = earth.getCurrentLevel();
+          const detail = levelIndex === 0 ? "8K" : "2K";
+          const range =
+            levelIndex === 0 ? "near" : levelIndex === 1 ? "mid" : "far";
+          return `LOD ${levelIndex} · ${detail} · ${range}`;
+        })();
 
     if (nextDebug === lastEarthLodDebug) {
       return;

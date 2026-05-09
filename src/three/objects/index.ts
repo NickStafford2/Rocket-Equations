@@ -3,8 +3,8 @@ import type { RocketModelVariant } from "./rocket/rocket";
 import { createRocketObjects } from "./rocket/rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
+import type { EarthRenderers } from "./earth/earth";
 import type { LaunchCloudField } from "./earth/launch-clouds";
-import { createEarthLaunchSite } from "./earth/launch-site";
 // import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon/moon";
 import { createSmokeTrail } from "./rocket/smoke-trail";
@@ -18,10 +18,11 @@ export type SceneObjects = {
   earthAtmosphere: THREE.Mesh;
   earthFresnel: THREE.Mesh;
   earthLabel: THREE.Sprite;
+  earthRenderers: EarthRenderers;
   earthLaunchSite: THREE.Group;
   launchCloudField: LaunchCloudField;
   satelliteSystem: THREE.Group;
-  moon: THREE.Mesh;
+  moon: THREE.Group;
   moonLabel: THREE.Sprite;
   moonSatelliteSystem: THREE.Group;
   moonLandingSiteArrow: THREE.ArrowHelper;
@@ -52,10 +53,11 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthAtmosphere,
     earthFresnel,
     earthLabel,
+    renderers: earthRenderers,
     satelliteSystem,
   } = createEarthObjects(loader);
-  const { root: earthLaunchSite, cloudField: launchCloudField } =
-    createEarthLaunchSite();
+  const earthLaunchSite = earthRenderers.nearAtmosphere.launchSite;
+  const launchCloudField = earthRenderers.nearAtmosphere.launchCloudField;
 
   const { moon, moonLabel, moonSatelliteSystem, moonLandingSiteArrow, moonOrbit } =
     createMoonObjects(loader);
@@ -75,7 +77,6 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
 
   const smokeTrail = createSmokeTrail();
 
-  earthRotatingFrame.add(earthLaunchSite);
   earthRotatingFrame.add(smokeTrail);
 
   // Add other objects
@@ -97,6 +98,7 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
     earthAtmosphere,
     earthFresnel,
     earthLabel,
+    earthRenderers,
     earthLaunchSite,
     launchCloudField,
     satelliteSystem,
