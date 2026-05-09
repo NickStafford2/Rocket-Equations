@@ -21,6 +21,7 @@ export function syncRenderMode(
   );
   const isNearAtmosphere = earthRendererMode === "near-atmosphere";
   const isTakramNear = earthRendererMode === "takram-near";
+  const showLegacyAtmosphereShells = isNearAtmosphere;
   const isMoonLocal = frame.renderSpace.mode === "moon-local";
   const isDeepSpace = frame.renderSpace.mode === "deep-space";
 
@@ -28,9 +29,9 @@ export function syncRenderMode(
     isNearAtmosphere || isTakramNear;
   objects.earthRenderers.takramNear.root.visible = isTakramNear;
   objects.earthRenderers.far.root.visible = !isNearAtmosphere && !isTakramNear;
-  objects.earthCloudsFrame.visible = isNearAtmosphere || isTakramNear;
-  objects.earthAtmosphere.visible = isNearAtmosphere || isTakramNear;
-  objects.earthFresnel.visible = isNearAtmosphere || isTakramNear;
+  objects.earthCloudsFrame.visible = showLegacyAtmosphereShells;
+  objects.earthAtmosphere.visible = showLegacyAtmosphereShells;
+  objects.earthFresnel.visible = showLegacyAtmosphereShells;
   objects.earthLaunchSite.visible = isNearAtmosphere || isTakramNear;
   objects.launchCloudField.root.visible = isNearAtmosphere || isTakramNear;
   objects.moonOrbit.visible = isDeepSpace;
