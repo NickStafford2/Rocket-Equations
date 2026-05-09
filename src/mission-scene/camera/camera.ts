@@ -6,7 +6,7 @@ import {
   type CameraRigSelection,
   type CameraRigState,
   type CameraRigTarget,
-} from "../../three/camera-rig";
+} from "./camera-rig";
 import type { CameraDebugState, CameraSelection } from "../types";
 
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-840, 480, 840);

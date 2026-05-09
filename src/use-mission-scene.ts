@@ -9,7 +9,7 @@ import {
   syncSelection,
   type CameraRigTarget,
   type CameraRigState,
-} from "./three/camera-rig";
+} from "./mission-scene/camera/camera-rig";
 import type { ThreeSceneBundle } from "./three/scene";
 import {
   createInitialCameraDebugState,
