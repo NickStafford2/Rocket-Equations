@@ -45,24 +45,18 @@ export function createEarthNearAtmosphereRenderer(
 
   const globe = createEarthSurfaceMesh(textures.highDetail);
   globe.rotation.y = EARTH_BASE_ROTATION_Y;
-  root.add(globe);
 
   const cloudsFrame = new THREE.Group();
   cloudsFrame.add(createEarthCloudMesh(textures.highDetail));
-  root.add(cloudsFrame);
 
   const atmosphere = createEarthAtmosphereMesh();
-  root.add(atmosphere);
 
   const fresnel = createEarthFresnelMesh();
   fresnel.rotation.y = EARTH_BASE_ROTATION_Y;
-  root.add(fresnel);
 
   const { root: launchSite, cloudField: launchCloudField } =
     createEarthLaunchSite();
   const localOcean = createLocalOceanMesh();
-  launchSite.add(localOcean);
-  root.add(launchSite);
 
   return {
     atmosphere,
