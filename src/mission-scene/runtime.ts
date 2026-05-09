@@ -12,7 +12,7 @@ import {
   updateFromControlsStart,
   type CameraRigState,
   type CameraRigTarget,
-} from "./camera/camera-rig";
+} from "./camera/camera-state";
 import { findFocusableObject } from "./camera/camera-target";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";

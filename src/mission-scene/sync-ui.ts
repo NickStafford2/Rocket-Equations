@@ -2,7 +2,7 @@ import { getMissionPhase, describeMoonLanding, formatSpeed } from "../mission";
 import {
   getCameraDebugSnapshot,
   type CameraRigState,
-} from "./camera/camera-rig";
+} from "./camera/camera-state";
 import type { CameraDebugState } from "./types";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { MutableRefObject } from "react";

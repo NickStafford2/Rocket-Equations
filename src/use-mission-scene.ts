@@ -9,7 +9,7 @@ import {
   syncSelection,
   type CameraRigTarget,
   type CameraRigState,
-} from "./mission-scene/camera/camera-rig";
+} from "./mission-scene/camera/camera-state";
 import type { ThreeSceneBundle } from "./three/scene";
 import {
   findFocusableByPreset,
