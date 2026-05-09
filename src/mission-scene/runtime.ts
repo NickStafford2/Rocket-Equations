@@ -8,14 +8,14 @@ import type {
 import type { ThreeSceneBundle } from "../three/scene";
 import {
   isCameraRigAnimating,
-  updateCameraRig,
   updateFromControlsChange,
   updateFromControlsStart,
 } from "./camera/camera-state";
 import { findFocusableObject } from "./camera/camera-target";
-import { syncMissionScene } from "./sync-scene";
-import type { CameraDebugState } from "./types";
+import { updateCameraRig } from "./camera/camera-update";
 import type { CameraRigState, CameraRigTarget } from "./camera/camera-types";
+import type { CameraDebugState } from "./types";
+import { syncMissionScene } from "./sync-scene";
 
 type StartMissionSceneRuntimeParams = {
   mount: HTMLDivElement;
