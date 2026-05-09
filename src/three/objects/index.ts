@@ -4,10 +4,9 @@ import { createRocketObjects } from "./rocket/rocket";
 import { createPredictionLine, createTrailLine } from "./trail";
 import { createEarthObjects } from "./earth/earth";
 import type { EarthRenderers } from "./earth/earth";
-import type { LaunchCloudField } from "./earth/launch-clouds";
-// import { createReferenceEarthObjects } from "./earthReference/object";
 import { createMoonObjects } from "./moon/moon";
 import { createSmokeTrail } from "./rocket/smoke-trail";
+import type { LaunchCloudField } from "./earth/launch-clouds/types";
 
 export type SceneObjects = {
   system: THREE.Group;
@@ -59,8 +58,13 @@ export function createSceneObjects(scene: THREE.Scene): SceneObjects {
   const earthLaunchSite = earthRenderers.nearAtmosphere.launchSite;
   const launchCloudField = earthRenderers.nearAtmosphere.launchCloudField;
 
-  const { moon, moonLabel, moonSatelliteSystem, moonLandingSiteArrow, moonOrbit } =
-    createMoonObjects(loader);
+  const {
+    moon,
+    moonLabel,
+    moonSatelliteSystem,
+    moonLandingSiteArrow,
+    moonOrbit,
+  } = createMoonObjects(loader);
   const {
     rocket,
     enginePlume,

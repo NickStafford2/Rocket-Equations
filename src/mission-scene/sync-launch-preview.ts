@@ -1,16 +1,13 @@
 import * as THREE from "three";
 import { copyRenderPositionFromMeters } from "../render-space/scene-position";
-import { updateLaunchCloudField } from "../three/objects/earth/launch-clouds";
 import type { ThreeSceneBundle } from "../three/scene";
 import type { FrameState } from "./frame-state";
+import { updateLaunchCloudField } from "../three/objects/earth/launch-clouds/cloud-field";
 
 const WORLD_FORWARD = new THREE.Vector3(0, 0, 1);
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 
-export function syncLaunchPreview(
-  bundle: ThreeSceneBundle,
-  frame: FrameState,
-) {
+export function syncLaunchPreview(bundle: ThreeSceneBundle, frame: FrameState) {
   const { objects } = bundle;
   const {
     launchFrame,

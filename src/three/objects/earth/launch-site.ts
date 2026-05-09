@@ -6,10 +6,8 @@ import {
   ORBIT_METERS_TO_SCENE_UNITS,
   REFERENCE_ROCKET_RENDER_RADIUS_SCENE_UNITS,
 } from "../constants";
-import {
-  createLaunchCloudField,
-  type LaunchCloudField,
-} from "./launch-clouds";
+import type { LaunchCloudField } from "./launch-clouds/types";
+import { createLaunchCloudField } from "./launch-clouds/cloud-field";
 
 let launchSitePromise: Promise<THREE.Group> | null = null;
 let islandPromise: Promise<THREE.Group> | null = null;
