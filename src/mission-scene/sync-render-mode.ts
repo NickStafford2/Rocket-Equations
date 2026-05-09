@@ -20,16 +20,19 @@ export function syncRenderMode(
     earthRendererOverride,
   );
   const isNearAtmosphere = earthRendererMode === "near-atmosphere";
+  const isTakramNear = earthRendererMode === "takram-near";
   const isMoonLocal = frame.renderSpace.mode === "moon-local";
   const isDeepSpace = frame.renderSpace.mode === "deep-space";
 
-  objects.earthRenderers.nearAtmosphere.root.visible = isNearAtmosphere;
-  objects.earthRenderers.far.root.visible = !isNearAtmosphere;
-  objects.earthCloudsFrame.visible = isNearAtmosphere;
-  objects.earthAtmosphere.visible = isNearAtmosphere;
-  objects.earthFresnel.visible = isNearAtmosphere;
-  objects.earthLaunchSite.visible = isNearAtmosphere;
-  objects.launchCloudField.root.visible = isNearAtmosphere;
+  objects.earthRenderers.nearAtmosphere.root.visible =
+    isNearAtmosphere || isTakramNear;
+  objects.earthRenderers.takramNear.root.visible = isTakramNear;
+  objects.earthRenderers.far.root.visible = !isNearAtmosphere && !isTakramNear;
+  objects.earthCloudsFrame.visible = isNearAtmosphere || isTakramNear;
+  objects.earthAtmosphere.visible = isNearAtmosphere || isTakramNear;
+  objects.earthFresnel.visible = isNearAtmosphere || isTakramNear;
+  objects.earthLaunchSite.visible = isNearAtmosphere || isTakramNear;
+  objects.launchCloudField.root.visible = isNearAtmosphere || isTakramNear;
   objects.moonOrbit.visible = isDeepSpace;
   objects.moonLandingSiteArrow.visible = showMoonLandingArrow && isMoonLocal;
 }

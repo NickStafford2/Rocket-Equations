@@ -7,6 +7,10 @@ export function getEarthLodDebug(
 ): string {
   const prefix = earthRendererOverride === "auto" ? "Auto" : "Forced";
 
+  if (bundle.objects.earthRenderers.takramNear.root.visible) {
+    return `${prefix} · Takram Near · Fallback Visuals`;
+  }
+
   if (bundle.objects.earthRenderers.nearAtmosphere.root.visible) {
     return `${prefix} · Near Atmosphere`;
   }

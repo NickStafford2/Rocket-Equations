@@ -1,6 +1,10 @@
 import type { RenderSpaceMode } from "../render-space/frame";
 
-export type EarthRendererOverride = "auto" | "near-atmosphere" | "far";
+export type EarthRendererOverride =
+  | "auto"
+  | "near-atmosphere"
+  | "takram-near"
+  | "far";
 export type EarthRendererMode = Exclude<EarthRendererOverride, "auto">;
 
 export function resolveEarthRendererMode(

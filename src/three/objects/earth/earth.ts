@@ -17,10 +17,15 @@ import {
   type EarthNearAtmosphereRendererBundle,
 } from "./near-atmosphere-renderer";
 import type { EarthFarRendererBundle } from "./far-renderer";
+import {
+  createEarthTakramNearRenderer,
+  type EarthTakramNearRendererBundle,
+} from "./takram-near-renderer";
 
 export type EarthRenderers = {
   far: EarthFarRendererBundle;
   nearAtmosphere: EarthNearAtmosphereRendererBundle;
+  takramNear: EarthTakramNearRendererBundle;
 };
 
 export function createEarthObjects(loader: THREE.TextureLoader) {
@@ -35,6 +40,7 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
 
   const far = createEarthFarRenderer(textures);
   const nearAtmosphere = createEarthNearAtmosphereRenderer(textures);
+  const takramNear = createEarthTakramNearRenderer();
 
   const earthLabel = createBodyLabelSprite("Earth");
   earthLabel.position.set(0, EARTH_RENDER_RADIUS_SCENE_UNITS * 2.35, 0);
@@ -60,6 +66,7 @@ export function createEarthObjects(loader: THREE.TextureLoader) {
     renderers: {
       far,
       nearAtmosphere,
+      takramNear,
     },
     satelliteSystem,
   };

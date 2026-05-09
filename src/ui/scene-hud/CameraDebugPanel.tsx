@@ -65,6 +65,7 @@ const EARTH_RENDERER_OPTIONS: Array<{
 }> = [
   { value: "auto", label: "Auto" },
   { value: "near-atmosphere", label: "Near" },
+  { value: "takram-near", label: "Takram" },
   { value: "far", label: "Far" },
 ];
 
