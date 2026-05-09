@@ -160,5 +160,11 @@ export function syncCameraDebug({
     ...snapshot,
     renderSpaceMode: frame.renderSpace.mode,
     renderSpaceAnchor: frame.renderSpace.anchor,
+    renderSpaceProjection: frame.renderSpace.projection,
+    renderOrigin: {
+      x: frame.renderSpace.originMeters.x.toFixed(0),
+      y: frame.renderSpace.originMeters.y.toFixed(0),
+      z: frame.renderSpace.originMeters.z.toFixed(0),
+    },
   });
 }

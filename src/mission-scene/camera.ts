@@ -24,6 +24,12 @@ export function createInitialCameraDebugState(): CameraDebugState {
     mode: "overview",
     renderSpaceMode: "earth-local",
     renderSpaceAnchor: "earth",
+    renderSpaceProjection: "body-surface-scaled",
+    renderOrigin: {
+      x: "0.0",
+      y: "0.0",
+      z: "0.0",
+    },
     position: {
       x: OVERVIEW_CAMERA_POSITION.x.toFixed(1),
       y: OVERVIEW_CAMERA_POSITION.y.toFixed(1),

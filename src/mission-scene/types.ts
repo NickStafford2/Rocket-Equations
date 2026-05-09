@@ -4,6 +4,7 @@ import type { CameraTarget } from "../mission";
 import type {
   RenderSpaceAnchor,
   RenderSpaceMode,
+  RenderSpaceProjection,
 } from "../render-space/frame";
 import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
 
@@ -39,6 +40,12 @@ export type CameraDebugState = {
   mode: string;
   renderSpaceMode: RenderSpaceMode;
   renderSpaceAnchor: RenderSpaceAnchor;
+  renderSpaceProjection: RenderSpaceProjection;
+  renderOrigin: {
+    x: string;
+    y: string;
+    z: string;
+  };
   position: {
     x: string;
     y: string;

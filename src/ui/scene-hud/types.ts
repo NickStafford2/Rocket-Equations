@@ -5,6 +5,12 @@ export type CameraDebugProps = {
   mode: string;
   renderSpaceMode: string;
   renderSpaceAnchor: string;
+  renderSpaceProjection: string;
+  renderOrigin: {
+    x: string;
+    y: string;
+    z: string;
+  };
   position: {
     x: string;
     y: string;

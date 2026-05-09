@@ -15,6 +15,9 @@ export const CameraDebugPanel = memo(function CameraDebugPanel({
       <div className="mt-1 text-[0.62rem] font-medium uppercase tracking-[0.14em] text-amber-200">
         {cameraDebug.renderSpaceMode} · {cameraDebug.renderSpaceAnchor}
       </div>
+      <div className="mt-1 text-[0.6rem] uppercase tracking-[0.12em] text-violet-200">
+        {cameraDebug.renderSpaceProjection}
+      </div>
       <div className="mt-1 font-mono text-slate-300">
         cam {cameraDebug.position.x}, {cameraDebug.position.y},{" "}
         {cameraDebug.position.z}
@@ -22,6 +25,10 @@ export const CameraDebugPanel = memo(function CameraDebugPanel({
       <div className="mt-1 font-mono text-slate-400">
         tgt {cameraDebug.target.x}, {cameraDebug.target.y},{" "}
         {cameraDebug.target.z}
+      </div>
+      <div className="mt-1 font-mono text-slate-500">
+        org {cameraDebug.renderOrigin.x}, {cameraDebug.renderOrigin.y},{" "}
+        {cameraDebug.renderOrigin.z}
       </div>
     </div>
   );
