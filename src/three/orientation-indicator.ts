@@ -1,10 +1,17 @@
 import * as THREE from "three";
-import { createRocketVisual } from "./objects/rocket/rocket-visual";
 import type { RocketModelVariant } from "../rocket/definitions";
+import { createRocketVisual } from "./objects/rocket/rocket-visual";
+
+const INDICATOR_SIZE_PX = 132;
 
 const INDICATOR_TARGET_SIZE = 1.75;
 const VECTOR_ARROW_LENGTH = 1.45;
 const VECTOR_VALUE_LABEL_POSITION = new THREE.Vector3(0, -1.28, 0);
+
+const LABEL_CANVAS_WIDTH = 1024;
+const LABEL_CANVAS_HEIGHT = 256;
+const LABEL_SPRITE_WIDTH = 1.45;
+const LABEL_SPRITE_HEIGHT = 0.42;
 
 type IndicatorSceneBundle = {
   scene: THREE.Scene;
@@ -38,6 +45,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
   const rocketVisual = createRocketVisual({
     fitHeightSceneUnits: INDICATOR_TARGET_SIZE,
   });
+
   rocket.add(rocketVisual.root);
   frame.add(rocket);
 
@@ -53,7 +61,7 @@ export function createOrientationIndicator(): OrientationIndicatorBundle {
     frame,
     rocket,
     setRocketModelVariant,
-    sizePx: 132,
+    sizePx: INDICATOR_SIZE_PX,
   };
 }
 
@@ -68,10 +76,12 @@ export function createVectorIndicator(): VectorIndicatorBundle {
     0.34,
     0.2,
   );
+
   frame.add(arrow);
 
   const { sprite: valueLabel, setText: setValueLabel } =
     createIndicatorValueLabel("0.00 km/s");
+
   valueLabel.position.copy(VECTOR_VALUE_LABEL_POSITION);
   scene.add(valueLabel);
 
@@ -82,45 +92,22 @@ export function createVectorIndicator(): VectorIndicatorBundle {
     arrow,
     arrowLength: VECTOR_ARROW_LENGTH,
     setValueLabel,
-    sizePx: 132,
+    sizePx: INDICATOR_SIZE_PX,
   };
 }
 
 function createIndicatorScene(): IndicatorSceneBundle {
   const scene = new THREE.Scene();
-
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  camera.up.set(0, 1, 0);
-  camera.position.set(0, 0, 5.4);
-  camera.lookAt(0, 0, 0);
-
-  const ambientLight = new THREE.AmbientLight(0xd7ebff, 0.95);
-  scene.add(ambientLight);
-
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
-  keyLight.position.set(4, 6, 5);
-  scene.add(keyLight);
-
-  const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.65);
-  fillLight.position.set(-4, 2, -3);
-  scene.add(fillLight);
-
+  const camera = createIndicatorCamera();
   const frame = new THREE.Group();
+
+  scene.add(createIndicatorAmbientLight());
+  scene.add(createIndicatorKeyLight());
+  scene.add(createIndicatorFillLight());
   scene.add(frame);
 
-  const axes = new THREE.AxesHelper(2.6);
-  frame.add(axes);
-
-  const orbitRing = new THREE.Mesh(
-    new THREE.TorusGeometry(1.85, 0.018, 8, 72),
-    new THREE.MeshBasicMaterial({
-      color: 0x7dd3fc,
-      transparent: true,
-      opacity: 0.2,
-    }),
-  );
-  orbitRing.rotation.x = Math.PI / 2;
-  frame.add(orbitRing);
+  frame.add(new THREE.AxesHelper(2.6));
+  frame.add(createOrbitRing());
 
   return {
     scene,
@@ -129,24 +116,67 @@ function createIndicatorScene(): IndicatorSceneBundle {
   };
 }
 
+function createIndicatorCamera(): THREE.PerspectiveCamera {
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+
+  camera.up.set(0, 1, 0);
+  camera.position.set(0, 0, 5.4);
+  camera.lookAt(0, 0, 0);
+
+  return camera;
+}
+
+function createIndicatorAmbientLight(): THREE.AmbientLight {
+  return new THREE.AmbientLight(0xd7ebff, 0.95);
+}
+
+function createIndicatorKeyLight(): THREE.DirectionalLight {
+  const light = new THREE.DirectionalLight(0xffffff, 1.4);
+  light.position.set(4, 6, 5);
+
+  return light;
+}
+
+function createIndicatorFillLight(): THREE.DirectionalLight {
+  const light = new THREE.DirectionalLight(0x7dd3fc, 0.65);
+  light.position.set(-4, 2, -3);
+
+  return light;
+}
+
+function createOrbitRing(): THREE.Mesh {
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(1.85, 0.018, 8, 72),
+    new THREE.MeshBasicMaterial({
+      color: 0x7dd3fc,
+      transparent: true,
+      opacity: 0.2,
+    }),
+  );
+
+  ring.rotation.x = Math.PI / 2;
+
+  return ring;
+}
+
 function createIndicatorValueLabel(initialText: string): {
   sprite: THREE.Sprite;
   setText: (text: string) => void;
 } {
-  // **Increase canvas resolution**
   const canvas = document.createElement("canvas");
-  const CANVAS_WIDTH = 1024; // bigger for sharp text
-  const CANVAS_HEIGHT = 256;
-  canvas.width = CANVAS_WIDTH;
-  canvas.height = CANVAS_HEIGHT;
+  canvas.width = LABEL_CANVAS_WIDTH;
+  canvas.height = LABEL_CANVAS_HEIGHT;
 
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("2D canvas context unavailable.");
-  const labelContext = context;
+  if (!context) {
+    throw new Error("2D canvas context unavailable.");
+  }
+
+  const labelContext: CanvasRenderingContext2D = context;
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.minFilter = THREE.LinearFilter; // avoids blur when scaled down
+  texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
 
   const material = new THREE.SpriteMaterial({
@@ -159,48 +189,10 @@ function createIndicatorValueLabel(initialText: string): {
 
   const sprite = new THREE.Sprite(material);
   sprite.renderOrder = 10;
-
-  // **Scale sprite down in 3D space**
-  const SPRITE_WIDTH = 1.45;
-  const SPRITE_HEIGHT = 0.42;
-  sprite.scale.set(SPRITE_WIDTH, SPRITE_HEIGHT, 1);
+  sprite.scale.set(LABEL_SPRITE_WIDTH, LABEL_SPRITE_HEIGHT, 1);
 
   function setText(text: string) {
-    // --- Constants ---
-    const PADDING_X = 30;
-    const PADDING_Y = 80;
-    const BORDER_RADIUS = 32;
-    const STROKE_WIDTH = 6;
-    const TEXT_FONT_SIZE = 64;
-    const LABEL_Y_SHIFT = 20;
-
-    // Compute rectangle position
-    const rectX = PADDING_X;
-    const rectY = PADDING_Y + LABEL_Y_SHIFT;
-    const rectWidth = CANVAS_WIDTH - 2 * PADDING_X;
-    const rectHeight = CANVAS_HEIGHT - 2 * PADDING_Y - LABEL_Y_SHIFT; // adjust height
-
-    // Clear canvas
-    labelContext.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    // Draw background rectangle
-    labelContext.fillStyle = "rgba(7, 17, 31, 0.72)";
-    roundRect(labelContext, rectX, rectY, rectWidth, rectHeight, BORDER_RADIUS);
-    labelContext.fill();
-
-    // Draw border
-    labelContext.strokeStyle = "rgba(255, 255, 255, 0.18)";
-    labelContext.lineWidth = STROKE_WIDTH;
-    labelContext.stroke();
-
-    // Draw text centered inside the rectangle
-    labelContext.font = `bold ${TEXT_FONT_SIZE}px monospace`;
-    labelContext.textAlign = "center";
-    labelContext.textBaseline = "middle";
-    labelContext.fillStyle = "rgba(255, 255, 255, 0.96)";
-    labelContext.fillText(text, rectX + rectWidth / 2, rectY + rectHeight / 2);
-
-    // Update texture
+    drawIndicatorValueLabel(labelContext, text);
     texture.needsUpdate = true;
   }
 
@@ -210,6 +202,39 @@ function createIndicatorValueLabel(initialText: string): {
     sprite,
     setText,
   };
+}
+
+function drawIndicatorValueLabel(
+  context: CanvasRenderingContext2D,
+  text: string,
+) {
+  const paddingX = 30;
+  const paddingY = 80;
+  const borderRadius = 32;
+  const strokeWidth = 6;
+  const textFontSize = 64;
+  const labelYShift = 20;
+
+  const rectX = paddingX;
+  const rectY = paddingY + labelYShift;
+  const rectWidth = LABEL_CANVAS_WIDTH - 2 * paddingX;
+  const rectHeight = LABEL_CANVAS_HEIGHT - 2 * paddingY - labelYShift;
+
+  context.clearRect(0, 0, LABEL_CANVAS_WIDTH, LABEL_CANVAS_HEIGHT);
+
+  context.fillStyle = "rgba(7, 17, 31, 0.72)";
+  roundRect(context, rectX, rectY, rectWidth, rectHeight, borderRadius);
+  context.fill();
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  context.lineWidth = strokeWidth;
+  context.stroke();
+
+  context.font = `bold ${textFontSize}px monospace`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillStyle = "rgba(255, 255, 255, 0.96)";
+  context.fillText(text, rectX + rectWidth / 2, rectY + rectHeight / 2);
 }
 
 function roundRect(
