@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import {
-  DEFAULT_TIME_WARP,
   DEFAULT_THRUST_ACCELERATION,
   DEFAULT_TURN_RATE_DEG,
   MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
@@ -13,65 +12,10 @@ import {
 import type { ManeuverInput } from "./bodies";
 import type { SimulationState } from "./bodies";
 import { gravitationalAccelerationMeters } from "./gravity";
-import { rotateHeadingTowardTargetInPlane } from "./launch-guidance";
+import { resolveRocketHeading } from "./heading-control";
 
 const GUIDANCE_ANGLE_TOLERANCE_DEG = 0.75;
 const GUIDANCE_SPEED_TOLERANCE_METERS_PER_SECOND = 10;
-const PITCH_HOLD_ALTITUDE_METERS = 12_000;
-const PITCH_BLEND_END_ALTITUDE_METERS = 140_000;
-const MANUAL_TURN_RATE_WARP_NORMALIZER = DEFAULT_TIME_WARP;
-const MANUAL_TURN_RATE_MULTIPLIER = 5;
-const PROGRAMMED_TARGET_DIRECTION = new THREE.Vector3();
-const RADIAL_DIRECTION = new THREE.Vector3();
-
-function rotateHeadingFromManualInput(
-  heading: THREE.Vector3,
-  turn: ManeuverInput["turn"],
-  elapsedControlSeconds: number,
-  turnRateDeg: number,
-): THREE.Vector3 {
-  const planarHeading = heading.clone().setY(0);
-  if (planarHeading.lengthSq() <= 1e-9) {
-    planarHeading.set(1, 0, 0);
-  } else {
-    planarHeading.normalize();
-  }
-
-  if (turn === 0) {
-    return planarHeading;
-  }
-
-  return planarHeading
-    .applyAxisAngle(
-      new THREE.Vector3(0, 1, 0),
-      THREE.MathUtils.degToRad(
-        turn *
-          turnRateDeg *
-          MANUAL_TURN_RATE_WARP_NORMALIZER *
-          MANUAL_TURN_RATE_MULTIPLIER *
-          elapsedControlSeconds,
-      ),
-    )
-    .normalize();
-}
-
-function getProgrammedTargetDirection(
-  position: THREE.Vector3,
-  targetDirection: THREE.Vector3,
-): THREE.Vector3 {
-  const altitudeEarth = altitudeAboveEarth(position, R_EARTH);
-  const blend = THREE.MathUtils.smoothstep(
-    altitudeEarth,
-    PITCH_HOLD_ALTITUDE_METERS,
-    PITCH_BLEND_END_ALTITUDE_METERS,
-  );
-
-  RADIAL_DIRECTION.copy(position).normalize();
-  return PROGRAMMED_TARGET_DIRECTION
-    .copy(RADIAL_DIRECTION)
-    .lerp(targetDirection, blend)
-    .normalize();
-}
 
 export function stepSimulation(
   state: SimulationState,
@@ -85,32 +29,17 @@ export function stepSimulation(
 ): SimulationState {
   if (state.impact) return state;
 
-  const elapsedControlSeconds =
-    Number.isFinite(controlTimeWarp) && controlTimeWarp > 0
-      ? timeStepSeconds / controlTimeWarp
-      : timeStepSeconds;
-
   const requiredGuidanceSpeed = Math.max(
     targetSpeed,
     MIN_NEAR_EARTH_ORBIT_SPEED_METERS_PER_SECOND,
   );
-  const autopilotActive = !state.guidanceComplete;
-  const programmedTargetDirection = getProgrammedTargetDirection(
-    state.rocket.position,
-    state.targetDirection,
-  );
-  const heading = autopilotActive
-    ? rotateHeadingTowardTargetInPlane(
-        state.rocket.heading,
-        programmedTargetDirection,
-        turnRateDeg * timeStepSeconds,
-      )
-    : rotateHeadingFromManualInput(
-        state.rocket.heading,
-        input.turn,
-        elapsedControlSeconds,
-        turnRateDeg,
-      );
+  const { heading, autopilotActive } = resolveRocketHeading({
+    state,
+    input,
+    turnRateDeg,
+    timeStepSeconds,
+    controlTimeWarp,
+  });
   const directionReached =
     THREE.MathUtils.radToDeg(heading.angleTo(state.targetDirection)) <=
     GUIDANCE_ANGLE_TOLERANCE_DEG;

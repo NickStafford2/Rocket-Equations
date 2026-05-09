@@ -8,6 +8,7 @@ import {
 } from "./rocket-models";
 
 export interface RocketVisualLoadedPayload {
+  variant: RocketModelVariant;
   definition: RocketModelDefinition;
   bounds: THREE.Box3;
   center: THREE.Vector3;
@@ -73,6 +74,7 @@ export function createRocketVisual({
         const scaledSize = scaledBox.getSize(new THREE.Vector3());
         const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
         onLoaded?.({
+          variant,
           definition: ROCKET_RENDER_MODEL_DEFINITIONS[variant],
           bounds: scaledBox,
           center: scaledCenter,

@@ -12,6 +12,7 @@ import {
   type CameraRigTarget,
 } from "../three/camera-rig";
 import { findFocusableObject } from "./camera";
+import { getCameraClipPlanes } from "./camera-clip-planes";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
 
@@ -50,14 +51,6 @@ type MissionSceneRuntime = {
 };
 
 const MAX_REAL_FRAME_ELAPSED_SECONDS = 0.25;
-const DEFAULT_MIN_CAMERA_NEAR = 0.01;
-const CLOSE_ROCKET_MIN_CAMERA_NEAR = 0.00012;
-const MAX_CAMERA_NEAR = 4;
-const DEFAULT_CAMERA_NEAR_DISTANCE_FACTOR = 0.0015;
-const CLOSE_ROCKET_CAMERA_NEAR_DISTANCE_FACTOR = 0.08;
-const DEFAULT_CAMERA_FAR = 10000;
-const CLOSE_ROCKET_CAMERA_FAR = 5000;
-
 export function startMissionSceneRuntime({
   mount,
   simulation,
@@ -146,24 +139,11 @@ export function startMissionSceneRuntime({
   }
 
   function syncCameraClipPlanes() {
-    const followKey = cameraRigRef.current.follow?.key ?? null;
-    const lookKey = cameraRigRef.current.look?.key ?? null;
-    const closeRocketView = followKey === "rocket" || lookKey === "rocket";
-    const distanceToTarget = camera.position.distanceTo(controls.target);
-    const nearDistanceFactor = closeRocketView
-      ? CLOSE_ROCKET_CAMERA_NEAR_DISTANCE_FACTOR
-      : DEFAULT_CAMERA_NEAR_DISTANCE_FACTOR;
-    const minNear = closeRocketView
-      ? CLOSE_ROCKET_MIN_CAMERA_NEAR
-      : DEFAULT_MIN_CAMERA_NEAR;
-    const nextNear = THREE.MathUtils.clamp(
-      distanceToTarget * nearDistanceFactor,
-      minNear,
-      MAX_CAMERA_NEAR,
-    );
-    const nextFar = closeRocketView
-      ? CLOSE_ROCKET_CAMERA_FAR
-      : DEFAULT_CAMERA_FAR;
+    const { near: nextNear, far: nextFar } = getCameraClipPlanes({
+      followTarget: cameraRigRef.current.follow?.key ?? null,
+      lookTarget: cameraRigRef.current.look?.key ?? null,
+      distanceToTarget: camera.position.distanceTo(controls.target),
+    });
 
     if (
       Math.abs(camera.near - nextNear) <= 1e-6 &&
