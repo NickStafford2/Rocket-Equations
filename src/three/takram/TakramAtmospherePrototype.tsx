@@ -1,4 +1,4 @@
-import { Html, OrbitControls, Stars, useTexture } from "@react-three/drei";
+import { Html, OrbitControls, Stars } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
 import {
@@ -10,12 +10,10 @@ import {
 import { useEffect } from "react";
 import * as THREE from "three";
 
-import earthDay2kUrl from "../../assets/textures/earth/2k_earth_daymap.jpg";
 import { EARTH_RADIUS_METERS } from "./constants";
 import { EarthCloudLayer } from "./EarthCloudLayer";
+import { EarthSurface } from "./EarthSurface";
 
-const GROUND_ALTITUDE_METERS = 2_000;
-const LOW_ORBIT_ALTITUDE_METERS = 420_000;
 const FAR_SPACE_ALTITUDE_METERS = 20_000_000;
 const VERY_FAR_SPACE_ALTITUDE_METERS = 45_000_000;
 
@@ -82,26 +80,7 @@ export function TakramAtmospherePrototype({
         minDistance={EARTH_RADIUS_METERS + 20}
         maxDistance={EARTH_RADIUS_METERS + VERY_FAR_SPACE_ALTITUDE_METERS}
       />
-
-      <CameraButtons />
     </Canvas>
-  );
-}
-
-function EarthSurface() {
-  const dayTexture = useTexture(earthDay2kUrl);
-
-  useEffect(() => {
-    dayTexture.colorSpace = THREE.SRGBColorSpace;
-    dayTexture.anisotropy = 8;
-    dayTexture.needsUpdate = true;
-  }, [dayTexture]);
-
-  return (
-    <mesh>
-      <sphereGeometry args={[EARTH_RADIUS_METERS * 0.99, 256, 128]} />
-      <meshBasicMaterial map={dayTexture} />
-    </mesh>
   );
 }
 
@@ -126,161 +105,4 @@ function InitialCameraLookAt() {
   }, [camera]);
 
   return null;
-}
-
-function CameraButtons() {
-  const { camera, controls } = useThree();
-
-  function updateControlsTarget(target: THREE.Vector3) {
-    const orbitControls = controls as
-      | {
-          target?: THREE.Vector3;
-          update?: () => void;
-        }
-      | undefined;
-
-    orbitControls?.target?.copy(target);
-    orbitControls?.update?.();
-  }
-
-  function setSpaceCamera(altitudeMeters: number) {
-    camera.position.set(
-      EARTH_RADIUS_METERS + altitudeMeters,
-      EARTH_RADIUS_METERS * 0.5,
-      EARTH_RADIUS_METERS * 1.5,
-    );
-
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
-    updateControlsTarget(new THREE.Vector3(0, 0, 0));
-  }
-
-  function setOrbitCamera() {
-    camera.position.set(
-      EARTH_RADIUS_METERS + LOW_ORBIT_ALTITUDE_METERS,
-      EARTH_RADIUS_METERS * 0.08,
-      EARTH_RADIUS_METERS * 0.22,
-    );
-
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
-    updateControlsTarget(new THREE.Vector3(0, 0, 0));
-  }
-
-  function setHorizonCamera() {
-    const altitude = 35_000;
-
-    const cameraPosition = new THREE.Vector3(
-      EARTH_RADIUS_METERS + altitude,
-      0,
-      0,
-    );
-
-    const horizonLookTarget = new THREE.Vector3(
-      EARTH_RADIUS_METERS,
-      0,
-      EARTH_RADIUS_METERS * 0.18,
-    );
-
-    camera.position.copy(cameraPosition);
-    camera.lookAt(horizonLookTarget);
-    camera.updateProjectionMatrix();
-    updateControlsTarget(horizonLookTarget);
-  }
-
-  function setGroundCamera() {
-    const altitude = GROUND_ALTITUDE_METERS;
-
-    const cameraPosition = new THREE.Vector3(
-      EARTH_RADIUS_METERS + altitude,
-      0,
-      0,
-    );
-
-    const groundLookTarget = new THREE.Vector3(
-      EARTH_RADIUS_METERS,
-      0,
-      EARTH_RADIUS_METERS * 0.08,
-    );
-
-    camera.position.copy(cameraPosition);
-    camera.lookAt(groundLookTarget);
-    camera.updateProjectionMatrix();
-    updateControlsTarget(groundLookTarget);
-  }
-
-  function setSurfaceSkyCamera() {
-    const altitude = 20;
-
-    const cameraPosition = new THREE.Vector3(
-      EARTH_RADIUS_METERS + altitude,
-      0,
-      0,
-    );
-
-    const skyLookTarget = new THREE.Vector3(
-      EARTH_RADIUS_METERS + altitude + 100,
-      0,
-      5_000,
-    );
-
-    camera.position.copy(cameraPosition);
-    camera.lookAt(skyLookTarget);
-    camera.updateProjectionMatrix();
-    updateControlsTarget(skyLookTarget);
-  }
-
-  return (
-    <Html fullscreen>
-      <div className="pointer-events-auto absolute top-16 left-4 z-20 flex gap-2">
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={setSurfaceSkyCamera}
-          type="button"
-        >
-          Surface
-        </button>
-
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={setGroundCamera}
-          type="button"
-        >
-          Ground
-        </button>
-
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={setHorizonCamera}
-          type="button"
-        >
-          Horizon
-        </button>
-
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={setOrbitCamera}
-          type="button"
-        >
-          Orbit
-        </button>
-
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={() => setSpaceCamera(FAR_SPACE_ALTITUDE_METERS)}
-          type="button"
-        >
-          Space
-        </button>
-
-        <button
-          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
-          onClick={() => setSpaceCamera(VERY_FAR_SPACE_ALTITUDE_METERS)}
-          type="button"
-        >
-          Far
-        </button>
-      </div>
-    </Html>
-  );
 }
