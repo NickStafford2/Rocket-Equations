@@ -1,13 +1,13 @@
 import * as THREE from "three";
-import { normalizeFocusLabelToPreset } from "../mission";
-import type { CameraTarget } from "../mission";
+import { normalizeFocusLabelToPreset } from "../../mission";
+import type { CameraTarget } from "../../mission";
 import {
   createCameraRig,
   type CameraRigSelection,
   type CameraRigState,
   type CameraRigTarget,
-} from "../three/camera-rig";
-import type { CameraDebugState, CameraSelection } from "./types";
+} from "../../three/camera-rig";
+import type { CameraDebugState, CameraSelection } from "../types";
 
 export const OVERVIEW_CAMERA_POSITION = new THREE.Vector3(-840, 480, 840);
 export const OVERVIEW_CAMERA_TARGET = new THREE.Vector3(224, 0, 0);

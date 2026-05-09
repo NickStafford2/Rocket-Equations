@@ -1,7 +1,10 @@
 import type { MutableRefObject } from "react";
 import * as THREE from "three";
 import type { ManeuverInput } from "../physics/bodies";
-import type { EarthMoonSimulation, SimulationTelemetry } from "../sim/simulation";
+import type {
+  EarthMoonSimulation,
+  SimulationTelemetry,
+} from "../sim/simulation";
 import type { ThreeSceneBundle } from "../three/scene";
 import {
   updateCameraRig,
@@ -10,7 +13,7 @@ import {
   type CameraRigState,
   type CameraRigTarget,
 } from "../three/camera-rig";
-import { findFocusableObject } from "./camera";
+import { findFocusableObject } from "./camera/camera";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
 
@@ -139,7 +142,11 @@ export function startMissionSceneRuntime({
   }
 
   function startFrameLoop() {
-    if (disposed || document.visibilityState === "hidden" || animationFrameId !== null) {
+    if (
+      disposed ||
+      document.visibilityState === "hidden" ||
+      animationFrameId !== null
+    ) {
       return;
     }
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import CameraControls from "camera-controls";
 import type { CameraTarget } from "../mission";
-import { getCameraClipPlanes } from "../mission-scene/camera-clip-planes";
+import { getCameraClipPlanes } from "../mission-scene/camera/camera-clip-planes";
 
 CameraControls.install({ THREE });
 
@@ -13,10 +13,7 @@ export type MissionCameraController = {
   ) => () => void;
   dispose: () => void;
   getDistanceToTarget: () => number;
-  getTarget: (
-    out: THREE.Vector3,
-    receiveEndValue?: boolean,
-  ) => THREE.Vector3;
+  getTarget: (out: THREE.Vector3, receiveEndValue?: boolean) => THREE.Vector3;
   setLookAt: (
     positionX: number,
     positionY: number,

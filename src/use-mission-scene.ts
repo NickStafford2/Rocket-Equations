@@ -17,7 +17,7 @@ import {
   findFocusableByPreset,
   getFocusLabel,
   toCameraSelection,
-} from "./mission-scene/camera";
+} from "./mission-scene/camera/camera";
 import { startMissionSceneRuntime } from "./mission-scene/runtime";
 import type {
   CameraDebugState,
@@ -48,7 +48,9 @@ export function useMissionScene({
   preventMoonCameraIntersection,
 }: UseMissionSceneParams) {
   const bundleRef = useRef<ThreeSceneBundle | null>(null);
-  const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(null);
+  const runtimeRef = useRef<ReturnType<typeof startMissionSceneRuntime> | null>(
+    null,
+  );
   const cameraRigRef = useRef<CameraRigState>(createInitialCameraRig());
   const showTrailRef = useRef(showTrail);
   const showPredictionRef = useRef(showPrediction);

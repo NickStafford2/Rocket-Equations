@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { CameraTarget } from "../mission";
+import type { CameraTarget } from "../../mission";
 
 const DEFAULT_MIN_CAMERA_NEAR = 0.01;
 const CLOSE_ROCKET_MIN_CAMERA_NEAR = 0.00012;
