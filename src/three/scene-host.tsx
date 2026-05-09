@@ -1,11 +1,8 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { createMissionCameraController } from "./camera-controller";
-import {
-  createThreeSceneBundle,
-  type ThreeSceneBundle,
-} from "./scene";
+import { createMissionCameraController } from "../mission-scene/camera/camera-controller";
+import { createThreeSceneBundle, type ThreeSceneBundle } from "./scene";
 
 type MissionSceneCanvasProps = {
   className?: string;

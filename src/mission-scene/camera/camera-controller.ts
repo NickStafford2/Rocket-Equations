@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import CameraControls from "camera-controls";
-import type { CameraTarget } from "../mission";
-import { getCameraClipPlanes } from "../mission-scene/camera/camera-clip-planes";
+import type { CameraTarget } from "../../mission";
+import { getCameraClipPlanes } from "./camera-clip-planes";
 
 CameraControls.install({ THREE });
 

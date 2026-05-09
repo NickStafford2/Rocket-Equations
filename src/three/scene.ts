@@ -3,7 +3,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import type { MissionCameraController } from "./camera-controller";
+import type { MissionCameraController } from "../mission-scene/camera/camera-controller";
 import { createSceneObjects } from "./objects";
 import { createOrientationIndicator } from "./orientation-indicator";
 import { createVectorIndicator } from "./orientation-indicator";
