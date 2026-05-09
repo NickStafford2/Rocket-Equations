@@ -1,13 +1,17 @@
-import { Html, OrbitControls, Stars } from "@react-three/drei";
+import { Html, OrbitControls, Stars, useTexture } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { EffectComposer } from "@react-three/postprocessing";
 import {
   AerialPerspective,
   Atmosphere,
+  LightingMask,
   Sky,
 } from "@takram/three-atmosphere/r3f";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import * as THREE from "three";
+
+import earthClouds2kUrl from "../../assets/textures/earth/2k_earth_clouds.jpg";
+import earthDay2kUrl from "../../assets/textures/earth/2k_earth_daymap.jpg";
 
 const EARTH_RADIUS_METERS = 6_378_137;
 
@@ -16,40 +20,13 @@ const LOW_ORBIT_ALTITUDE_METERS = 420_000;
 const FAR_SPACE_ALTITUDE_METERS = 20_000_000;
 const VERY_FAR_SPACE_ALTITUDE_METERS = 45_000_000;
 
+const CLOUD_ALTITUDE_METERS = 12_000;
+
 const TEST_DATE = new Date("2026-06-21T16:00:00Z");
 
 type TakramAtmospherePrototypeProps = {
   className?: string;
 };
-import { createEarthObjects } from "../objects/earth/earth";
-import { EARTH_RENDER_RADIUS_SCENE_UNITS } from "../objects/constants";
-
-function ImportedProjectEarth() {
-  const earthBundle = useMemo(() => {
-    const loader = new THREE.TextureLoader();
-    return createEarthObjects(loader);
-  }, []);
-
-  useEffect(() => {
-    // Hide your existing atmosphere layers so Takram can be judged clearly.
-    earthBundle.earthAtmosphere.visible = false;
-    earthBundle.earthFresnel.visible = false;
-
-    // Optional: hide your current cloud texture shell at first.
-    // Turn this back on later to see how it combines with Takram.
-    earthBundle.earthCloudsFrame.visible = false;
-
-    // Important: avoid drawing duplicate Earth surfaces.
-    // Your earth.ts currently adds both the far renderer and near renderer.
-    // For the prototype, pick one surface. Start with near.
-    earthBundle.renderers.far.root.visible = false;
-    earthBundle.renderers.nearAtmosphere.root.visible = true;
-  }, [earthBundle]);
-
-  const scale = (EARTH_RADIUS_METERS / EARTH_RENDER_RADIUS_SCENE_UNITS) * 0.99;
-
-  return <primitive object={earthBundle.earthGroup} scale={scale} />;
-}
 
 export function TakramAtmospherePrototype({
   className,
@@ -77,6 +54,7 @@ export function TakramAtmospherePrototype({
       <InitialCameraLookAt />
 
       <color attach="background" args={["#000000"]} />
+
       <Stars
         radius={90_000_000}
         depth={20_000_000}
@@ -89,10 +67,12 @@ export function TakramAtmospherePrototype({
 
       <Atmosphere date={TEST_DATE}>
         <Sky />
-        <ImportedProjectEarth />
-        {/* <EarthTestSphere /> */}
+
+        <EarthSurface />
+        {/* <EarthCloudLayer /> */}
 
         <EffectComposer enableNormalPass>
+          <LightingMask selectionLayer={10} />
           <AerialPerspective sunLight skyLight />
         </EffectComposer>
       </Atmosphere>
@@ -102,12 +82,53 @@ export function TakramAtmospherePrototype({
         enableDamping
         dampingFactor={0.08}
         target={[0, 0, 0]}
-        minDistance={EARTH_RADIUS_METERS + GROUND_ALTITUDE_METERS}
+        minDistance={EARTH_RADIUS_METERS + 20}
         maxDistance={EARTH_RADIUS_METERS + VERY_FAR_SPACE_ALTITUDE_METERS}
       />
 
       <CameraButtons />
     </Canvas>
+  );
+}
+
+function EarthSurface() {
+  const dayTexture = useTexture(earthDay2kUrl);
+
+  useEffect(() => {
+    dayTexture.colorSpace = THREE.SRGBColorSpace;
+    dayTexture.anisotropy = 8;
+    dayTexture.needsUpdate = true;
+  }, [dayTexture]);
+
+  return (
+    <mesh>
+      <sphereGeometry args={[EARTH_RADIUS_METERS * 0.99, 256, 128]} />
+      <meshBasicMaterial map={dayTexture} />
+    </mesh>
+  );
+}
+
+function EarthCloudLayer() {
+  const cloudTexture = useTexture(earthClouds2kUrl);
+
+  useEffect(() => {
+    cloudTexture.colorSpace = THREE.SRGBColorSpace;
+    cloudTexture.anisotropy = 8;
+    cloudTexture.needsUpdate = true;
+  }, [cloudTexture]);
+
+  return (
+    <mesh>
+      <sphereGeometry
+        args={[EARTH_RADIUS_METERS + CLOUD_ALTITUDE_METERS, 256, 128]}
+      />
+      <meshBasicMaterial
+        map={cloudTexture}
+        transparent
+        opacity={0.55}
+        depthWrite={false}
+      />
+    </mesh>
   );
 }
 
@@ -132,15 +153,6 @@ function InitialCameraLookAt() {
   }, [camera]);
 
   return null;
-}
-
-function EarthTestSphere() {
-  return (
-    <mesh>
-      <sphereGeometry args={[EARTH_RADIUS_METERS, 160, 160]} />
-      <meshBasicMaterial color={new THREE.Color("#2b78a0")} />
-    </mesh>
-  );
 }
 
 function CameraButtons() {
@@ -184,6 +196,7 @@ function CameraButtons() {
 
   function setHorizonCamera() {
     const altitude = 35_000;
+
     const cameraPosition = new THREE.Vector3(
       EARTH_RADIUS_METERS + altitude,
       0,
@@ -204,6 +217,7 @@ function CameraButtons() {
 
   function setGroundCamera() {
     const altitude = GROUND_ALTITUDE_METERS;
+
     const cameraPosition = new THREE.Vector3(
       EARTH_RADIUS_METERS + altitude,
       0,
@@ -222,9 +236,38 @@ function CameraButtons() {
     updateControlsTarget(groundLookTarget);
   }
 
+  function setSurfaceSkyCamera() {
+    const altitude = 20;
+
+    const cameraPosition = new THREE.Vector3(
+      EARTH_RADIUS_METERS + altitude,
+      0,
+      0,
+    );
+
+    const skyLookTarget = new THREE.Vector3(
+      EARTH_RADIUS_METERS + altitude + 100,
+      0,
+      5_000,
+    );
+
+    camera.position.copy(cameraPosition);
+    camera.lookAt(skyLookTarget);
+    camera.updateProjectionMatrix();
+    updateControlsTarget(skyLookTarget);
+  }
+
   return (
     <Html fullscreen>
       <div className="pointer-events-auto absolute top-16 left-4 z-20 flex gap-2">
+        <button
+          className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
+          onClick={setSurfaceSkyCamera}
+          type="button"
+        >
+          Surface
+        </button>
+
         <button
           className="rounded bg-slate-900/80 px-3 py-2 text-sm text-white"
           onClick={setGroundCamera}
