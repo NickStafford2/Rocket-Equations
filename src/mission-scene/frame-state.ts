@@ -39,9 +39,6 @@ export function createFrameState({
   const simState = simulation.getState();
   const telemetry = simulation.getTelemetry();
   const launchFrame = simulation.getLaunchFrame();
-  const renderSpace = createRenderSpaceContext({
-    moonPositionMeters: telemetry.moonPosition,
-  });
   const launchAltitudeMeters = Math.max(launchFrame.position.length() - R_EARTH, 0);
   const previewState = makeInitialRocketState(
     launchSpeed,
@@ -49,6 +46,14 @@ export function createFrameState({
     launchAzimuthDeg,
     launchAltitudeMeters,
   );
+  const stagedLaunchPreviewVisible =
+    !running && simState.t === 0 && !simState.impact;
+  const renderSpace = createRenderSpaceContext({
+    focusPositionMeters: stagedLaunchPreviewVisible
+      ? previewState.position
+      : simState.rocket.position,
+    moonPositionMeters: telemetry.moonPosition,
+  });
   const normalizedLaunchSpeed = THREE.MathUtils.clamp(
     (launchSpeed - MIN_PREVIEW_SPEED_METERS_PER_SECOND) /
       (MAX_PREVIEW_SPEED_METERS_PER_SECOND -
@@ -69,7 +74,6 @@ export function createFrameState({
       MAX_AIM_ARROW_LENGTH,
       normalizedLaunchSpeed,
     ),
-    stagedLaunchPreviewVisible:
-      !running && simState.t === 0 && !simState.impact,
+    stagedLaunchPreviewVisible,
   };
 }
