@@ -16,6 +16,7 @@ import { updateCameraRig } from "./camera/camera-update";
 import type { CameraRigState, CameraRigTarget } from "./camera/camera-types";
 import type { CameraDebugState } from "./types";
 import { syncMissionScene } from "./sync-scene";
+import { pickCameraFocusTarget } from "./camera/camera-picking";
 
 type StartMissionSceneRuntimeParams = {
   mount: HTMLDivElement;
@@ -94,19 +95,16 @@ export function startMissionSceneRuntime({
   previousTrailLengthRef.current = 0;
 
   function onDoubleClick(event: MouseEvent) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    const focusable = pickCameraFocusTarget({
+      event,
+      camera,
+      scene,
+      domElement: renderer.domElement,
+      raycaster,
+    });
 
-    raycaster.setFromCamera(pointer, camera);
-    const intersections = raycaster.intersectObjects(scene.children, true);
-
-    for (const hit of intersections) {
-      const focusable = findFocusableObject(hit.object);
-      if (focusable) {
-        onFollowSelection(focusable);
-        return;
-      }
+    if (focusable) {
+      onFollowSelection(focusable);
     }
   }
 
