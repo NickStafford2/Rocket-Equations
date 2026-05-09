@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { normalizeFocusLabelToPreset } from "../../mission";
-import type { CameraTarget } from "../../mission";
-import type { CameraRigTarget } from "./camera-state";
+import { normalizeFocusLabelToPreset, type CameraTarget } from "../../mission";
+import type { CameraRigTarget } from "./camera-types";
 
 export function getFocusLabel(object: THREE.Object3D): string {
   return String(object.userData.focusLabel ?? "target");

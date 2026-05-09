@@ -11,12 +11,11 @@ import {
   updateCameraRig,
   updateFromControlsChange,
   updateFromControlsStart,
-  type CameraRigState,
-  type CameraRigTarget,
 } from "./camera/camera-state";
 import { findFocusableObject } from "./camera/camera-target";
 import { syncMissionScene } from "./sync-scene";
 import type { CameraDebugState } from "./types";
+import type { CameraRigState, CameraRigTarget } from "./camera/camera-types";
 
 type StartMissionSceneRuntimeParams = {
   mount: HTMLDivElement;

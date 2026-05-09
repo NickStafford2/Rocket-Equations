@@ -1,4 +1,4 @@
-import type { CameraRigState, CameraRigTarget } from "./camera-state";
+import type { CameraRigState, CameraRigTarget } from "./camera-types";
 
 export function getTargetLabel(target: CameraRigTarget): string {
   return String(target.object.userData.focusLabel ?? target.key);
