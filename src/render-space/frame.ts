@@ -8,14 +8,21 @@ import {
 export type RenderSpaceAnchor = "earth" | "moon";
 export type RenderSpaceMode = "earth-local" | "moon-local" | "deep-space";
 export type RenderSpacePolicy = "focus-position";
+export type RenderSpaceProjection =
+  | "body-surface-scaled"
+  | "origin-rebased-linear";
 
 export type RenderSpaceContext = {
   mode: RenderSpaceMode;
   policy: RenderSpacePolicy;
+  projection: RenderSpaceProjection;
   anchor: RenderSpaceAnchor;
+  originMeters: THREE.Vector3;
   focusPositionMeters: THREE.Vector3;
   moonPositionMeters: THREE.Vector3 | null;
 };
+
+const EARTH_CENTER_METERS = new THREE.Vector3();
 
 const EARTH_LOCAL_MAX_ALTITUDE_METERS = R_EARTH * 12;
 const MOON_LOCAL_MAX_ALTITUDE_METERS = EARTH_MOON_DISTANCE * 0.08;
@@ -30,11 +37,24 @@ export function createRenderSpaceContext({
   const nextMoonPosition = moonPositionMeters?.clone() ?? null;
   const nextFocusPosition = focusPositionMeters.clone();
   const mode = selectRenderSpaceMode(nextFocusPosition, nextMoonPosition);
+  const anchor = selectRenderSpaceAnchor(
+    mode,
+    nextFocusPosition,
+    nextMoonPosition,
+  );
+  const projection = selectRenderSpaceProjection(mode);
 
   return {
     mode,
     policy: "focus-position",
-    anchor: selectRenderSpaceAnchor(mode, nextFocusPosition, nextMoonPosition),
+    projection,
+    anchor,
+    originMeters: getRenderOriginMeters({
+      mode,
+      anchor,
+      focusPositionMeters: nextFocusPosition,
+      moonPositionMeters: nextMoonPosition,
+    }),
     focusPositionMeters: nextFocusPosition,
     moonPositionMeters: nextMoonPosition,
   };
@@ -78,4 +98,34 @@ export function selectRenderSpaceAnchor(
   const altitudeEarth = focusPositionMeters.length() - R_EARTH;
   const altitudeMoon = focusPositionMeters.distanceTo(moonPositionMeters) - R_MOON;
   return altitudeMoon < altitudeEarth ? "moon" : "earth";
+}
+
+export function selectRenderSpaceProjection(
+  mode: RenderSpaceMode,
+): RenderSpaceProjection {
+  return mode === "deep-space"
+    ? "origin-rebased-linear"
+    : "body-surface-scaled";
+}
+
+function getRenderOriginMeters({
+  mode,
+  anchor,
+  focusPositionMeters,
+  moonPositionMeters,
+}: {
+  mode: RenderSpaceMode;
+  anchor: RenderSpaceAnchor;
+  focusPositionMeters: THREE.Vector3;
+  moonPositionMeters: THREE.Vector3 | null;
+}): THREE.Vector3 {
+  if (mode === "deep-space") {
+    return focusPositionMeters.clone();
+  }
+
+  if (anchor === "moon" && moonPositionMeters) {
+    return moonPositionMeters.clone();
+  }
+
+  return EARTH_CENTER_METERS.clone();
 }

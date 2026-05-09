@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { EARTH_MOON_DISTANCE } from "../../../physics/bodies";
+import type { RenderSpaceContext } from "../../../render-space/frame";
+import { copyRenderPositionFromMeters } from "../../../render-space/scene-position";
 import moonTextureUrl from "../../../assets/Nasa Moon/moon_color.png";
 import moonNormalUrl from "../../../assets/Nasa Moon/moon_normal_clean2.png";
 import {
@@ -89,11 +91,17 @@ export function createMoonObjects(loader: THREE.TextureLoader) {
 export function syncMoonVisual(
   moon: THREE.Mesh,
   moonPositionMeters: THREE.Vector3,
+  renderSpace?: RenderSpaceContext,
+  earthRenderPosition: THREE.Vector3 = MOON_WORLD_ORIGIN,
 ) {
-  moon.position
-    .copy(moonPositionMeters)
-    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
+  if (renderSpace) {
+    copyRenderPositionFromMeters(moon.position, renderSpace, moonPositionMeters);
+  } else {
+    moon.position
+      .copy(moonPositionMeters)
+      .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
+  }
 
-  moon.lookAt(MOON_WORLD_ORIGIN);
+  moon.lookAt(earthRenderPosition);
   moon.quaternion.multiply(MOON_TEXTURE_ALIGNMENT);
 }

@@ -18,6 +18,7 @@ type BodyRenderFrame = {
 
 const EARTH_CENTER_METERS = new THREE.Vector3();
 const BODY_RELATIVE_POSITION = new THREE.Vector3();
+const LINEAR_RELATIVE_POSITION = new THREE.Vector3();
 const SCENE_POSITION = new THREE.Vector3();
 
 export function getRenderSpaceAnchorForPosition(
@@ -31,6 +32,14 @@ export function copyRenderPositionFromMeters(
   renderSpace: RenderSpaceContext,
   positionMeters: THREE.Vector3,
 ): THREE.Vector3 {
+  if (renderSpace.projection === "origin-rebased-linear") {
+    return copyLinearRenderPositionFromMeters(
+      target,
+      renderSpace.originMeters,
+      positionMeters,
+    );
+  }
+
   return copyBodySurfaceScaledPosition(
     target,
     positionMeters,
@@ -66,6 +75,18 @@ function getBodyRenderFrame(renderSpace: RenderSpaceContext): BodyRenderFrame {
     radiusMeters: R_EARTH,
     renderRadiusSceneUnits: EARTH_RENDER_RADIUS_SCENE_UNITS,
   };
+}
+
+function copyLinearRenderPositionFromMeters(
+  target: THREE.Vector3,
+  originMeters: THREE.Vector3,
+  worldPositionMeters: THREE.Vector3,
+): THREE.Vector3 {
+  return target
+    .copy(
+      LINEAR_RELATIVE_POSITION.copy(worldPositionMeters).sub(originMeters),
+    )
+    .multiplyScalar(ORBIT_METERS_TO_SCENE_UNITS);
 }
 
 function copyBodySurfaceScaledPosition(
