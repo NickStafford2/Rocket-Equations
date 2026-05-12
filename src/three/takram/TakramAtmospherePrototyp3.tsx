@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, ScreenQuad } from "@react-three/drei";
 import {
   EffectComposer,
   EffectPass,
@@ -17,7 +17,6 @@ import {
   MeshPhysicalMaterial,
   NoToneMapping,
   PCFSoftShadowMap,
-  PlaneGeometry,
   Timer,
   TorusKnotGeometry,
   Vector3,
@@ -38,6 +37,7 @@ import {
   DitheringEffect,
   LensFlareEffect,
 } from "@takram/three-geospatial-effects";
+import { EarthCloudLayer } from "./EarthCloudLayer";
 import { EarthSurface } from "./EarthSurface";
 
 const referenceDate = new Date("2000-06-01T10:00:00Z");
@@ -45,6 +45,11 @@ const referenceDate = new Date("2000-06-01T10:00:00Z");
 const geodetic = new Geodetic(0, radians(67), 1000);
 const position = geodetic.toECEF();
 const up = Ellipsoid.WGS84.getSurfaceNormal(position);
+const CAMERA_ALTITUDE_METERS = 1_200_000;
+const CAMERA_FAR_METERS = 20_000_000;
+const CAMERA_POSITION = position
+  .clone()
+  .add(up.clone().multiplyScalar(CAMERA_ALTITUDE_METERS));
 
 function TakramAtmosphereScene() {
   const { gl, scene, camera, size } = useThree();
@@ -114,13 +119,12 @@ function TakramAtmosphereScene() {
     [],
   );
 
-  const skyGeometry = useMemo(() => new PlaneGeometry(2, 2), []);
-
   useEffect(() => {
-    camera.position.copy(position);
+    camera.position.copy(CAMERA_POSITION);
     camera.up.copy(up);
+    camera.lookAt(0, 0, 0);
     camera.near = 10;
-    camera.far = 1e6;
+    camera.far = CAMERA_FAR_METERS;
     camera.updateProjectionMatrix();
   }, [camera]);
 
@@ -179,12 +183,11 @@ function TakramAtmosphereScene() {
 
   useEffect(() => {
     return () => {
-      skyGeometry.dispose();
       skyMaterial.dispose();
       torusGeometry.dispose();
       torusMaterial.dispose();
     };
-  }, [skyGeometry, skyMaterial, torusGeometry, torusMaterial]);
+  }, [skyMaterial, torusGeometry, torusMaterial]);
 
   useFrame((_, delta) => {
     const composer = composerRef.current;
@@ -222,7 +225,12 @@ function TakramAtmosphereScene() {
 
   return (
     <>
+      <ScreenQuad frustumCulled={false} renderOrder={-1000}>
+        <primitive object={skyMaterial} />
+      </ScreenQuad>
+
       <EarthSurface />
+      <EarthCloudLayer />
 
       <primitive object={sunLight} />
       <primitive object={sunLight.target} />
@@ -235,15 +243,10 @@ function TakramAtmosphereScene() {
           receiveShadow
         />
       </primitive>
-      <mesh
-        geometry={skyGeometry}
-        material={skyMaterial}
-        frustumCulled={false}
-      />
       <OrbitControls
         enableDamping
         minDistance={1000}
-        target={position}
+        target={[0, 0, 0]}
         makeDefault
       />
     </>
@@ -262,13 +265,12 @@ export function TakramAtmospherePrototype({
       <Canvas
         shadows
         gl={{
-          depth: false,
           logarithmicDepthBuffer: true,
         }}
         camera={{
           fov: 75,
           near: 10,
-          far: 1e6,
+          far: CAMERA_FAR_METERS,
         }}
       >
         <TakramAtmosphereScene />
