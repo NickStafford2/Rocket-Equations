@@ -122,6 +122,7 @@ export default function App() {
         cameraDebug={cameraDebug}
         earthLodDebug={earthLodDebug}
         running={running}
+        elapsedMissionHours={telemetry.hours}
         elapsedMissionTime={formatElapsed(telemetry.hours)}
         currentSpeed={formatSpeed(telemetry.speed)}
         moonRelativeSpeed={formatRelativeSpeed(telemetry.relativeMoonSpeed)}

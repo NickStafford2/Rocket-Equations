@@ -30,6 +30,7 @@ export type SceneHudProps = {
   cameraDebug: CameraDebugProps;
   earthLodDebug: string;
   running: boolean;
+  elapsedMissionHours: number;
   elapsedMissionTime: string;
   currentSpeed: string;
   moonRelativeSpeed: string;

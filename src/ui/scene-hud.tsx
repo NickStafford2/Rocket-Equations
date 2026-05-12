@@ -3,6 +3,7 @@ import { CameraSelectionPanel } from "./scene-hud/CameraSelectionPanel";
 import { ControlPad } from "./scene-hud/ControlPad";
 import { MissionOverview } from "./scene-hud/MissionOverview";
 import { SettingsPanel } from "./scene-hud/SettingsPanel";
+import { TimeWarpClock } from "./scene-hud/TimeWarpClock";
 import type { SceneHudProps } from "./scene-hud/types";
 
 export function SceneHud({
@@ -12,6 +13,7 @@ export function SceneHud({
   cameraDebug,
   earthLodDebug,
   running,
+  elapsedMissionHours,
   elapsedMissionTime,
   currentSpeed,
   moonRelativeSpeed,
@@ -58,7 +60,12 @@ export function SceneHud({
             moonAltitude={moonAltitude}
             status={status}
           />
-          <div className="flex min-h-0 shrink-0 flex-col overflow-hidden">
+          <div className="flex min-h-0 shrink-0 flex-col gap-3 overflow-hidden">
+            <TimeWarpClock
+              elapsedMissionHours={elapsedMissionHours}
+              timeWarp={timeWarp}
+              running={running}
+            />
             <SettingsPanel
               launchSpeed={launchSpeed}
               launchAngleDeg={launchAngleDeg}
@@ -81,7 +88,7 @@ export function SceneHud({
               }
               onToggleThrustDirectionArrow={onToggleThrustDirectionArrow}
             />
-            <div className="pointer-events-none mt-3 min-w-[210px] rounded-[1.2rem] border border-white/12 bg-[#07111f]/28 px-3 py-2.5 text-xs text-slate-300 shadow-[0_16px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">
+            <div className="pointer-events-none min-w-[210px] rounded-[1.2rem] border border-white/12 bg-[#07111f]/28 px-3 py-2.5 text-xs text-slate-300 shadow-[0_16px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">
               <div className="tracking-[0.18em] text-[0.68rem] text-slate-400 uppercase">
                 Earth LOD
               </div>
