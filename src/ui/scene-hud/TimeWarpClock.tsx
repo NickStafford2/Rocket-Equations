@@ -129,7 +129,7 @@ export const TimeWarpClock = memo(function TimeWarpClock({
 
           <line
             x1={CLOCK_CENTER}
-            y1={CLOCK_CENTER + 9}
+            y1={CLOCK_CENTER}
             x2={hourHand.x}
             y2={hourHand.y}
             stroke={hourHand.color}
@@ -138,7 +138,7 @@ export const TimeWarpClock = memo(function TimeWarpClock({
           />
           <line
             x1={CLOCK_CENTER}
-            y1={CLOCK_CENTER + 11}
+            y1={CLOCK_CENTER}
             x2={minuteHand.x}
             y2={minuteHand.y}
             stroke={minuteHand.color}
@@ -147,7 +147,7 @@ export const TimeWarpClock = memo(function TimeWarpClock({
           />
           <line
             x1={CLOCK_CENTER}
-            y1={CLOCK_CENTER + 14}
+            y1={CLOCK_CENTER}
             x2={secondHand.x}
             y2={secondHand.y}
             stroke={secondHand.color}
